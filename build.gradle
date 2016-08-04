@@ -2,13 +2,36 @@ group 'org.apache.kafka'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'distribution'
 
-sourceCompatibility = 1.5
+defaultTasks 'clean', 'run'
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'org.apache.kafka:connect-api:0.10.+'
+    testCompile 'junit:junit:4.12'
+}
+
+tasks.withType(Tar) {
+    compression = Compression.GZIP
+}
+
+distributions {
+    custom {
+        contents {
+            from jar
+        }
+    }
+    main {
+        contents {
+            from jar
+        }
+    }
+}
+
+customDistTar {
+    compression = Compression.GZIP
 }
