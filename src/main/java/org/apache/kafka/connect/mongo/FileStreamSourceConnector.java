@@ -31,6 +31,9 @@ public class FileStreamSourceConnector extends SourceConnector {
     public void start(Map<String, String> props) {
         filename = props.get(FILE);
         topic = props.get(TOPIC);
+        if (filename == null || filename.isEmpty()) {
+            throw new ConnectException("FileStreamSourceConnector configuration must include 'topic' setting");
+        }
         if (topic == null || topic.isEmpty()) {
             throw new ConnectException("FileStreamSourceConnector configuration must include 'topic' setting");
         }
