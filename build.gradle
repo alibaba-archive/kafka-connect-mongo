@@ -26,18 +26,9 @@ tasks.withType(Tar) {
 }
 
 distributions {
-    custom {
-        contents {
-            from jar
-        }
-    }
     main {
         contents {
             from jar
         }
     }
-}
-
-customDistTar {
-    compression = Compression.GZIP
 }
