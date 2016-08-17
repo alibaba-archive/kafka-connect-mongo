@@ -4,7 +4,7 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'distribution'
 
-defaultTasks 'clean', 'run'
+defaultTasks 'clean', 'assembleDist'
 
 repositories {
     jcenter()
@@ -29,6 +29,12 @@ distributions {
     main {
         contents {
             from jar
+            into('etc') {
+                from 'etc/'
+            }
+            into('lib') {
+                from project.configurations.runtime
+            }
         }
     }
 }
