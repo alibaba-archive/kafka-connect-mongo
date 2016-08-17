@@ -1,5 +1,6 @@
 package org.apache.kafka.connect.mongo;
 
+import com.sun.deploy.util.StringUtils;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.utils.AppInfoParser;
 import org.apache.kafka.connect.connector.Task;
@@ -22,14 +23,14 @@ public class MongoSourceConnector extends SourceConnector{
     public static final String PORT_CONFIG = "port";
     public static final String BATCH_SIZE_CONFIG = "batch.size";
     public static final String TOPIC_PREFIX_CONFIG = "topic.prefix";
-    public static final String COLLECTIONS_CONFIG = "collections";
+    public static final String SCHEMA_NAME_CONFIG = "schema.name";
 
     private String databases;
     private String host;
     private String port;
     private String batchSize;
     private String topicPrefix;
-    private String collections;
+    private String schemaName;
 
     @Override
     public String version() {
@@ -43,8 +44,8 @@ public class MongoSourceConnector extends SourceConnector{
         databases = getRequiredProp(props, DATABASES_CONFIG);
         batchSize = getRequiredProp(props, BATCH_SIZE_CONFIG);
         host = getRequiredProp(props, HOST_CONFIG);
-        collections = getRequiredProp(props, COLLECTIONS_CONFIG);
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG);
+        schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG);
 
         log.trace("Configurations {}", props);
     }
@@ -60,14 +61,15 @@ public class MongoSourceConnector extends SourceConnector{
         List<String> dbs = Arrays.asList(databases.split(","));
         int numGroups = Math.min(dbs.size(), maxTasks);
         List<List<String>> dbsGrouped = ConnectorUtils.groupPartitions(dbs, numGroups);
+
         for (int i = 0; i < numGroups; i++) {
             Map<String, String> config = new HashMap<>();
             config.put(PORT_CONFIG, port);
             config.put(HOST_CONFIG, host);
-            config.put(DATABASES_CONFIG, databases);
-            config.put(COLLECTIONS_CONFIG, collections);
+            config.put(DATABASES_CONFIG, StringUtils.join(dbsGrouped.get(i), ","));
             config.put(BATCH_SIZE_CONFIG, batchSize);
             config.put(TOPIC_PREFIX_CONFIG, topicPrefix);
+            config.put(SCHEMA_NAME_CONFIG, schemaName);
             configs.add(config);
         }
         return configs;
