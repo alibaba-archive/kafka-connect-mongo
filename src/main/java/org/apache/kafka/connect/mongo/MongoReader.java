@@ -20,31 +20,34 @@ public class MongoReader {
     private String host;
     private Integer port;
     private List<String> dbs;
-    private Map<String, String> start;
+    private Map<Map<String, String>, Map<String, Object>> offsets;
 
     ConcurrentLinkedQueue<Document> messages;
 
     public MongoReader(String host,
                        Integer port,
                        List<String> dbs,
-                       Map<String, String> start) {
+                       Map<Map<String, String>, Map<String, Object>> offsets) {
         this.host = host;
         this.port = port;
         this.dbs = dbs;
-        this.start = start;
+        this.offsets = offsets;
         this.messages = new ConcurrentLinkedQueue<>();
     }
 
     public void run() {
         for (String db: dbs) {
-            String timeOffset = this.start.get(db);
-            if (timeOffset == null) timeOffset = "0.0";
+            String start = "0.0";
+            Map<String, Object> timeOffset = this.offsets.get(
+                    MongoSourceTask.getPartition(db)
+            );
+            if (!(timeOffset == null || timeOffset.isEmpty())) start = (String) timeOffset.get(db);
             log.trace("Starting database reader with configuration: ");
             log.trace("host: {}", host);
             log.trace("port: {}", port);
             log.trace("db: {}", db);
             log.trace("start: {}", timeOffset);
-            DatabaseReader reader = new DatabaseReader(host, port, db, timeOffset, messages);
+            DatabaseReader reader = new DatabaseReader(host, port, db, start, messages);
             new Thread(reader).start();
         }
     }

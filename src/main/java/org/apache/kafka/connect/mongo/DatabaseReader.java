@@ -89,8 +89,8 @@ public class DatabaseReader implements Runnable {
     }
 
     private Bson createQuery() {
-        Long timestamp = Long.parseLong(start.split(".")[0]);
-        Long inc = Long.parseLong(start.split(".")[1]);
+        Long timestamp = Long.parseLong(start.split(",")[0]);
+        Long inc = Long.parseLong(start.split(",")[1]);
 
         query = Filters.and(
                 Filters.exists("fromMigrate", false),

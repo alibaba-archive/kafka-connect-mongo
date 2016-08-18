@@ -2,16 +2,17 @@ package org.apache.kafka.connect.mongo;
 
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
+import org.bson.BsonTimestamp;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Xu Jingxin on 16/8/3.
@@ -26,6 +27,9 @@ public class MongoSourceTask extends SourceTask{
     private String topicPrefix;
     private List<String> databases;
     private static Map<String, Schema> schemas;
+
+    private MongoReader reader;
+    private Map<Map<String, String>, Map<String, Object>> offsets;
 
     @Override
     public String version() {
@@ -61,11 +65,11 @@ public class MongoSourceTask extends SourceTask{
         if (schemas == null) schemas = new HashMap<>();
 
         for (String db : databases) {
-            db = db.replaceAll("[\\s.]", "_");
             schemas.putIfAbsent(db, SchemaBuilder
                     .struct()
                     .name(schemaName.concat("_").concat(db))
                     .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
+                    .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
                     .field("id", Schema.OPTIONAL_STRING_SCHEMA)
                     .field("database", Schema.OPTIONAL_STRING_SCHEMA)
                     .field("object", Schema.OPTIONAL_STRING_SCHEMA)
@@ -73,15 +77,72 @@ public class MongoSourceTask extends SourceTask{
             );
         }
 
+        loadOffsets();
+        reader = new MongoReader(host, port, databases, offsets);
+        reader.run();
     }
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
+        List<SourceRecord> records = new ArrayList<>();
+        while (!reader.messages.isEmpty() && records.size() < batchSize) {
+            Document message = reader.messages.poll();
+            Struct messageStruct = getStruct(message);
+            records.add(new SourceRecord(
+                    getPartition(getDB(message)),
+                    getOffset(message),
+                    getTopic(message),
+                    getStruct(message).schema(),
+                    messageStruct
+            ));
+            log.trace(message.toString());
+        }
         return null;
     }
 
     @Override
     public void stop() {
 
+    }
+
+    public static Map<String, String> getPartition(String db) {
+        return Collections.singletonMap("mongo", db);
+    }
+
+    private Map<String, String> getOffset(Document message) {
+        BsonTimestamp timestamp = (BsonTimestamp) message.get("ts");
+        String offsetVal = String.valueOf(timestamp.getTime()) + "," + timestamp.getInc();
+        return Collections.singletonMap(getDB(message), offsetVal);
+    }
+
+    private String getDB(Document message) {
+        return (String) message.get("ns");
+    }
+
+    private String getTopic(Document message) {
+        String db = getDB(message);
+        if (topicPrefix != null && !topicPrefix.isEmpty()) {
+            return topicPrefix + "_" + db;
+        }
+        return db;
+    }
+
+    private Struct getStruct(Document message) {
+        Schema schema = schemas.get(getDB(message));
+        Struct messageStruct = new Struct(schema);
+        BsonTimestamp bsonTimestamp = (BsonTimestamp) message.get("ts");
+        messageStruct.put("ts", bsonTimestamp.getTime());
+        messageStruct.put("inc", bsonTimestamp.getInc());
+        messageStruct.put("id", message.get("id"));
+        messageStruct.put("database", message.get("ns"));
+        messageStruct.put("object", message.get("o").toString());
+        return messageStruct;
+    }
+
+    private void loadOffsets() {
+        List<Map<String, String>> partitions = databases.stream()
+                .map(MongoSourceTask::getPartition)
+                .collect(Collectors.toList());
+        offsets.putAll(context.offsetStorageReader().offsets(partitions));
     }
 }

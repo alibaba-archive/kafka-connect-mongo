@@ -19,15 +19,8 @@ public class DatabaseReaderTest {
         databaseReader = new DatabaseReader("127.0.0.1",
                                             27017,
                                             "test",
-                                            "0",
+                                            "0.0",
                                             new ConcurrentLinkedQueue<>());
-    }
-
-    @Test
-    public void run() throws Exception {
-        PowerMock.replayAll();
-        databaseReader.run();
-        PowerMock.verifyAll();
     }
 
 }
