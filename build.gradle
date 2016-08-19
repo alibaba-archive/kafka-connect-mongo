@@ -21,6 +21,7 @@ dependencies {
     testCompile "org.easymock:easymock:3.4"
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
     testCompile 'org.powermock:powermock-api-easymock:1.6.5'
+    testCompile 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.5'
 }
 
 tasks.withType(Tar) {

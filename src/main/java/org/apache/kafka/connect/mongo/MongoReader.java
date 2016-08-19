@@ -37,7 +37,7 @@ public class MongoReader {
 
     public void run() {
         for (String db: dbs) {
-            String start = "0.0";
+            String start = "0,0";
             Map<String, Object> timeOffset = this.offsets.get(
                     MongoSourceTask.getPartition(db)
             );

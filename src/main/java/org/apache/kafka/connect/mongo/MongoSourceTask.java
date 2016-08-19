@@ -29,7 +29,7 @@ public class MongoSourceTask extends SourceTask{
     private static Map<String, Schema> schemas;
 
     private MongoReader reader;
-    private Map<Map<String, String>, Map<String, Object>> offsets;
+    private Map<Map<String, String>, Map<String, Object>> offsets = new HashMap<>();
 
     @Override
     public String version() {
@@ -97,7 +97,7 @@ public class MongoSourceTask extends SourceTask{
             ));
             log.trace(message.toString());
         }
-        return null;
+        return records;
     }
 
     @Override

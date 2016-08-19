@@ -11,7 +11,6 @@ import java.util.*;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created by Xu Jingxin on 16/8/12.
