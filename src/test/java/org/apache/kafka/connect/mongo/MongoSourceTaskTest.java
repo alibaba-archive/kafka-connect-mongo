@@ -16,6 +16,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.kafka.connect.source.SourceRecord;
+import org.bson.BsonTimestamp;
 import org.bson.Document;
 import org.apache.kafka.connect.source.SourceTaskContext;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
@@ -102,7 +103,14 @@ public class MongoSourceTaskTest {
 
     @Test
     public void pollWithOffset() throws Exception {
+        expectOffsetLookupReturnOffset();
+        PowerMock.replayAll();
 
+        task.start(sourceProperties);
+        testBulkInsert();
+        testSubtleInsert();
+
+        PowerMock.verifyAll();
     }
 
     private void startMongo() throws Exception {
@@ -127,9 +135,7 @@ public class MongoSourceTaskTest {
         adminDatabase.runCommand(new BasicDBObject("isMaster", 1));
         adminDatabase.runCommand(new BasicDBObject("replSetInitiate", replicaSetSetting));
         MongoDatabase db = mongoClient.getDatabase("mydb");
-        db.createCollection("test1");
-        db.createCollection("test2");
-        db.createCollection("test3");
+        collections.forEach(db::createCollection);
     }
 
     private void expectOffsetLookupReturnNull() {
@@ -137,7 +143,19 @@ public class MongoSourceTaskTest {
         expect(offsetStorageReader.offsets(EasyMock.<List<Map<String, String>>> anyObject())).andReturn(new HashMap<>());
     }
 
-    private void expectOffsetLookupReturnOffset() {}
+    private void expectOffsetLookupReturnOffset() {
+        Map<Map<String, String>, Map<String, Object>> offsetMap = new HashMap<>();
+        for (String collection : collections) {
+            BsonTimestamp timestamp = new BsonTimestamp((int) Math.floor(System.currentTimeMillis() / 1000), 0);
+            offsetMap.put(
+                    MongoSourceTask.getPartition("mydb." + collection),
+                    Collections.singletonMap("mydb." + collection, String.valueOf(timestamp.getTime()) + ",0")
+            );
+        }
+        log.debug("Offsets: {}", offsetMap);
+        expect(sourceTaskContext.offsetStorageReader()).andReturn(offsetStorageReader);
+        expect(offsetStorageReader.offsets(EasyMock.<List<Map<String, String>>> anyObject())).andReturn(offsetMap);
+    }
 
     /**
      * Insert documents on random collections
@@ -183,7 +201,7 @@ public class MongoSourceTaskTest {
             pollRecords = task.poll();
             records.addAll(pollRecords);
         } while (!pollRecords.isEmpty());
-        log.debug("Record size {}", records.size());
+        log.debug("Record size: {}", records.size());
         assertEquals(totalCount, records.size());
     }
 
@@ -200,7 +218,7 @@ public class MongoSourceTaskTest {
             pollRecords = task.poll();
             records.addAll(pollRecords);
         } while (!pollRecords.isEmpty());
-        log.debug("Record size {}", records.size());
+        log.debug("Record size: {}", records.size());
 
         assertEquals(4, records.size());
     }
