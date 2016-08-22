@@ -7,12 +7,18 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
+import org.bson.BsonObjectId;
 import org.bson.BsonTimestamp;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -68,12 +74,13 @@ public class DatabaseReader implements Runnable {
         FindIterable<Document> documents = oplog
                 .find(query)
                 .sort(new Document("$natural", 1))
-                .projection(Projections.include("ts", "op", "ns", "o"))
+                .projection(Projections.include("ts", "op", "ns", "o", "o2"))
                 .cursorType(CursorType.TailableAwait);
         try {
             for (Document document : documents) {
                 log.trace(document.toString());
-                messages.add(document);
+                document = handleOp(document);
+                if (document != null) messages.add(document);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,11 +88,42 @@ public class DatabaseReader implements Runnable {
         }
     }
 
-    private MongoCollection connectOplog() {
-        MongoClient mongoClient = new MongoClient(host, port);
-        MongoDatabase db = mongoClient.getDatabase("local");
-        oplog = db.getCollection("oplog.rs");
-        return oplog;
+    /**
+     * Handle operations
+     * i: keep oplog
+     * u: find origin document
+     * d: keep oplog
+     * @param doc oplog
+     * @return Document
+     */
+    private Document handleOp(Document doc) {
+        switch ((String) doc.get("op")) {
+            case "u":
+                Document updated = findOneById(doc);
+                if (updated == null) return null;
+                doc.append("o", updated);
+                break;
+            default: break;
+        }
+        return doc;
+    }
+
+    private Document findOneById(Document doc) {
+        try {
+            String[] db = String.valueOf(doc.get("ns")).split("\\.");
+
+            MongoDatabase nsDB = mongoClient.getDatabase(db[0]);
+            MongoCollection<Document> nsCollection = nsDB.getCollection(db[1]);
+            ObjectId _id = (ObjectId) ((Document) doc.get("o2")).get("_id");
+
+            List<Document> docs = nsCollection.find(Filters.eq("_id", _id)).into(new ArrayList<>());
+
+            return docs.get(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Can not find document: {}", doc);
+        }
+        return null;
     }
 
     private Bson createQuery() {

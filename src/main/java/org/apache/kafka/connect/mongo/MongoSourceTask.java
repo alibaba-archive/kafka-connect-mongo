@@ -135,7 +135,7 @@ public class MongoSourceTask extends SourceTask{
         messageStruct.put("inc", bsonTimestamp.getInc());
         messageStruct.put("id", message.get("id"));
         messageStruct.put("database", message.get("ns"));
-        messageStruct.put("object", message.get("o").toString());
+        messageStruct.put("object", ((Document) message.get("o")).toJson());
         return messageStruct;
     }
 

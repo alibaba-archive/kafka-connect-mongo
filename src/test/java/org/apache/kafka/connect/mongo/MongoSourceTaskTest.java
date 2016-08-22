@@ -4,6 +4,7 @@ import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.util.JSON;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -15,9 +16,9 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.bson.BsonTimestamp;
-import org.bson.Document;
+import org.bson.*;
 import org.apache.kafka.connect.source.SourceTaskContext;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.easymock.EasyMock;
@@ -218,9 +219,22 @@ public class MongoSourceTaskTest {
             pollRecords = task.poll();
             records.addAll(pollRecords);
         } while (!pollRecords.isEmpty());
-        log.debug("Record size: {}", records.size());
 
         assertEquals(4, records.size());
+
+        List<Struct> structs = new ArrayList<>();
+        records.forEach((record) -> {
+            structs.add((Struct) record.value());
+        });
+
+        // Test struct of each record
+        assertEquals(structs.get(0).get("id"), structs.get(2).get("id"));
+        assertEquals(structs.get(1).get("id"), structs.get(3).get("id"));
+
+        String updatedValue = (String) structs.get(2).get("object");
+        BasicDBObject updatedObject = (BasicDBObject) JSON.parse(updatedValue);
+
+        assertEquals("Stephen", updatedObject.get("name"));
     }
 
 }
