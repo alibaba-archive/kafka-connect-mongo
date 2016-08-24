@@ -220,6 +220,8 @@ public class MongoSourceTaskTest {
             records.addAll(pollRecords);
         } while (!pollRecords.isEmpty());
 
+        log.debug("Subtle records: {}", records);
+
         assertEquals(4, records.size());
 
         List<Struct> structs = new ArrayList<>();
