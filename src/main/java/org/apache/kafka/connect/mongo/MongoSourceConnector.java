@@ -80,10 +80,10 @@ public class MongoSourceConnector extends SourceConnector{
 
     }
 
-    @Override
-    public ConfigDef config() {
-        return null;
-    }
+   // @Override
+   // public ConfigDef config() {
+   //     return null;
+   // }
 
     private String getRequiredProp(Map<String, String> props, String key) {
         String value = props.get(key);

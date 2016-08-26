@@ -65,6 +65,7 @@ public class MongoSourceTask extends SourceTask{
         if (schemas == null) schemas = new HashMap<>();
 
         for (String db : databases) {
+            db = db.replaceAll("[\\s.]", "_");
             schemas.putIfAbsent(db, SchemaBuilder
                     .struct()
                     .name(schemaName.concat("_").concat(db))
@@ -121,6 +122,7 @@ public class MongoSourceTask extends SourceTask{
 
     private String getTopic(Document message) {
         String db = getDB(message);
+        db = db.replaceAll("[\\s.]", "_");
         if (topicPrefix != null && !topicPrefix.isEmpty()) {
             return topicPrefix + "_" + db;
         }
@@ -128,14 +130,17 @@ public class MongoSourceTask extends SourceTask{
     }
 
     private Struct getStruct(Document message) {
-        Schema schema = schemas.get(getDB(message));
+        String db = getDB(message).replaceAll("[\\s.]", "_");
+        Schema schema = schemas.get(db);
         Struct messageStruct = new Struct(schema);
         BsonTimestamp bsonTimestamp = (BsonTimestamp) message.get("ts");
         messageStruct.put("ts", bsonTimestamp.getTime());
         messageStruct.put("inc", bsonTimestamp.getInc());
         messageStruct.put("id", message.get("id"));
-        messageStruct.put("database", message.get("ns"));
-        messageStruct.put("object", ((Document) message.get("o")).toJson());
+        messageStruct.put("database", db);
+        if (!String.valueOf(message.get("op")).equals("d")) {
+            messageStruct.put("object", ((Document) message.get("o")).toJson());
+        }
         return messageStruct;
     }
 

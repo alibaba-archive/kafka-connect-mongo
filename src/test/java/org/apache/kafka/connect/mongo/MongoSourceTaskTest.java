@@ -237,6 +237,8 @@ public class MongoSourceTaskTest {
         BasicDBObject updatedObject = (BasicDBObject) JSON.parse(updatedValue);
 
         assertEquals("Stephen", updatedObject.get("name"));
+
+        assertEquals(null, structs.get(3).get("object"));
     }
 
 }
