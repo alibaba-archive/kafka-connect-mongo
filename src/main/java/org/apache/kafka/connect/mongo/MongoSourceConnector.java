@@ -11,19 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import static org.apache.kafka.connect.mongo.MongoSourceConfig.DATABASES_CONFIG;
+import static org.apache.kafka.connect.mongo.MongoSourceConfig.HOST_CONFIG;
+import static org.apache.kafka.connect.mongo.MongoSourceConfig.PORT_CONFIG;
+import static org.apache.kafka.connect.mongo.MongoSourceConfig.BATCH_SIZE_CONFIG;
+import static org.apache.kafka.connect.mongo.MongoSourceConfig.TOPIC_PREFIX_CONFIG;
+import static org.apache.kafka.connect.mongo.MongoSourceConfig.SCHEMA_NAME_CONFIG;
 
 /**
  * Connect mongodb with configs
  */
 public class MongoSourceConnector extends SourceConnector {
     private final static Logger log = LoggerFactory.getLogger(MongoSourceConnector.class);
-
-    public static final String DATABASES_CONFIG = "databases";
-    public static final String HOST_CONFIG = "host";
-    public static final String PORT_CONFIG = "port";
-    public static final String BATCH_SIZE_CONFIG = "batch.size";
-    public static final String TOPIC_PREFIX_CONFIG = "topic.prefix";
-    public static final String SCHEMA_NAME_CONFIG = "schema.name";
 
     private String databases;
     private String host;

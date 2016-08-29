@@ -47,9 +47,9 @@ public class MongoSourceConnectorTest {
         for (int i = 0; i < configs.size(); i++) {
             Map<String, String> config = configs.get(i);
             if (i == 0) {
-                assertEquals("mydb.test1,mydb.test2", config.get(MongoSourceConnector.DATABASES_CONFIG));
+                assertEquals("mydb.test1,mydb.test2", config.get(MongoSourceConfig.DATABASES_CONFIG));
             } else {
-                assertEquals("mydb.test3", config.get(MongoSourceConnector.DATABASES_CONFIG));
+                assertEquals("mydb.test3", config.get(MongoSourceConfig.DATABASES_CONFIG));
             }
         }
 

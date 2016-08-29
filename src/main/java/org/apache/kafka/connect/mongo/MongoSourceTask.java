@@ -45,21 +45,21 @@ public class MongoSourceTask extends SourceTask {
         log.trace("Parsing configuration");
 
         try {
-            port = Integer.parseInt(props.get(MongoSourceConnector.PORT_CONFIG));
+            port = Integer.parseInt(props.get(MongoSourceConfig.PORT_CONFIG));
         } catch (Exception e) {
-            throw new ConnectException(MongoSourceConnector.PORT_CONFIG + " config should be an Integer");
+            throw new ConnectException(MongoSourceConfig.PORT_CONFIG + " config should be an Integer");
         }
 
         try {
-            batchSize = Integer.parseInt(props.get(MongoSourceConnector.BATCH_SIZE_CONFIG));
+            batchSize = Integer.parseInt(props.get(MongoSourceConfig.BATCH_SIZE_CONFIG));
         } catch (Exception e) {
-            throw new ConnectException(MongoSourceConnector.BATCH_SIZE_CONFIG + " config should be an Integer");
+            throw new ConnectException(MongoSourceConfig.BATCH_SIZE_CONFIG + " config should be an Integer");
         }
 
-        schemaName = props.get(MongoSourceConnector.SCHEMA_NAME_CONFIG);
-        topicPrefix = props.get(MongoSourceConnector.SCHEMA_NAME_CONFIG);
-        host = props.get(MongoSourceConnector.HOST_CONFIG);
-        databases = Arrays.asList(props.get(MongoSourceConnector.DATABASES_CONFIG).split(","));
+        schemaName = props.get(MongoSourceConfig.SCHEMA_NAME_CONFIG);
+        topicPrefix = props.get(MongoSourceConfig.SCHEMA_NAME_CONFIG);
+        host = props.get(MongoSourceConfig.HOST_CONFIG);
+        databases = Arrays.asList(props.get(MongoSourceConfig.DATABASES_CONFIG).split(","));
 
         log.trace("Creating schema");
         if (schemas == null) schemas = new HashMap<>();
