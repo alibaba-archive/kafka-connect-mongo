@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Xu Jingxin on 16/8/3.
  */
-public class MongoSourceTask extends SourceTask{
+public class MongoSourceTask extends SourceTask {
     private final Logger log = LoggerFactory.getLogger(MongoSourceTask.class);
 
     private Integer port;

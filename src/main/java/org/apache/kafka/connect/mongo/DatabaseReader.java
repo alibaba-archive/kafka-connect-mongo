@@ -115,7 +115,7 @@ public class DatabaseReader implements Runnable {
 
             List<Document> docs = nsCollection.find(Filters.eq("_id", _id)).into(new ArrayList<>());
 
-            return docs.get(0);
+            return docs.size() > 0 ? docs.get(0) : null;
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Can not find document: {}", doc);

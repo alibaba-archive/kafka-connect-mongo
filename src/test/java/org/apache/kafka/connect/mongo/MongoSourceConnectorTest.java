@@ -1,5 +1,6 @@
 package org.apache.kafka.connect.mongo;
 
+import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectorContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Xu Jingxin on 16/8/17.
@@ -50,6 +52,18 @@ public class MongoSourceConnectorTest {
                 assertEquals("mydb.test3", config.get(MongoSourceConnector.DATABASES_CONFIG));
             }
         }
+
+        PowerMock.verifyAll();
+    }
+
+    @Test
+    public void config() throws Exception {
+        PowerMock.replayAll();
+
+        ConfigDef config = connector.config();
+
+        assertTrue(config.configKeys().keySet().contains("host"));
+        assertTrue(config.configKeys().keySet().contains("port"));
 
         PowerMock.verifyAll();
     }

@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Connect mongodb with configs
  */
-public class MongoSourceConnector extends SourceConnector{
+public class MongoSourceConnector extends SourceConnector {
     private final static Logger log = LoggerFactory.getLogger(MongoSourceConnector.class);
 
     public static final String DATABASES_CONFIG = "databases";
@@ -80,10 +80,10 @@ public class MongoSourceConnector extends SourceConnector{
 
     }
 
-   // @Override
-   // public ConfigDef config() {
-   //     return null;
-   // }
+    @Override
+    public ConfigDef config() {
+        return MongoSourceConfig.config;
+    }
 
     private String getRequiredProp(Map<String, String> props, String key) {
         String value = props.get(key);
