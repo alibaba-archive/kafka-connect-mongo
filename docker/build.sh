@@ -1,41 +1,17 @@
 #!/bin/bash
 
-BASE_DIR=$(dirname $0)
-SRC_DIR=$BASE_DIR/..
+DOCKER_DIR=$(dirname $0)
+SOURCE_DIR=$DOCKER_DIR/..
 
 . settings.sh
 
-if [ "$(uname)" = "Darwin" ]; then
-  SHA1='shasum'
-else
-  SHA1='sha1sum'
-fi
-
-
 set -ex
 
-if [ -z ${DOCKER_HOST+x} ];
-then
-  echo "DOCKER_HOST must be set before running this script.";
-  exit 1
-fi
-
-mvn clean package
+cd $SOURCE_DIR
+./gradlew clean distTar
+cd $DOCKER_DIR
 
 TAGS=""
-
-STAGING_DIRECTORY='./target-docker'
-
-DOCKER_UTILS_DIRECTORY="$(find target -name 'docker-utils*-package' -type d -maxdepth 1 -mindepth 1)"
-
-TOOLS_COMMAND_LIST="${STAGING_DIRECTORY}/commands"
-
-find "${STAGING_DIRECTORY}" -type d -maxdepth 1 -mindepth 1| xargs rm -rf
-
-if [ ! -d "./${STAGING_DIRECTORY}" ];
-then
-  mkdir -p "./${STAGING_DIRECTORY}"
-fi
 
 for SCALA_VERSION in ${SCALA_VERSIONS}; do
     echo "Building confluent-platform-${SCALA_VERSION}"
