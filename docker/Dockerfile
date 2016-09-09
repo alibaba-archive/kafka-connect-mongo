@@ -9,6 +9,7 @@ FROM confluent/platform
 
 MAINTAINER sailxjx@gmail.com
 
+ADD target-libs/lib /usr/share/java/kafka-connect-mongo/
 ADD kafka-connect-mongo-docker.sh /usr/local/bin/
 
 RUN ["mkdir", "-p", "/etc/kafka-connect-mongo"]
