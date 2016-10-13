@@ -149,7 +149,7 @@ public class MongoSourceTaskTest {
         for (String collection : collections) {
             BsonTimestamp timestamp = new BsonTimestamp((int) Math.floor(System.currentTimeMillis() / 1000), 0);
             offsetMap.put(
-                    MongoSourceTask.getPartition("mydb." + collection),
+                    MongoSourceTask.Companion.getPartition("mydb." + collection),
                     Collections.singletonMap("mydb." + collection, String.valueOf(timestamp.getTime()) + ",0")
             );
         }
