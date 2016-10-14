@@ -28,6 +28,30 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         val DATABASES_CONFIG = "databases"
         private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
-        var config = ConfigDef().define(HOST_CONFIG, Type.STRING, Importance.HIGH, HOST_CONFIG_DOC).define(PORT_CONFIG, Type.INT, Importance.HIGH, PORT_CONFIG_DOC).define(BATCH_SIZE_CONFIG, Type.INT, Importance.HIGH, BATCH_SIZE_CONFIG_DOC).define(SCHEMA_NAME_CONFIG, Type.STRING, Importance.HIGH, SCHEMA_NAME_CONFIG_DOC).define(TOPIC_PREFIX_CONFIG, Type.STRING, Importance.HIGH, TOPIC_PREFIX_CONFIG_DOC).define(DATABASES_CONFIG, Type.STRING, Importance.HIGH, DATABASES_CONFIG_DOC)
+        var config = ConfigDef()
+                .define(HOST_CONFIG,
+                        Type.STRING,
+                        Importance.HIGH,
+                        HOST_CONFIG_DOC)
+                .define(PORT_CONFIG,
+                        Type.INT,
+                        Importance.HIGH,
+                        PORT_CONFIG_DOC)
+                .define(BATCH_SIZE_CONFIG,
+                        Type.INT,
+                        Importance.HIGH,
+                        BATCH_SIZE_CONFIG_DOC)
+                .define(SCHEMA_NAME_CONFIG,
+                        Type.STRING,
+                        Importance.HIGH,
+                        SCHEMA_NAME_CONFIG_DOC)
+                .define(TOPIC_PREFIX_CONFIG,
+                        Type.STRING,
+                        Importance.HIGH,
+                        TOPIC_PREFIX_CONFIG_DOC)
+                .define(DATABASES_CONFIG,
+                        Type.STRING,
+                        Importance.HIGH,
+                        DATABASES_CONFIG_DOC)!!
     }
 }
