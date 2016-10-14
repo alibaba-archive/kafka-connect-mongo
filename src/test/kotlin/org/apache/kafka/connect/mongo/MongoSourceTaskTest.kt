@@ -39,6 +39,11 @@ import java.util.*
  */
 class MongoSourceTaskTest {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(MongoSourceTaskTest::class.java)
+        private val REPLICATION_PATH = "tmp"
+    }
+
     private var task: MongoSourceTask? = null
     private var sourceTaskContext: SourceTaskContext? = null
     private var offsetStorageReader: OffsetStorageReader? = null
@@ -236,12 +241,4 @@ class MongoSourceTaskTest {
 
         assertEquals(null, structs[3].get("object"))
     }
-
-    companion object {
-
-        private val log = LoggerFactory.getLogger(MongoSourceTaskTest::class.java)
-
-        private val REPLICATION_PATH = "/tmp/mongo"
-    }
-
 }

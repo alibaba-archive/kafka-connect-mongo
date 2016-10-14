@@ -69,7 +69,7 @@ class MongoSourceTask : SourceTask() {
         }
 
         loadOffsets()
-        reader = MongoReader(host!!, port, databases!!, offsets)
+        reader = MongoReader(host!!, port!!, databases!!, offsets)
         reader!!.run()
     }
 

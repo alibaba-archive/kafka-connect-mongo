@@ -1,6 +1,5 @@
 package org.apache.kafka.connect.mongo
 
-import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.connect.connector.ConnectorContext
 import org.junit.Before
 import org.junit.Test

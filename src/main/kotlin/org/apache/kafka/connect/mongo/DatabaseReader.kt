@@ -35,7 +35,7 @@ class DatabaseReader
  * @param messages
  */
 (private val host: String,
- private val port: Int?,
+ private val port: Int,
  private val db: String,
  private val start: String,
  private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
@@ -48,7 +48,7 @@ class DatabaseReader
 
     init {
 
-        mongoClient = MongoClient(host, port!!)
+        mongoClient = MongoClient(host, port)
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
 

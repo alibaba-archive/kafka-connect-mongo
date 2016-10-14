@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * @author Xu Jingxin
  */
 class MongoReader(private val host: String,
-                  private val port: Int?,
+                  private val port: Int,
                   private val dbs: List<String>,
                   private val offsets: Map<Map<String, String>, Map<String, Any>>) {
     companion object {
