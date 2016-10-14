@@ -12,14 +12,19 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
     companion object {
         val HOST_CONFIG = "host"
         private val HOST_CONFIG_DOC = "Host url of mongodb"
+
         val PORT_CONFIG = "port"
         private val PORT_CONFIG_DOC = "Port of mongodb"
+
         val BATCH_SIZE_CONFIG = "batch.size"
         private val BATCH_SIZE_CONFIG_DOC = "Count of documents in each polling"
+
         val SCHEMA_NAME_CONFIG = "schema.name"
         private val SCHEMA_NAME_CONFIG_DOC = "Schema name"
+
         val TOPIC_PREFIX_CONFIG = "topic.prefix"
         private val TOPIC_PREFIX_CONFIG_DOC = "Prefix of each topic, final topic will be prefix_db_collection"
+
         val DATABASES_CONFIG = "databases"
         private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 

@@ -21,7 +21,9 @@ import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CO
  * Connect mongodb with configs
  */
 class MongoSourceConnector : SourceConnector() {
-
+    companion object {
+        private val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)
+    }
     private var databases: String = ""
     private var host: String = ""
     private var port: String = ""
@@ -51,7 +53,7 @@ class MongoSourceConnector : SourceConnector() {
 
     override fun taskConfigs(maxTasks: Int): List<Map<String, String>> {
         val configs = ArrayList<Map<String, String>>()
-        val dbs = Arrays.asList<String>(*databases!!.split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
+        val dbs = Arrays.asList<String>(*databases.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
         val numGroups = Math.min(dbs.size, maxTasks)
         val dbsGrouped = ConnectorUtils.groupPartitions(dbs, numGroups)
 
@@ -82,9 +84,5 @@ class MongoSourceConnector : SourceConnector() {
             throw ConnectException("Missing $key config")
         }
         return value
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(MongoSourceConnector::class.java!!)
     }
 }

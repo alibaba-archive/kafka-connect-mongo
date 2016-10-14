@@ -54,7 +54,7 @@ class MongoSourceTask : SourceTask() {
         schemaName = props[MongoSourceConfig.SCHEMA_NAME_CONFIG]
         topicPrefix = props[MongoSourceConfig.SCHEMA_NAME_CONFIG]
         host = props[MongoSourceConfig.HOST_CONFIG]
-        databases = Arrays.asList<String>(*props[MongoSourceConfig.DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray())
+        databases = Arrays.asList<String>(*props[MongoSourceConfig.DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
 
         log.trace("Creating schema")
         if (schemas == null) schemas = HashMap<String, Schema>()

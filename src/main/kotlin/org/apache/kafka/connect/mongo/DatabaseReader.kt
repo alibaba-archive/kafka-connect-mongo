@@ -11,6 +11,7 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
+import java.lang.Long.parseLong
 
 import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -94,7 +95,7 @@ class DatabaseReader
 
     private fun findOneById(doc: Document): Document? {
         try {
-            val db = doc["ns"].toString().split("\\.".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
+            val db = doc["ns"].toString().split("\\.".toRegex()).dropLastWhile(String::isEmpty)
 
             val nsDB = mongoClient.getDatabase(db[0])
             val nsCollection = nsDB.getCollection(db[1])
@@ -112,8 +113,8 @@ class DatabaseReader
     }
 
     private fun createQuery(): Bson? {
-        val timestamp = java.lang.Long.parseLong(start.split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[0])
-        val inc = java.lang.Long.parseLong(start.split(",".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1])
+        val timestamp = parseLong(start.split(",".toRegex())[0])
+        val inc = parseLong(start.split(",".toRegex())[1])
 
         query = Filters.and(
                 Filters.exists("fromMigrate", false),

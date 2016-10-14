@@ -13,6 +13,9 @@ class MongoReader(private val host: String,
                   private val port: Int?,
                   private val dbs: List<String>,
                   private val offsets: Map<Map<String, String>, Map<String, Any>>) {
+    companion object {
+        private val log = LoggerFactory.getLogger(MongoReader::class.java)
+    }
 
     internal var messages: ConcurrentLinkedQueue<Document>
 
@@ -34,10 +37,4 @@ class MongoReader(private val host: String,
             Thread(reader).start()
         }
     }
-
-    companion object {
-
-        private val log = LoggerFactory.getLogger(MongoReader::class.java!!)
-    }
-
 }
