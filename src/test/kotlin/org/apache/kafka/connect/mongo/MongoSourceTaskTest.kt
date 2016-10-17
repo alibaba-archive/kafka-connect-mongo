@@ -27,6 +27,7 @@ import org.easymock.EasyMock
 import org.easymock.EasyMock.expect
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.powermock.api.easymock.PowerMock
@@ -231,6 +232,8 @@ class MongoSourceTaskTest {
         records.forEach { record -> structs.add(record.value() as Struct) }
 
         // Test struct of each record
+        assertNotEquals(structs[0].get("id"), null)
+        assertNotEquals(structs[1].get("id"), null)
         assertEquals(structs[0].get("id"), structs[2].get("id"))
         assertEquals(structs[1].get("id"), structs[3].get("id"))
 

@@ -8,6 +8,7 @@ import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 
 import java.util.*
@@ -118,9 +119,11 @@ class MongoSourceTask : SourceTask() {
         val schema = schemas!![db]
         val messageStruct = Struct(schema)
         val bsonTimestamp = message["ts"] as BsonTimestamp
+        val body = message["o"] as Document
+        val _id = (body.get("_id") as ObjectId).toString()
         messageStruct.put("ts", bsonTimestamp.time)
         messageStruct.put("inc", bsonTimestamp.inc)
-        messageStruct.put("id", message["id"])
+        messageStruct.put("id", _id)
         messageStruct.put("database", db)
         if (message["op"].toString() != "d") {
             messageStruct.put("object", (message["o"] as Document).toJson())
