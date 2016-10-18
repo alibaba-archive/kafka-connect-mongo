@@ -44,13 +44,8 @@ tasks.withType(Tar) {
 distributions {
     main {
         contents {
-            into('etc') {
-                from 'etc/'
-            }
-            into('lib') {
-                from jar
-                from project.configurations.runtime
-            }
+            from jar
+            from project.configurations.runtime
         }
     }
 }
