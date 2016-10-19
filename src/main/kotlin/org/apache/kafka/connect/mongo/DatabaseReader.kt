@@ -47,7 +47,6 @@ class DatabaseReader
     private var query: Bson? = null
 
     init {
-
         mongoClient = MongoClient(host, port)
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
@@ -58,7 +57,12 @@ class DatabaseReader
     }
 
     override fun run() {
-        val documents = oplog.find(query).sort(Document("\$natural", 1)).projection(Projections.include("ts", "op", "ns", "o", "o2")).cursorType(CursorType.TailableAwait)
+        val documents = oplog
+                .find(query)
+                .sort(Document("\$natural", 1))
+                .projection(Projections.include("ts", "op", "ns", "o", "o2"))
+                .cursorType(CursorType.TailableAwait)
+
         try {
             for (document in documents) {
                 log.trace(document!!.toString())
@@ -69,7 +73,6 @@ class DatabaseReader
             e.printStackTrace()
             log.error("Closed connection")
         }
-
     }
 
     /**

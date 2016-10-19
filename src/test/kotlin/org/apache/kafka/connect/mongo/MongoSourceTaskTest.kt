@@ -1,23 +1,11 @@
 package org.apache.kafka.connect.mongo
 
-import com.mongodb.BasicDBList
 import com.mongodb.BasicDBObject
-import com.mongodb.MongoClient
-import com.mongodb.ServerAddress
 import com.mongodb.client.model.Filters
 import com.mongodb.util.JSON
-import de.flapdoodle.embed.mongo.MongodExecutable
-import de.flapdoodle.embed.mongo.MongodProcess
-import de.flapdoodle.embed.mongo.MongodStarter
-import de.flapdoodle.embed.mongo.config.IMongodConfig
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder
-import de.flapdoodle.embed.mongo.config.Net
-import de.flapdoodle.embed.mongo.config.Storage
-import de.flapdoodle.embed.mongo.distribution.Version
-import de.flapdoodle.embed.process.runtime.Network
-import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Struct
+import org.apache.kafka.connect.mongo.utils.Mongod
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
@@ -32,7 +20,6 @@ import org.junit.Before
 import org.junit.Test
 import org.powermock.api.easymock.PowerMock
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.util.*
 
 /**
@@ -42,36 +29,21 @@ class MongoSourceTaskTest {
 
     companion object {
         private val log = LoggerFactory.getLogger(MongoSourceTaskTest::class.java)
-        private val REPLICATION_PATH = "tmp"
+        private val collections = Mongod.collections
+        private val mydb = "mydb"
     }
 
     private var task: MongoSourceTask? = null
     private var sourceTaskContext: SourceTaskContext? = null
     private var offsetStorageReader: OffsetStorageReader? = null
     private var sourceProperties: MutableMap<String, String>? = null
-
-    private var mongodExecutable: MongodExecutable? = null
-    private var mongodProcess: MongodProcess? = null
-    private var mongodStarter: MongodStarter? = null
-    private var mongodConfig: IMongodConfig? = null
-    private var mongoClient: MongoClient? = null
-
-    private val collections = object : ArrayList<String>() {
-        init {
-            add("test1")
-            add("test2")
-            add("test3")
-        }
-    }
+    private val mongod = Mongod()
 
     @Before
     @Throws(Exception::class)
     fun setUp() {
-        try {
-            startMongo()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        val db = mongod.start().getDatabase(mydb)!!
+        collections.forEach { db.createCollection(it) }
 
         task = MongoSourceTask()
         offsetStorageReader = PowerMock.createMock(OffsetStorageReader::class.java)
@@ -90,9 +62,7 @@ class MongoSourceTaskTest {
     @After
     @Throws(Exception::class)
     fun tearDown() {
-        mongodProcess!!.stop()
-        mongodExecutable!!.stop()
-        FileUtils.deleteDirectory(File(REPLICATION_PATH))
+        mongod.stop()
     }
 
     @Test
@@ -121,28 +91,6 @@ class MongoSourceTaskTest {
         PowerMock.verifyAll()
     }
 
-    @Throws(Exception::class)
-    private fun startMongo() {
-        mongodStarter = MongodStarter.getDefaultInstance()
-        mongodConfig = MongodConfigBuilder().version(Version.Main.V3_3).replication(Storage(REPLICATION_PATH, "rs0", 1024)).net(Net(12345, Network.localhostIsIPv6())).build()
-        mongodExecutable = mongodStarter!!.prepare(mongodConfig!!)
-        mongodProcess = mongodExecutable!!.start()
-        mongoClient = MongoClient(ServerAddress("localhost", 12345))
-        val adminDatabase = mongoClient!!.getDatabase("admin")
-        val replicaSetSetting = BasicDBObject()
-        replicaSetSetting.put("_id", "rs0")
-        val members = BasicDBList()
-        val host = BasicDBObject()
-        host.put("_id", 0)
-        host.put("host", "127.0.0.1:12345")
-        members.add(host)
-        replicaSetSetting.put("members", members)
-        adminDatabase.runCommand(BasicDBObject("isMaster", 1))
-        adminDatabase.runCommand(BasicDBObject("replSetInitiate", replicaSetSetting))
-        val db = mongoClient!!.getDatabase("mydb")
-        collections.forEach { db.createCollection(it) }
-    }
-
     private fun expectOffsetLookupReturnNull() {
         expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader)
         expect(offsetStorageReader!!.offsets(EasyMock.anyObject<List<Map<String, String>>>())).andReturn(HashMap<Map<String, String>, Map<String, Any>>())
@@ -165,7 +113,7 @@ class MongoSourceTaskTest {
      * Insert documents on random collections
      */
     private fun bulkInsert(totalNumber: Int) {
-        val db = mongoClient!!.getDatabase("mydb")
+        val db = mongod.getDatabase(mydb)!!
         for (i in 0..totalNumber - 1) {
             val newDocument = Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
             db.getCollection(collections[Random().nextInt(3)]).insertOne(newDocument)
@@ -179,7 +127,7 @@ class MongoSourceTaskTest {
      * One delete
      */
     private fun subtleInsert() {
-        val db = mongoClient!!.getDatabase("mydb")
+        val db = mongod.getDatabase(mydb)!!
         val doc1 = Document().append("text", "doc1")
         val doc2 = Document().append("text", "doc2")
 

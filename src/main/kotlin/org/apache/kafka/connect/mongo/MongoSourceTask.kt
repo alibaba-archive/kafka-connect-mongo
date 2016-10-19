@@ -120,7 +120,7 @@ class MongoSourceTask : SourceTask() {
         val messageStruct = Struct(schema)
         val bsonTimestamp = message["ts"] as BsonTimestamp
         val body = message["o"] as Document
-        val _id = (body.get("_id") as ObjectId).toString()
+        val _id = (body["_id"] as ObjectId).toString()
         messageStruct.put("ts", bsonTimestamp.time)
         messageStruct.put("inc", bsonTimestamp.inc)
         messageStruct.put("id", _id)
