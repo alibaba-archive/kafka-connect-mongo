@@ -9,8 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
  * @author Xu Jingxin
  */
-class MongoReader(private val host: String,
-                  private val port: Int,
+class MongoReader(private val uri: String,
                   private val dbs: List<String>,
                   private val offsets: Map<Map<String, String>, Map<String, Any>>) {
     companion object {
@@ -29,11 +28,10 @@ class MongoReader(private val host: String,
             val timeOffset = this.offsets[MongoSourceTask.getPartition(db)]
             if (!(timeOffset == null || timeOffset.isEmpty())) start = timeOffset[db] as String
             log.trace("Starting database reader with configuration: ")
-            log.trace("host: {}", host)
-            log.trace("port: {}", port)
+            log.trace("uri: {}", uri)
             log.trace("db: {}", db)
             log.trace("start: {}", timeOffset)
-            val reader = DatabaseReader(host, port, db, start, messages)
+            val reader = DatabaseReader(uri, db, start, messages)
             Thread(reader).start()
         }
     }

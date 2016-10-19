@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory
 
 import java.util.*
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
-import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.HOST_CONFIG
-import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.PORT_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 
@@ -25,8 +24,7 @@ class MongoSourceConnector : SourceConnector() {
         private val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)
     }
     private var databases: String = ""
-    private var host: String = ""
-    private var port: String = ""
+    private var uri: String = ""
     private var batchSize: String = ""
     private var topicPrefix: String = ""
     private var schemaName: String = ""
@@ -37,10 +35,9 @@ class MongoSourceConnector : SourceConnector() {
 
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration")
-        port = getRequiredProp(props, PORT_CONFIG)
         databases = getRequiredProp(props, DATABASES_CONFIG)
         batchSize = getRequiredProp(props, BATCH_SIZE_CONFIG)
-        host = getRequiredProp(props, HOST_CONFIG)
+        uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
 
@@ -59,8 +56,7 @@ class MongoSourceConnector : SourceConnector() {
 
         for (i in 0..numGroups - 1) {
             val config = HashMap<String, String>()
-            config.put(PORT_CONFIG, port)
-            config.put(HOST_CONFIG, host)
+            config.put(MONGO_URI_CONFIG, uri)
             config.put(DATABASES_CONFIG, StringUtils.join(dbsGrouped[i], ","))
             config.put(BATCH_SIZE_CONFIG, batchSize)
             config.put(TOPIC_PREFIX_CONFIG, topicPrefix)

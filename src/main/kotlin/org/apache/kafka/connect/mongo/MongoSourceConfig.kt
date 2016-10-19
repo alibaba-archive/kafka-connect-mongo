@@ -10,11 +10,8 @@ import org.apache.kafka.common.config.ConfigDef.Importance
  */
 class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSourceConfig.config, props) {
     companion object {
-        val HOST_CONFIG = "host"
-        private val HOST_CONFIG_DOC = "Host url of mongodb"
-
-        val PORT_CONFIG = "port"
-        private val PORT_CONFIG_DOC = "Port of mongodb"
+        val MONGO_URI_CONFIG = "mongo.uri"
+        private val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
 
         val BATCH_SIZE_CONFIG = "batch.size"
         private val BATCH_SIZE_CONFIG_DOC = "Count of documents in each polling"
@@ -29,14 +26,10 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
         var config = ConfigDef()
-                .define(HOST_CONFIG,
+                .define(MONGO_URI_CONFIG,
                         Type.STRING,
                         Importance.HIGH,
-                        HOST_CONFIG_DOC)
-                .define(PORT_CONFIG,
-                        Type.INT,
-                        Importance.HIGH,
-                        PORT_CONFIG_DOC)
+                        MONGO_URI_CONFIG_DOC)
                 .define(BATCH_SIZE_CONFIG,
                         Type.INT,
                         Importance.HIGH,

@@ -24,8 +24,7 @@ class MongoSourceConnectorTest {
         connector!!.initialize(context)
 
         val props = HashMap<String, String>()
-        props.put("host", "localhost")
-        props.put("port", "12345")
+        props.put("mongo.uri", "mongodb://localhost:12345")
         props.put("batch.size", "100")
         props.put("schema.name", "schema")
         props.put("topic.prefix", "prefix")
@@ -62,8 +61,7 @@ class MongoSourceConnectorTest {
 
         val config = connector!!.config()
 
-        assertTrue(config.configKeys().keys.contains("host"))
-        assertTrue(config.configKeys().keys.contains("port"))
+        assertTrue(config.configKeys().keys.contains("mongo.uri"))
 
         PowerMock.verifyAll()
     }

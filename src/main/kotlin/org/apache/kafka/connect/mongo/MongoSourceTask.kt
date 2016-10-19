@@ -19,8 +19,7 @@ import java.util.*
 class MongoSourceTask : SourceTask() {
     private val log = LoggerFactory.getLogger(MongoSourceTask::class.java)
 
-    private var port: Int? = null
-    private var host: String? = null
+    private var uri: String? = null
     private var schemaName: String? = null
     private var batchSize: Int? = null
     private var topicPrefix: String? = null
@@ -41,12 +40,6 @@ class MongoSourceTask : SourceTask() {
         log.trace("Parsing configuration")
 
         try {
-            port = Integer.parseInt(props[MongoSourceConfig.PORT_CONFIG])
-        } catch (e: Exception) {
-            throw ConnectException(MongoSourceConfig.PORT_CONFIG + " config should be an Integer")
-        }
-
-        try {
             batchSize = Integer.parseInt(props[MongoSourceConfig.BATCH_SIZE_CONFIG])
         } catch (e: Exception) {
             throw ConnectException(MongoSourceConfig.BATCH_SIZE_CONFIG + " config should be an Integer")
@@ -54,7 +47,7 @@ class MongoSourceTask : SourceTask() {
 
         schemaName = props[MongoSourceConfig.SCHEMA_NAME_CONFIG]
         topicPrefix = props[MongoSourceConfig.SCHEMA_NAME_CONFIG]
-        host = props[MongoSourceConfig.HOST_CONFIG]
+        uri = props[MongoSourceConfig.MONGO_URI_CONFIG]
         databases = Arrays.asList<String>(*props[MongoSourceConfig.DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
 
         log.trace("Creating schema")
@@ -70,7 +63,7 @@ class MongoSourceTask : SourceTask() {
         }
 
         loadOffsets()
-        reader = MongoReader(host!!, port!!, databases!!, offsets)
+        reader = MongoReader(uri!!, databases!!, offsets)
         reader!!.run()
     }
 

@@ -18,25 +18,12 @@ class DatabaseReaderTest {
     }
     private val mongod = Mongod()
     private var reader : DatabaseReader? = null
-    private val messages = ConcurrentLinkedQueue<Document>()
 
     @Before
     @Throws(Exception::class)
     fun setUp() {
         val db = mongod.start().getDatabase("mydb")!!
         db.createCollection("test")
-
-        reader = DatabaseReader("localhost",
-                12345,
-                "mydb.test",
-                "0,0",
-                messages)
-        Thread(reader).start()
-
-        val collection = db.getCollection("test")
-        for (i in 0..100) {
-            collection.insertOne(Document().append("name", "Eric$i"))
-        }
     }
 
     @After
@@ -48,6 +35,23 @@ class DatabaseReaderTest {
     @Test
     @Throws(Exception::class)
     fun connectWithPassword() {
+        mongod.createUserWithPassword()
+
+        val messages = ConcurrentLinkedQueue<Document>()
+        reader = DatabaseReader("mongodb://test:123456@localhost:12345",
+                "mydb.test",
+                "0,0",
+                messages)
+        Thread(reader).start()
+
+        // Wait for database reader connection client
+        Thread.sleep(500)
+
+        val collection = mongod.getDatabase("mydb")!!.getCollection("test")
+        for (i in 0..100) {
+            collection.insertOne(Document().append("name", "Eric$i"))
+        }
+
         messages.poll() ?: throw Exception("Can not read messages")
     }
 }

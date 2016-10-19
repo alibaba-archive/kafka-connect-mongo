@@ -2,6 +2,7 @@ package org.apache.kafka.connect.mongo
 
 import com.mongodb.CursorType
 import com.mongodb.MongoClient
+import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
@@ -24,9 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class DatabaseReader
 /**
  * Connect and tail wait oplog
- * @param host 127.0.0.1
- * *
- * @param port 27017
+ * @param uri mongodb://[user:pwd@]host:port
  * *
  * @param db mydb.test
  * *
@@ -34,8 +33,7 @@ class DatabaseReader
  * *
  * @param messages
  */
-(private val host: String,
- private val port: Int,
+(private val uri: String,
  private val db: String,
  private val start: String,
  private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
@@ -47,7 +45,7 @@ class DatabaseReader
     private var query: Bson? = null
 
     init {
-        mongoClient = MongoClient(host, port)
+        mongoClient = MongoClient(MongoClientURI(uri))
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
 

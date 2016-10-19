@@ -1,6 +1,7 @@
 # Functions
 * [ ] Add message key
-* [ ] Authorize in MongoDB
+* [x] Authorize in MongoDB with password
+* [ ] Authorize in MongoDB with certification
 * [x] Support kafka 0.10
 * [ ] Initial import all data on startup without offset
 * [x] Dockerized

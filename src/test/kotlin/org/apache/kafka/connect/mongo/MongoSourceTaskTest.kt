@@ -51,8 +51,7 @@ class MongoSourceTaskTest {
         task!!.initialize(sourceTaskContext)
 
         sourceProperties = HashMap<String, String>()
-        sourceProperties!!.put("host", "localhost")
-        sourceProperties!!.put("port", "12345")
+        sourceProperties!!.put("mongo.uri", "mongodb://localhost:12345")
         sourceProperties!!.put("batch.size", "20")
         sourceProperties!!.put("schema.name", "schema")
         sourceProperties!!.put("topic.prefix", "prefix")

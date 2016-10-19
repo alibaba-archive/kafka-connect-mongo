@@ -68,6 +68,16 @@ class Mongod {
         return this
     }
 
+    fun createUserWithPassword() : Mongod {
+        val adminDatabase = mongoClient!!.getDatabase("admin")
+        val cmdArguments = BasicDBObject()
+        cmdArguments.put("createUser", "test")
+        cmdArguments.put("pwd", "123456")
+        cmdArguments.put("roles", listOf("readWrite"))
+        adminDatabase.runCommand(cmdArguments)
+        return this
+    }
+
     fun getDatabase(db: String): MongoDatabase? {
         return mongoClient?.getDatabase(db)
     }
