@@ -1,8 +1,8 @@
 # Functions
 * [ ] Add message key
 * [x] Authorize in MongoDB with password
-* [ ] Authorize in MongoDB with certification
-* [ ] Try reconnect when connection lost
+* [x] Authorize in MongoDB with certification
+* [x] Try reconnect when connection lost
 * [x] Support kafka 0.10
 * [ ] Initial import all data on startup without offset
 * [x] Dockerized
