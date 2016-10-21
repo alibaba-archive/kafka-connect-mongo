@@ -73,6 +73,6 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
                 .define(KEYSTORE_PASSWORD,
                         Type.STRING,
                         Importance.LOW,
-                        KEYSTORE_PASSWORD_DOC)
+                        KEYSTORE_PASSWORD_DOC)!!
     }
 }

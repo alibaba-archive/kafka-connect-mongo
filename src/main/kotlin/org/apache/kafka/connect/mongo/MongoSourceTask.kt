@@ -4,6 +4,11 @@ import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.errors.ConnectException
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp
@@ -40,15 +45,15 @@ class MongoSourceTask : SourceTask() {
         log.trace("Parsing configuration")
 
         try {
-            batchSize = Integer.parseInt(props[MongoSourceConfig.BATCH_SIZE_CONFIG])
+            batchSize = Integer.parseInt(props[BATCH_SIZE_CONFIG])
         } catch (e: Exception) {
-            throw ConnectException(MongoSourceConfig.BATCH_SIZE_CONFIG + " config should be an Integer")
+            throw ConnectException(BATCH_SIZE_CONFIG + " config should be an Integer")
         }
 
-        schemaName = props[MongoSourceConfig.SCHEMA_NAME_CONFIG]
-        topicPrefix = props[MongoSourceConfig.SCHEMA_NAME_CONFIG]
-        uri = props[MongoSourceConfig.MONGO_URI_CONFIG]
-        databases = Arrays.asList<String>(*props[MongoSourceConfig.DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
+        schemaName = props[SCHEMA_NAME_CONFIG]
+        topicPrefix = props[TOPIC_PREFIX_CONFIG]
+        uri = props[MONGO_URI_CONFIG]
+        databases = Arrays.asList<String>(*props[DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
 
         log.trace("Creating schema")
         if (schemas == null) schemas = HashMap<String, Schema>()

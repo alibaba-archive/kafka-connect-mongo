@@ -13,9 +13,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
  */
 
 class DatabaseReaderTest {
-    companion object {
-        val log = LoggerFactory.getLogger(DatabaseReaderTest::class.java)
-    }
     private val mongod = Mongod()
     private var reader : DatabaseReader? = null
 

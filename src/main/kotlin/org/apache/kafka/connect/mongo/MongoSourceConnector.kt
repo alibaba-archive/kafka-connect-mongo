@@ -5,20 +5,19 @@ import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.utils.AppInfoParser
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
-import org.apache.kafka.connect.source.SourceConnector
-import org.apache.kafka.connect.util.ConnectorUtils
-import org.slf4j.LoggerFactory
-
-import java.util.*
-import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.KEYSTORE_LOCATION
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.KEYSTORE_PASSWORD
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
-import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TRUSTSTORE_LOCATION
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TRUSTSTORE_PASSWORD
+import org.apache.kafka.connect.source.SourceConnector
+import org.apache.kafka.connect.util.ConnectorUtils
+import org.slf4j.LoggerFactory
+import java.util.*
 
 /**
  * Connect mongodb with configs

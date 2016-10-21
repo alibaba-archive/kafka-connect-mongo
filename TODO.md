@@ -1,4 +1,4 @@
-# Functions
+# Features
 * [ ] Add message key
 * [x] Authorize in MongoDB with password
 * [x] Authorize in MongoDB with certification
