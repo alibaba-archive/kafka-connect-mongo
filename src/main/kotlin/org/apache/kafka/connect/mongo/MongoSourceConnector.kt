@@ -12,9 +12,13 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.KEYSTORE_LOCATION
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.KEYSTORE_PASSWORD
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TRUSTSTORE_LOCATION
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TRUSTSTORE_PASSWORD
 
 /**
  * Connect mongodb with configs
@@ -40,6 +44,19 @@ class MongoSourceConnector : SourceConnector() {
         uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
+
+        val tsLocation = props[TRUSTSTORE_LOCATION]
+        val tsPassword = props[TRUSTSTORE_PASSWORD]
+        if (tsLocation != null && tsPassword != null) {
+            System.setProperty("javax.net.ssl.trustStore", tsLocation)
+            System.setProperty("javax.net.ssl.trustStorePassword", tsPassword)
+        }
+        val ksLocation = props[KEYSTORE_LOCATION]
+        val ksPassword = props[KEYSTORE_PASSWORD]
+        if (ksLocation != null && ksPassword != null) {
+            System.setProperty("javax.net.ssl.keyStore", ksLocation)
+            System.setProperty("javax.net.ssl.keyStorePassword", ksPassword)
+        }
 
         log.trace("Configurations {}", props)
     }

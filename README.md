@@ -20,6 +20,11 @@ batch.size=100
 schema.name=mongoschema
 topic.prefix=mongo
 databases=test.users
+# If use ssl, the location and password of truststore and keystore files are required
+#ssl.truststore.location=truststore.jks
+#ssl.truststore.password=123456
+#ssl.keystore.location=keystore.jks
+#ssl.keystore.password=123456
 ```
 
 ## LICENSE
