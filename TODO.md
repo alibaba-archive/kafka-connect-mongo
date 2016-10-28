@@ -14,4 +14,4 @@
 * [x] Restart and load correct offset
 * [x] [Distributed Mode](http://docs.confluent.io/3.0.0/connect/userguide.html#distributed-mode)
 * [x] [Resuming from Previous Offsets](http://docs.confluent.io/3.0.0/connect/devguide.html#resuming-from-previous-offsets)
-* [ ] [Schema Evolution](http://docs.confluent.io/3.0.0/connect/devguide.html#schema-evolution)
+* [x] [Schema Evolution](http://docs.confluent.io/3.0.0/connect/devguide.html#schema-evolution)
