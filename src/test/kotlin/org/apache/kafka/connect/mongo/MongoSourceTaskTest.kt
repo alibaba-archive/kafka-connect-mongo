@@ -175,20 +175,27 @@ class MongoSourceTaskTest {
 
         assertEquals(4, records.size.toLong())
 
-        val structs = ArrayList<Struct>()
-        records.forEach { record -> structs.add(record.value() as Struct) }
+        val values = ArrayList<Struct>()
+        val keys = ArrayList<String>()
+        records.forEach { record ->
+            values.add(record.value() as Struct)
+            if (record.key() != null) {
+                keys.add(record.key() as String)
+            }
+        }
 
         // Test struct of each record
-        assertNotEquals(structs[0].get("id"), null)
-        assertNotEquals(structs[1].get("id"), null)
-        assertEquals(structs[0].get("id"), structs[2].get("id"))
-        assertEquals(structs[1].get("id"), structs[3].get("id"))
+        assertEquals(keys.count(), 4)
+        assertNotEquals(values[0].get("id"), null)
+        assertNotEquals(values[1].get("id"), null)
+        assertEquals(values[0].get("id"), values[2].get("id"))
+        assertEquals(values[1].get("id"), values[3].get("id"))
 
-        val updatedValue = structs[2].get("object") as String
+        val updatedValue = values[2].get("object") as String
         val updatedObject = JSON.parse(updatedValue) as BasicDBObject
 
         assertEquals("Stephen", updatedObject.get("name"))
 
-        assertEquals(null, structs[3].get("object"))
+        assertEquals(null, values[3].get("object"))
     }
 }

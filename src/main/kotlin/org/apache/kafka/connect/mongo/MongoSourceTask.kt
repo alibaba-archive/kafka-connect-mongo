@@ -56,16 +56,14 @@ class MongoSourceTask : SourceTask() {
         databases = Arrays.asList<String>(*props[DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
 
         log.trace("Creating schema")
-        if (schemas == null) schemas = HashMap<String, Schema>()
 
-        for (database in databases!!) {
-            val db = database.replace("[\\s.]".toRegex(), "_")
-            (schemas as MutableMap<String, Schema>)
-                    .put(db, SchemaBuilder.struct().name(schemaName + "_" + db)
-                    .field("ts", Schema.OPTIONAL_INT32_SCHEMA).field("inc", Schema.OPTIONAL_INT32_SCHEMA)
-                    .field("id", Schema.OPTIONAL_STRING_SCHEMA).field("database", Schema.OPTIONAL_STRING_SCHEMA)
-                    .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
-        }
+        databases!!.map { it.replace("[\\s.]".toRegex(), "_") }
+                .forEach {
+                    schemas.put(it, SchemaBuilder.struct().name(schemaName + "_" + it)
+                            .field("ts", Schema.OPTIONAL_INT32_SCHEMA).field("inc", Schema.OPTIONAL_INT32_SCHEMA)
+                            .field("id", Schema.OPTIONAL_STRING_SCHEMA).field("database", Schema.OPTIONAL_STRING_SCHEMA)
+                            .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
+                }
 
         loadOffsets()
         reader = MongoReader(uri!!, databases!!, offsets)
@@ -77,13 +75,15 @@ class MongoSourceTask : SourceTask() {
         val records = mutableListOf<SourceRecord>()
         while (!reader!!.messages.isEmpty() && records.size < batchSize!!) {
             val message = reader!!.messages.poll()
-            val messageStruct = getStruct(message)
+            val struct = getStruct(message)
             records.add(SourceRecord(
                     getPartition(getDB(message)),
                     getOffset(message),
                     getTopic(message),
-                    getStruct(message).schema(),
-                    messageStruct))
+                    Schema.OPTIONAL_STRING_SCHEMA,
+                    struct.get("id"),
+                    struct.schema(),
+                    struct))
             log.trace(message.toString())
         }
         return records
@@ -114,19 +114,19 @@ class MongoSourceTask : SourceTask() {
 
     private fun getStruct(message: Document): Struct {
         val db = getDB(message).replace("[\\s.]".toRegex(), "_")
-        val schema = schemas!![db]
-        val messageStruct = Struct(schema)
+        val schema = schemas[db]
+        val struct = Struct(schema)
         val bsonTimestamp = message["ts"] as BsonTimestamp
         val body = message["o"] as Document
         val _id = (body["_id"] as ObjectId).toString()
-        messageStruct.put("ts", bsonTimestamp.time)
-        messageStruct.put("inc", bsonTimestamp.inc)
-        messageStruct.put("id", _id)
-        messageStruct.put("database", db)
+        struct.put("ts", bsonTimestamp.time)
+        struct.put("inc", bsonTimestamp.inc)
+        struct.put("id", _id)
+        struct.put("database", db)
         if (message["op"].toString() != "d") {
-            messageStruct.put("object", (message["o"] as Document).toJson())
+            struct.put("object", (message["o"] as Document).toJson())
         }
-        return messageStruct
+        return struct
     }
 
     private fun loadOffsets() {
@@ -135,7 +135,7 @@ class MongoSourceTask : SourceTask() {
     }
 
     companion object {
-        private var schemas: MutableMap<String, Schema>? = null
+        private var schemas: MutableMap<String, Schema> = HashMap()
 
         fun getPartition(db: String): Map<String, String> {
             return Collections.singletonMap("mongo", db)
