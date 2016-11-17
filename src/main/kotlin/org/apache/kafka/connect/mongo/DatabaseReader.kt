@@ -63,7 +63,7 @@ class DatabaseReader
 
         try {
             for (document in documents) {
-                log.trace(document!!.toString())
+                log.trace("Document {}", document!!.toString())
                 val doc = handleOp(document)
                 if (doc != null) messages.add(doc)
             }
