@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import org.bson.Document
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * @author Xu Jingxin
@@ -13,8 +14,7 @@ import org.slf4j.LoggerFactory
  * Then save the offset
  */
 class ImportJob
-private constructor(
-        val dbs: String
+(val dbs: String
 ) {
     fun run() {
         print("Start import data")
@@ -28,7 +28,8 @@ class ImportDB
  * @param ns mydb.users
  */
 (val uri: String,
- val ns: String
+ val ns: String,
+ var messages: ConcurrentLinkedQueue<Document>
 ) : Runnable {
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
@@ -52,6 +53,7 @@ class ImportDB
         try {
             for (document in documents) {
                 log.trace("Document {}", document!!.toString())
+                messages.add(document)
             }
         } catch (e: Exception) {
             e.printStackTrace()
