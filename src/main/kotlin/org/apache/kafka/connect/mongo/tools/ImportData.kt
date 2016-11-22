@@ -4,9 +4,13 @@ import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
+import org.apache.commons.lang.mutable.Mutable
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import java.util.*
 
 /**
  * @author Xu Jingxin
@@ -14,10 +18,64 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * Then save the offset
  */
 class ImportJob
-(val dbs: String
+/**
+ * @param uri mongodb://[user:pwd@]host:port
+ * @param dbs Database.collection strings, combined with comma
+ * @param topic Producer topic in kafka
+ * @param props Kafka producer props
+ */
+(val uri: String,
+ val dbs: String,
+ val topic: String,
+ val props: Properties
 ) {
-    fun run() {
-        print("Start import data")
+    companion object {
+        private val log = LoggerFactory.getLogger(ImportJob::class.java)
+    }
+    private val messages = ConcurrentLinkedQueue<Document>()
+    internal val producer: KafkaProducer<String, String>
+
+    init {
+        producer = KafkaProducer(props)
+    }
+
+    /**
+     * Start job
+     */
+    fun start() {
+        log.trace("Start import data from {}", dbs)
+        val threadGroup = mutableListOf<Thread>()
+        dbs.split(",").dropLastWhile(String::isEmpty).forEach {
+            log.trace("Import database: {}", it)
+            val importDB = ImportDB(uri, it, messages)
+            val t = Thread(importDB)
+            threadGroup.add(t)
+            t.start()
+        }
+
+        while (true) {
+            val threadCount = threadGroup.filter(Thread::isAlive).count()
+            if (threadCount == 0 && messages.isEmpty()) {
+                break
+            }
+            flush()
+            Thread.sleep(100)
+        }
+
+        producer.close()
+    }
+
+    /**
+     * Flush messages into kafka
+     */
+    fun flush() {
+        while (!messages.isEmpty()) {
+            val message = messages.poll()
+            log.trace("Poll message {}", message)
+            // @todo Change structure of records
+            val record = ProducerRecord<String, String>(topic, 0, message["_id"].toString(), message.toJson())
+            producer.send(record)
+        }
     }
 }
 
