@@ -4,12 +4,15 @@ import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
-import org.apache.commons.lang.mutable.Mutable
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.connect.data.Schema
+import org.apache.kafka.connect.data.SchemaBuilder
+import org.apache.kafka.connect.data.Struct
+import org.bson.types.ObjectId
 import java.util.*
 
 /**
@@ -32,29 +35,31 @@ class ImportJob
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
-    private val messages = ConcurrentLinkedQueue<Document>()
-    internal val producer: KafkaProducer<String, String>
+    private val messages = ConcurrentLinkedQueue<Struct>()
+    private var producer: KafkaProducer<String, String>
 
     init {
-        producer = KafkaProducer(props)
+       producer = KafkaProducer(props)
     }
 
     /**
      * Start job
      */
     fun start() {
-        log.trace("Start import data from {}", dbs)
+        log.info("Start import data from {}", dbs)
         val threadGroup = mutableListOf<Thread>()
+        var threadCount = 0
         dbs.split(",").dropLastWhile(String::isEmpty).forEach {
             log.trace("Import database: {}", it)
             val importDB = ImportDB(uri, it, messages)
             val t = Thread(importDB)
+            threadCount += 1
             threadGroup.add(t)
             t.start()
         }
 
         while (true) {
-            val threadCount = threadGroup.filter(Thread::isAlive).count()
+            threadCount = threadGroup.filter(Thread::isAlive).count()
             if (threadCount == 0 && messages.isEmpty()) {
                 break
             }
@@ -63,6 +68,7 @@ class ImportJob
         }
 
         producer.close()
+        log.info("Import finish")
     }
 
     /**
@@ -72,22 +78,26 @@ class ImportJob
         while (!messages.isEmpty()) {
             val message = messages.poll()
             log.trace("Poll message {}", message)
-            // @todo Change structure of records
-            val record = ProducerRecord<String, String>(topic, 0, message["_id"].toString(), message.toJson())
+            val record = ProducerRecord<String, String>(
+                    topic,
+                    message["id"].toString(),
+                    message.toString())
+            log.trace("Record {}", record)
             producer.send(record)
         }
     }
+
 }
 
 class ImportDB
 /**
  * Import data from single collection
  * @param uri mongodb://[user:pwd@]host:port
- * @param ns mydb.users
+ * @param dbName mydb.users
  */
 (val uri: String,
- val ns: String,
- var messages: ConcurrentLinkedQueue<Document>
+ val dbName: String,
+ var messages: ConcurrentLinkedQueue<Struct>
 ) : Runnable {
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
@@ -99,11 +109,11 @@ class ImportDB
 
     init {
         mongoClient = MongoClient(MongoClientURI(uri))
-        val (db, collection) = ns.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
+        val (db, collection) = dbName.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
         mongoDatabase = mongoClient.getDatabase(db)
         mongoCollection = mongoDatabase.getCollection(collection)
 
-        log.trace("Start querying {}", ns)
+        log.trace("Start querying {}", dbName)
     }
 
     override fun run() {
@@ -111,11 +121,30 @@ class ImportDB
         try {
             for (document in documents) {
                 log.trace("Document {}", document!!.toString())
-                messages.add(document)
+                messages.add(getStruct(document))
             }
         } catch (e: Exception) {
             e.printStackTrace()
             log.error("Closed connection")
         }
     }
+
+    fun getStruct(document: Document): Struct {
+        val schema = SchemaBuilder.struct()
+                .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
+                .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
+                .field("id", Schema.OPTIONAL_STRING_SCHEMA)
+                .field("database", Schema.OPTIONAL_STRING_SCHEMA)
+                .field("object", Schema.OPTIONAL_STRING_SCHEMA)
+                .build()
+        val struct = Struct(schema)
+        val id = document["_id"] as ObjectId
+        struct.put("ts", id.timestamp)
+        struct.put("inc", 0)
+        struct.put("id", id.toHexString())
+        struct.put("database", dbName.replace("\\.".toRegex(), "_"))
+        struct.put("object", document.toJson())
+        return struct
+    }
 }
+

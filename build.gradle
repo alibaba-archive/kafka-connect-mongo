@@ -2,7 +2,7 @@ group 'org.apache.kafka'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.0.4'
+    ext.kotlin_version = '1.0.5-2'
 
     repositories {
         jcenter()
@@ -24,16 +24,20 @@ defaultTasks 'clean', 'assembleDist'
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'org.apache.kafka:connect-api:0.10.0.1'
+    compile 'org.apache.kafka:connect-api:0.10.0.0'
     compile 'org.slf4j:slf4j-api:1.7.21'
     compile 'org.slf4j:slf4j-log4j12:1.7.21'
     compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
     compile 'org.mongodb:mongodb-driver:3.3.0'
 
     testCompile 'junit:junit:4.12'
-    testCompile "org.easymock:easymock:3.4"
+    testCompile 'org.easymock:easymock:3.4'
+    testCompile 'org.jetbrains.kotlin:kotlin-reflect:1.0.5-2'
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
     testCompile 'org.powermock:powermock-api-easymock:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito-common:1.6.6'
+    testCompile 'org.mockito:mockito-core:2.2.22'
+    testCompile 'info.batey.kafka:kafka-unit:0.6'
     testCompile 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.5'
 }
 
