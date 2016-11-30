@@ -18,25 +18,17 @@ import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
- * Tail oplog for one db
-
- * @author Xu Jingxin
- */
-class DatabaseReader
-/**
  * Connect and tail wait oplog
+ * @author Xu Jingxin
  * @param uri mongodb://[user:pwd@]host:port
- * *
  * @param db mydb.test
- * *
  * @param start timestamp.inc
- * *
  * @param messages
  */
-(private val uri: String,
- private val db: String,
- private val start: String,
- private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
+class DatabaseReader(private val uri: String,
+                     private val db: String,
+                     private val start: String,
+                     private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
 
     private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     private val oplog: MongoCollection<Document>

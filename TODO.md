@@ -4,7 +4,7 @@
 * [x] Authorize in MongoDB with certification
 * [x] Try reconnect when connection lost
 * [x] Support kafka 0.10
-* [ ] Initial import all data on startup without offset
+* [x] Initial import all data on startup without offset
 * [x] Dockerized
 * [ ] Validate in docker containers, connect with other containers
 * [ ] Implement with confluent 3.1.0

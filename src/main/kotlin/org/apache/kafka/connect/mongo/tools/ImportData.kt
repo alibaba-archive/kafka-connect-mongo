@@ -13,25 +13,23 @@ import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
 import org.bson.types.ObjectId
+import java.io.FileInputStream
 import java.util.*
 
 /**
  * @author Xu Jingxin
  * Import all the data from one collection into kafka
- * Then save the offset
- */
-class ImportJob
-/**
+ * Then save the offset *
  * @param uri mongodb://[user:pwd@]host:port
  * @param dbs Database.collection strings, combined with comma
  * @param topic Producer topic in kafka
  * @param props Kafka producer props
  */
-(val uri: String,
- val dbs: String,
- val topic: String,
- val props: Properties
-) {
+class ImportJob(val uri: String,
+                val dbs: String,
+                val topic: String,
+                val props: Properties) {
+
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
@@ -89,16 +87,15 @@ class ImportJob
 
 }
 
-class ImportDB
 /**
  * Import data from single collection
  * @param uri mongodb://[user:pwd@]host:port
  * @param dbName mydb.users
  */
-(val uri: String,
- val dbName: String,
- var messages: ConcurrentLinkedQueue<Struct>
-) : Runnable {
+class ImportDB(val uri: String,
+               val dbName: String,
+               var messages: ConcurrentLinkedQueue<Struct>) : Runnable {
+
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
@@ -148,3 +145,14 @@ class ImportDB
     }
 }
 
+fun main(args: Array<String>) {
+    if (args.count() < 1) throw Exception("Missing config file path!")
+
+    val configFilePath = args[0]
+    val props = Properties()
+    props.load(FileInputStream(configFilePath))
+
+
+    println(props)
+
+}
