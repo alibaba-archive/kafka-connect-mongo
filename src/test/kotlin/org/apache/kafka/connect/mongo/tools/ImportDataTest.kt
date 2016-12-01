@@ -2,10 +2,10 @@ package org.apache.kafka.connect.mongo.tools
 
 import com.mongodb.client.MongoDatabase
 import org.apache.commons.lang.RandomStringUtils
-import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.mongo.utils.Mongod
 import info.batey.kafka.unit.KafkaUnit
 import org.bson.Document
+import org.json.JSONObject
 import org.junit.After
 import org.slf4j.LoggerFactory
 import org.junit.Test
@@ -47,7 +47,7 @@ class ImportDataTest {
         recordsCount = Math.max(Random().nextInt(200), 100)
         val collectionName = "users"
         bulkInsert(recordsCount, collectionName)
-        val messages = ConcurrentLinkedQueue<Struct>()
+        val messages = ConcurrentLinkedQueue<JSONObject>()
 
         val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", messages)
         importDb.run()
@@ -70,13 +70,20 @@ class ImportDataTest {
 
         val importJob = ImportJob("mongodb://localhost:12345", "$dbName.cats,$dbName.dogs", "import_test", props)
 
-        bulkInsert(10, "cats")
         bulkInsert(20, "dogs")
-        // Import 300 hundreds documents from two collections
+        bulkInsert(10, "cats")
+        // Import 30 hundreds documents from two collections
         importJob.start()
 
-        // Expect 30 messages
-        kafkaUnit.readMessages("import_test", 30)
+        // Read messages from topics
+        kafkaUnit.readMessages("import_test_${dbName}_dogs", 20)
+        val cats = kafkaUnit.readMessages("import_test_${dbName}_cats", 10)
+
+        cats.forEach {
+            val message = JSONObject(it)
+            assertEquals("test_cats", message["database"])
+            assertEquals(setOf("database", "id", "ts", "inc", "object"), message.keySet())
+        }
 
         kafkaUnit.shutdown()
     }

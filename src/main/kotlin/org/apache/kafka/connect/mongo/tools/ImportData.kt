@@ -9,10 +9,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.connect.data.Schema
-import org.apache.kafka.connect.data.SchemaBuilder
-import org.apache.kafka.connect.data.Struct
 import org.bson.types.ObjectId
+import org.json.JSONObject
 import java.io.FileInputStream
 import java.util.*
 
@@ -22,18 +20,18 @@ import java.util.*
  * Then save the offset *
  * @param uri mongodb://[user:pwd@]host:port
  * @param dbs Database.collection strings, combined with comma
- * @param topic Producer topic in kafka
+ * @param topicPrefix Producer topic in kafka
  * @param props Kafka producer props
  */
 class ImportJob(val uri: String,
                 val dbs: String,
-                val topic: String,
+                val topicPrefix: String,
                 val props: Properties) {
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
-    private val messages = ConcurrentLinkedQueue<Struct>()
+    private val messages = ConcurrentLinkedQueue<JSONObject>()
     private var producer: KafkaProducer<String, String>
 
     init {
@@ -76,6 +74,9 @@ class ImportJob(val uri: String,
         while (!messages.isEmpty()) {
             val message = messages.poll()
             log.trace("Poll message {}", message)
+            val db = message["database"] as String
+            val topic = "${topicPrefix}_$db"
+
             val record = ProducerRecord<String, String>(
                     topic,
                     message["id"].toString(),
@@ -94,7 +95,7 @@ class ImportJob(val uri: String,
  */
 class ImportDB(val uri: String,
                val dbName: String,
-               var messages: ConcurrentLinkedQueue<Struct>) : Runnable {
+               var messages: ConcurrentLinkedQueue<JSONObject>) : Runnable {
 
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
@@ -126,22 +127,15 @@ class ImportDB(val uri: String,
         }
     }
 
-    fun getStruct(document: Document): Struct {
-        val schema = SchemaBuilder.struct()
-                .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
-                .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
-                .field("id", Schema.OPTIONAL_STRING_SCHEMA)
-                .field("database", Schema.OPTIONAL_STRING_SCHEMA)
-                .field("object", Schema.OPTIONAL_STRING_SCHEMA)
-                .build()
-        val struct = Struct(schema)
+    fun getStruct(document: Document): JSONObject {
+        val message = JSONObject()
         val id = document["_id"] as ObjectId
-        struct.put("ts", id.timestamp)
-        struct.put("inc", 0)
-        struct.put("id", id.toHexString())
-        struct.put("database", dbName.replace("\\.".toRegex(), "_"))
-        struct.put("object", document.toJson())
-        return struct
+        message.put("ts", id.timestamp)
+        message.put("inc", 0)
+        message.put("id", id.toHexString())
+        message.put("database", dbName.replace("\\.".toRegex(), "_"))
+        message.put("object", document.toJson())
+        return message
     }
 }
 
@@ -152,7 +146,15 @@ fun main(args: Array<String>) {
     val props = Properties()
     props.load(FileInputStream(configFilePath))
 
+    val missingKey = arrayOf("mongo.uri", "databases", "topic.prefix").find { props[it] == null }
 
-    println(props)
+    if (missingKey != null) throw Exception("Missing config property: $missingKey")
 
+    val importJob = ImportJob(
+            props["mongo.uri"] as String,
+            props["databases"] as String,
+            props["topic.prefix"] as String,
+            props)
+
+    importJob.start()
 }

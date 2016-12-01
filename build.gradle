@@ -30,6 +30,7 @@ dependencies {
     compile 'org.apache.kafka:connect-api:0.10.0.0'
     compile 'org.slf4j:slf4j-api:1.7.21'
     compile 'org.slf4j:slf4j-log4j12:1.7.21'
+    compile 'org.json:json:20160810'
     compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
     compile 'org.mongodb:mongodb-driver:3.3.0'
 
