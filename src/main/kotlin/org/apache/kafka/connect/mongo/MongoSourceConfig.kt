@@ -25,16 +25,16 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         val DATABASES_CONFIG = "databases"
         private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
-        val TRUSTSTORE_LOCATION = "ssl.truststore.location"
+        val TRUSTSTORE_LOCATION = "javax.net.ssl.trustStore"
         private val TRUSTSTORE_LOCATION_DOC = "Location of truststore.jks"
 
-        val TRUSTSTORE_PASSWORD = "ssl.truststore.password"
+        val TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword"
         private val TRUSTSTORE_PASSWORD_DOC = "Password of truststore"
 
-        val KEYSTORE_LOCATION = "ssl.keystore.location"
+        val KEYSTORE_LOCATION = "javax.net.ssl.keyStore"
         private val KEYSTORE_LOCATION_DOC = "Location of keystore.jks"
 
-        val KEYSTORE_PASSWORD = "ssl.keystore.password"
+        val KEYSTORE_PASSWORD = "javax.net.ssl.keyStorePassword"
         private val KEYSTORE_PASSWORD_DOC = "Password of keystore"
 
         var config = ConfigDef()

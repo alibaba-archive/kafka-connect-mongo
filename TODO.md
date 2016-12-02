@@ -1,4 +1,7 @@
 # Features
+* [ ] Record offset when import data from mongodb
+* [ ] Validate in docker containers, connect with other containers
+* [ ] Implement with confluent 3.1.0
 * [x] Add message key
 * [x] Authorize in MongoDB with password
 * [x] Authorize in MongoDB with certification
@@ -6,8 +9,6 @@
 * [x] Support kafka 0.10
 * [x] Initial import all data on startup without offset
 * [x] Dockerized
-* [ ] Validate in docker containers, connect with other containers
-* [ ] Implement with confluent 3.1.0
 
 # Test Cases
 * [x] Start and stop

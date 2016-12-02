@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.connect.mongo.MongoSourceConfig
 import org.bson.types.ObjectId
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -146,14 +147,30 @@ fun main(args: Array<String>) {
     val props = Properties()
     props.load(FileInputStream(configFilePath))
 
-    val missingKey = arrayOf("mongo.uri", "databases", "topic.prefix").find { props[it] == null }
+    val missingKey = arrayOf(
+            MongoSourceConfig.MONGO_URI_CONFIG,
+            MongoSourceConfig.DATABASES_CONFIG,
+            MongoSourceConfig.TOPIC_PREFIX_CONFIG).find { props[it] == null }
 
     if (missingKey != null) throw Exception("Missing config property: $missingKey")
 
+    val tsLocation = props[MongoSourceConfig.TRUSTSTORE_LOCATION]
+    val tsPassword = props[MongoSourceConfig.TRUSTSTORE_PASSWORD]
+    if (tsLocation != null && tsPassword != null) {
+        System.setProperty("javax.net.ssl.trustStore", tsLocation as String)
+        System.setProperty("javax.net.ssl.trustStorePassword", tsPassword as String)
+    }
+    val ksLocation = props[MongoSourceConfig.KEYSTORE_LOCATION]
+    val ksPassword = props[MongoSourceConfig.KEYSTORE_PASSWORD]
+    if (ksLocation != null && ksPassword != null) {
+        System.setProperty("javax.net.ssl.keyStore", ksLocation as String)
+        System.setProperty("javax.net.ssl.keyStorePassword", ksPassword as String)
+    }
+
     val importJob = ImportJob(
-            props["mongo.uri"] as String,
-            props["databases"] as String,
-            props["topic.prefix"] as String,
+            props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
+            props[MongoSourceConfig.DATABASES_CONFIG] as String,
+            props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
             props)
 
     importJob.start()

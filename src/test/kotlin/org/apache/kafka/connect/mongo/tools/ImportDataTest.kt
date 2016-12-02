@@ -9,13 +9,13 @@ import org.json.JSONObject
 import org.junit.After
 import org.slf4j.LoggerFactory
 import org.junit.Test
-import org.junit.Assert.*
 import org.junit.Before
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import com.google.common.truth.Truth.assertThat
 
 /**
  * @author Xu Jingxin
@@ -52,7 +52,7 @@ class ImportDataTest {
         val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", messages)
         importDb.run()
 
-        assertEquals(messages.count(), recordsCount)
+        assertThat(messages.count()).isEqualTo(recordsCount)
     }
 
     /**
@@ -81,8 +81,8 @@ class ImportDataTest {
 
         cats.forEach {
             val message = JSONObject(it)
-            assertEquals("test_cats", message["database"])
-            assertEquals(setOf("database", "id", "ts", "inc", "object"), message.keySet())
+            assertThat(message["database"]).isEqualTo("test_cats")
+            assertThat(message.keySet()).containsAllOf("id", "database", "ts", "inc", "object")
         }
 
         kafkaUnit.shutdown()
