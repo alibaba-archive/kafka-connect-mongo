@@ -11,13 +11,9 @@ MAINTAINER sailxjx@gmail.com
 
 ENV COMPONENT=kafka-connect-mongo
 
-EXPOSE 8083
-
-ADD target-libs /usr/share/java/kafka-connect-mongo/
+ADD targets /usr/share/java/kafka-connect-mongo/
 ADD kafka-connect-mongo-docker.sh /usr/local/bin/
 
 RUN ["mkdir", "-p", "/etc/kafka-connect-mongo"]
-RUN ["chown", "-R", "confluent:confluent", "/etc/kafka-connect-mongo", "/usr/local/bin/kafka-connect-mongo-docker.sh"]
 
-USER confluent
 CMD ["/usr/local/bin/kafka-connect-mongo-docker.sh"]

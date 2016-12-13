@@ -53,5 +53,5 @@ tasks.withType(Tar) {
 task runImport(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.apache.kafka.connect.mongo.tools.ImportDataKt'
-    args 'etc/producer-21.properties'
+    args 'etc/producer.properties'
 }

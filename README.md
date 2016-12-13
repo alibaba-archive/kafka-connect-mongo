@@ -48,6 +48,11 @@ databases=test.users
     ```
 5. Execute the script `./bin/connect-mongo producer.properties`
 
+## Execute import job by gradle (Development only)
+
+1. Edit file `etc/producer.properties`
+2. Execute `./gradlew runImport`
+
 ## LICENSE
 
 Apache License 2.0

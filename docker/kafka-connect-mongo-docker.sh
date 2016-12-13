@@ -12,5 +12,5 @@ if [ ! -z "$CFG_URL" ]; then
   fi
 fi
 
-CLASSPATH=/usr/share/java/kafka-connect-mongo
+CLASSPATH=/usr/share/java/kafka-connect-mongo/lib
 exec /usr/bin/connect-standalone /etc/schema-registry/connect-avro-standalone.properties $CFG_FILE

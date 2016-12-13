@@ -14,7 +14,7 @@ You can change your runtime properties with environment variable called `CFG_URL
 
 # Fullstack
 
-For the usage of full stack containers of zookeeper, kafka and schema-registry, please visit https://github.com/confluentinc/docker-images.
+For the usage of full stack containers of zookeeper, kafka and schema-registry, please visit https://github.com/confluentinc/cp-docker-images.
 
 # License
 

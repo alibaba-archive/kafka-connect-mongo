@@ -1,6 +1,4 @@
 # Features
-* [ ] Record offset when import data from mongodb
-* [ ] Validate in docker containers, connect with other containers
 * [ ] Implement with confluent 3.1.0
 * [x] Add message key
 * [x] Authorize in MongoDB with password

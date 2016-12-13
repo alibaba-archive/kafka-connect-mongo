@@ -4,7 +4,7 @@ pushd $(dirname $0) > /dev/null
 DOCKER_DIR=$(pwd)
 popd > /dev/null
 SOURCE_DIR=$DOCKER_DIR/..
-PACKAGE_VERSION="1.0-SNAPSHOT"
+PACKAGE_VERSION="1.0"
 PACKAGE_NAME="connect-mongo-${PACKAGE_VERSION}.tgz"
 
 . settings.sh
@@ -17,8 +17,8 @@ cd $SOURCE_DIR
 cd $DOCKER_DIR
 
 echo "Extracting distributions"
-rm -rf target-libs && mkdir -p target-libs
-tar -xvf $SOURCE_DIR/build/distributions/$PACKAGE_NAME -C target-libs --strip 1
+rm -rf targets && mkdir -p targets
+tar -xvf $SOURCE_DIR/build/distributions/$PACKAGE_NAME -C targets --strip 1
 
 echo "Build and tag docker images"
 
