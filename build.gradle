@@ -3,6 +3,7 @@ version '1.0'
 
 buildscript {
     ext.kotlin_version = '1.0.5-2'
+    ext.kafka_version = '0.10.0.0'
 
     repositories {
         jcenter()
@@ -27,7 +28,7 @@ defaultTasks 'clean', 'assembleDist'
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'org.apache.kafka:connect-api:0.10.0.0'
+    compile "org.apache.kafka:connect-api:$kafka_version"
     compile 'org.slf4j:slf4j-api:1.7.21'
     compile 'org.slf4j:slf4j-log4j12:1.7.21'
     compile 'org.json:json:20160810'
@@ -42,7 +43,10 @@ dependencies {
     testCompile 'org.powermock:powermock-api-easymock:1.6.5'
     testCompile 'org.powermock:powermock-api-mockito-common:1.6.6'
     testCompile 'org.mockito:mockito-core:2.2.22'
-    testCompile 'info.batey.kafka:kafka-unit:0.6'
+    testCompile('info.batey.kafka:kafka-unit:0.6') {
+        exclude module: 'kafka_2.11'
+    }
+    testCompile "org.apache.kafka:kafka_2.11:$kafka_version"
     testCompile 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.5'
 }
 
