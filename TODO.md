@@ -1,5 +1,5 @@
 # Features
-* [ ] Implement with confluent 3.1.0
+* [x] Implement with confluent 3.1.0
 * [x] Add message key
 * [x] Authorize in MongoDB with password
 * [x] Authorize in MongoDB with certification
