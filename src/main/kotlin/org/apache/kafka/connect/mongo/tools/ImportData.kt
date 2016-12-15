@@ -34,11 +34,7 @@ class ImportJob(val uri: String,
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
     private val messages = ConcurrentLinkedQueue<JSONObject>()
-    private var producer: KafkaProducer<String, String>
-
-    init {
-       producer = KafkaProducer(props)
-    }
+    private var producer: KafkaProducer<String, String> = KafkaProducer(props)
 
     /**
      * Start job
@@ -100,7 +96,7 @@ class ImportDB(val uri: String,
                var messages: ConcurrentLinkedQueue<JSONObject>,
                val bulkSize: Int) : Runnable {
 
-    private val mongoClient: MongoClient
+    private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
     private var skipOffset = 0
@@ -110,7 +106,6 @@ class ImportDB(val uri: String,
     }
 
     init {
-        mongoClient = MongoClient(MongoClientURI(uri))
         val (db, collection) = dbName.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
         mongoDatabase = mongoClient.getDatabase(db)
         mongoCollection = mongoDatabase.getCollection(collection)
