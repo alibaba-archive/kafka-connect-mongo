@@ -27,7 +27,8 @@ import java.util.*
 class ImportJob(val uri: String,
                 val dbs: String,
                 val topicPrefix: String,
-                val props: Properties) {
+                val props: Properties,
+                val bulkSize: Int = 1000) {
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
@@ -48,7 +49,7 @@ class ImportJob(val uri: String,
         var threadCount = 0
         dbs.split(",").dropLastWhile(String::isEmpty).forEach {
             log.trace("Import database: {}", it)
-            val importDB = ImportDB(uri, it, messages)
+            val importDB = ImportDB(uri, it, messages, bulkSize)
             val t = Thread(importDB)
             threadCount += 1
             threadGroup.add(t)
@@ -96,11 +97,13 @@ class ImportJob(val uri: String,
  */
 class ImportDB(val uri: String,
                val dbName: String,
-               var messages: ConcurrentLinkedQueue<JSONObject>) : Runnable {
+               var messages: ConcurrentLinkedQueue<JSONObject>,
+               val bulkSize: Int) : Runnable {
 
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
+    private var skipOffset = 0
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
@@ -116,16 +119,19 @@ class ImportDB(val uri: String,
     }
 
     override fun run() {
-        val documents = mongoCollection.find()
-        try {
-            for (document in documents) {
-                log.trace("Document {}", document!!.toString())
-                messages.add(getStruct(document))
+        do {
+            val documents = mongoCollection.find().skip(skipOffset).limit(bulkSize)
+            try {
+                for (document in documents) {
+                    log.trace("Document {}", document!!.toString())
+                    messages.add(getStruct(document))
+                }
+                skipOffset += documents.count()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                log.error("Closed connection")
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            log.error("Closed connection")
-        }
+        } while (documents.count() > 0)
     }
 
     fun getStruct(document: Document): JSONObject {

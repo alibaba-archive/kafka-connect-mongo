@@ -48,8 +48,9 @@ class ImportDataTest {
         val collectionName = "users"
         bulkInsert(recordsCount, collectionName)
         val messages = ConcurrentLinkedQueue<JSONObject>()
+        val bulkSize = 10
 
-        val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", messages)
+        val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", messages, bulkSize)
         importDb.run()
 
         assertThat(messages.count()).isEqualTo(recordsCount)

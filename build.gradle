@@ -55,6 +55,16 @@ tasks.withType(Tar) {
     compression = Compression.GZIP
 }
 
+distributions {
+    main {
+        contents {
+            into('etc') {
+                from 'etc/'
+            }
+        }
+    }
+}
+
 task runImport(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.apache.kafka.connect.mongo.tools.ImportDataKt'
