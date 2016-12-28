@@ -4,10 +4,10 @@ pushd $(dirname $0) > /dev/null
 DOCKER_DIR=$(pwd)
 popd > /dev/null
 SOURCE_DIR=$DOCKER_DIR/..
-PACKAGE_VERSION="1.0"
-PACKAGE_NAME="connect-mongo-${PACKAGE_VERSION}.tgz"
 
 . settings.sh
+
+PACKAGE_NAME="connect-mongo-${PACKAGE_VERSION}.tgz"
 
 set -ex
 
@@ -23,7 +23,7 @@ tar -xvf $SOURCE_DIR/build/distributions/$PACKAGE_NAME -C targets --strip 1
 echo "Build and tag docker images"
 
 DOCKER_FILE=${DOCKER_DIR}/Dockerfile
-IMAGE_NAME="teambition/kafka-connect-mongo"
+IMAGE_NAME="sailxjx/kafka-connect-mongo"
 
 docker build $DOCKER_BUILD_OPTS -t "${IMAGE_NAME}:${PACKAGE_VERSION}" ./
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "${IMAGE_NAME}:latest"

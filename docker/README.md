@@ -1,16 +1,19 @@
 # Build
 
-Run `./build.sh`
+`make build`
 
 You can edit settings.sh to change your environment variables
 
 # Run
 
-`docker run --name kafka-connect-mongo -d teambition/kafka-connect-mongo`
+`docker run -it teambition/kafka-connect-mongo`
 
-You can change your runtime properties with environment variable called `CFG_URL`
+This connector will run in distributed mode and use 38083 as the default port, 
+you can set modify the port and other configs by environment variables with the `CONNNECT_` prefix
 
-`docker run --name kafka-connect-mongo -e CFG_URL=http://your.host/connect-mongo-source.properties -d teambition/kafka-connect-mongo`
+# Run with docker-compose
+
+`docker-compose up -d`
 
 # Fullstack
 

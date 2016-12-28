@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -o nounset \
+    -o errexit \
+    -o verbose \
+    -o xtrace
+
+echo "===> ENV Variables ..."
+env | sort
+
+echo "===> User"
+id
+
+echo "===> Configuring ..."
+/etc/kafka-connect-mongo/configure
+
+echo "===> Start connector"
+cd /etc/kafka-connect-mongo
+/usr/bin/connect-distributed /etc/kafka-connect-mongo/worker.properties
