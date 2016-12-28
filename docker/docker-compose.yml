@@ -2,7 +2,7 @@
 version: '2'
 services:
   kafka-connect-mongo:
-    image: sailxjx/kafka-connect-mongo
+    image: quay.io/sailxjx/kafka-connect-mongo
     network_mode: host
     environment:
       CONNECT_REST_PORT: 38084
