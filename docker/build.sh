@@ -23,7 +23,8 @@ tar -xvf $SOURCE_DIR/build/distributions/$PACKAGE_NAME -C targets --strip 1
 echo "Build and tag docker images"
 
 DOCKER_FILE=${DOCKER_DIR}/Dockerfile
-IMAGE_NAME="quay.io/sailxjx/kafka-connect-mongo"
 
 docker build $DOCKER_BUILD_OPTS -t "${IMAGE_NAME}:${PACKAGE_VERSION}" ./
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "${IMAGE_NAME}:latest"
+docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "quay.io/${IMAGE_NAME}:latest"
+docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "quay.io/${IMAGE_NAME}:${PACKAGE_VERSION}"

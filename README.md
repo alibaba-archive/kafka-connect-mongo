@@ -1,6 +1,7 @@
 # kafka-connect-mongo
 
 [![Build Status][travis-image]][travis-url]
+[![Docker Repository on Quay](https://quay.io/repository/sailxjx/kafka-connect-mongo/status "Docker Repository on Quay")](https://quay.io/repository/sailxjx/kafka-connect-mongo)
 
 Mongo connector (source)
 
