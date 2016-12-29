@@ -2,6 +2,7 @@ package org.apache.kafka.connect.mongo
 
 import com.mongodb.CursorType
 import com.mongodb.MongoClient
+import com.mongodb.MongoClientOptions
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
@@ -37,7 +38,9 @@ class DatabaseReader(private val uri: String,
     private var query: Bson? = null
 
     init {
-        mongoClient = MongoClient(MongoClientURI(uri))
+        val clientOptions = MongoClientOptions.builder()
+                .connectTimeout(1000 * 60)
+        mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
 
