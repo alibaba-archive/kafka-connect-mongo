@@ -1,0 +1,11 @@
+---
+version: '2'
+services:
+  # Import data from orders collection
+  orders:
+    image: quay.io/sailxjx/kafka-connect-mongo
+    environment:
+      - JAVA_OPTS="-Dlog4j.configuration=file:/etc/kafka-connect-mongo/example/log4j.properties"
+    command: /usr/local/kafka-connect-mongo/bin/connect-mongo /etc/kafka-connect-mongo/example/producer.properties
+    volumes:
+      - $PWD:/etc/kafka-connect-mongo/example
