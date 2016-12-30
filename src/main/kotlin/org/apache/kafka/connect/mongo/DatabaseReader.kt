@@ -50,6 +50,7 @@ class DatabaseReader(private val uri: String,
     }
 
     override fun run() {
+        log.trace("Querying oplog...")
         val documents = oplog
                 .find(query)
                 .sort(Document("\$natural", 1))

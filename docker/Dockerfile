@@ -10,7 +10,8 @@ FROM confluentinc/cp-kafka-connect-base
 MAINTAINER sailxjx@gmail.com
 
 ENV COMPONENT=kafka-connect-mongo
-ENV CLASSPATH="/usr/local/kafka-connect-mongo/lib/*"
+ENV CLASSPATH=/usr/local/kafka-connect-mongo/lib/*
+ENV KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:/etc/kafka-connect-mongo/log4j.properties"
 
 COPY targets "/usr/local/kafka-connect-mongo/"
 COPY include "/etc/kafka-connect-mongo/"

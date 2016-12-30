@@ -26,12 +26,16 @@ class MongoSourceTask : SourceTask() {
 
     private var uri: String? = null
     private var schemaName: String? = null
-    private var batchSize: Int? = null
+    private var batchSize = 100
     private var topicPrefix: String? = null
     private var databases: List<String>? = null
 
     private var reader: MongoReader? = null
     private val offsets = HashMap<Map<String, String>, Map<String, Any>>()
+    // Sleep time will get double of it's self when there was no records return in the poll function
+    // But will not larger than maxSleepTime
+    private var sleepTime = 50
+    private var maxSleepTime = 10000
 
     override fun version(): String {
         return MongoSourceConnector().version()
@@ -72,8 +76,9 @@ class MongoSourceTask : SourceTask() {
 
     @Throws(InterruptedException::class)
     override fun poll(): List<SourceRecord> {
+        log.trace("Polling records")
         val records = mutableListOf<SourceRecord>()
-        while (!reader!!.messages.isEmpty() && records.size < batchSize!!) {
+        while (!reader!!.messages.isEmpty() && records.size < batchSize) {
             val message = reader!!.messages.poll()
             val struct = getStruct(message)
             records.add(SourceRecord(
@@ -85,6 +90,12 @@ class MongoSourceTask : SourceTask() {
                     struct.schema(),
                     struct))
             log.trace(message.toString())
+        }
+        if (records.size == 0) {
+            sleepTime *= 2
+            Thread.sleep(Math.min(sleepTime, maxSleepTime).toLong())
+        } else {
+            sleepTime = 50
         }
         return records
     }

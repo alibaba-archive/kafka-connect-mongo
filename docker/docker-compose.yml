@@ -3,7 +3,14 @@ version: '2'
 services:
   kafka-connect-mongo:
     image: quay.io/sailxjx/kafka-connect-mongo
-    network_mode: host
+    ports:
+      - "38084:38084"
     environment:
       CONNECT_REST_PORT: 38084
-      CONNECT_BOOTSTRAP_SERVERS: 127.0.0.1:39092
+      CONNECT_BOOTSTRAP_SERVERS: 192.168.0.21:39092
+      JMX_PORT: 9997
+      CONNECT_LOG_LEVEL: TRACE
+      CONNECT_GROUP_ID: connect-mongo-cluster-2
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-mongo-offsets-2
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-mongo-configs-2
+      CONNECT_STATUS_STORAGE_TOPIC: connect-mongo-status-2
