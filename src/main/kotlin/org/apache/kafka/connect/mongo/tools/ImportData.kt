@@ -120,7 +120,7 @@ class ImportDB(val uri: String,
 
     override fun run() {
         do {
-            log.info("Read documents from offset {}", skipOffset)
+            log.info("Read documents at $dbName from offset {}", skipOffset)
             val documents = mongoCollection.find().skip(skipOffset).limit(bulkSize)
             try {
                 for (document in documents) {
