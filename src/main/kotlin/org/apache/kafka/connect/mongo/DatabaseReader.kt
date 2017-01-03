@@ -39,7 +39,7 @@ class DatabaseReader(private val uri: String,
 
     init {
         val clientOptions = MongoClientOptions.builder()
-                .connectTimeout(1000 * 60)
+                .connectTimeout(1000 * 300)
         mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
@@ -49,6 +49,7 @@ class DatabaseReader(private val uri: String,
         log.trace("Start from {}", start)
     }
 
+    @Throws(Exception::class)
     override fun run() {
         log.trace("Querying oplog...")
         val documents = oplog
@@ -57,15 +58,10 @@ class DatabaseReader(private val uri: String,
                 .projection(Projections.include("ts", "op", "ns", "o", "o2"))
                 .cursorType(CursorType.TailableAwait)
 
-        try {
-            for (document in documents) {
-                log.trace("Document {}", document!!.toString())
-                val doc = handleOp(document)
-                if (doc != null) messages.add(doc)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            log.error("Closed connection")
+        for (document in documents) {
+            log.trace("Document {}", document!!.toString())
+            val doc = handleOp(document)
+            if (doc != null) messages.add(doc)
         }
     }
 

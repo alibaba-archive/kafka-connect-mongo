@@ -17,6 +17,7 @@ import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Created by Xu Jingxin on 16/8/3.
@@ -24,18 +25,20 @@ import java.util.*
 class MongoSourceTask : SourceTask() {
     private val log = LoggerFactory.getLogger(MongoSourceTask::class.java)
 
-    private var uri: String? = null
+    private var uri = ""
     private var schemaName: String? = null
     private var batchSize = 100
     private var topicPrefix: String? = null
-    private var databases: List<String>? = null
+    private var databases = listOf<String>()
 
-    private var reader: MongoReader? = null
     private val offsets = HashMap<Map<String, String>, Map<String, Any>>()
     // Sleep time will get double of it's self when there was no records return in the poll function
     // But will not larger than maxSleepTime
     private var sleepTime = 50
     private var maxSleepTime = 10000
+    // How many times will a process retries before quit
+    private val maxErrCount = 5
+    internal var messages = ConcurrentLinkedQueue<Document>()
 
     override fun version(): String {
         return MongoSourceConnector().version()
@@ -56,12 +59,12 @@ class MongoSourceTask : SourceTask() {
 
         schemaName = props[SCHEMA_NAME_CONFIG]
         topicPrefix = props[TOPIC_PREFIX_CONFIG]
-        uri = props[MONGO_URI_CONFIG]
+        uri = props[MONGO_URI_CONFIG] as String
         databases = Arrays.asList<String>(*props[DATABASES_CONFIG]!!.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
 
         log.trace("Creating schema")
 
-        databases!!.map { it.replace("[\\s.]".toRegex(), "_") }
+        databases.map { it.replace("[\\s.]".toRegex(), "_") }
                 .forEach {
                     schemas.put(it, SchemaBuilder.struct().name(schemaName + "_" + it)
                             .field("ts", Schema.OPTIONAL_INT32_SCHEMA).field("inc", Schema.OPTIONAL_INT32_SCHEMA)
@@ -70,16 +73,17 @@ class MongoSourceTask : SourceTask() {
                 }
 
         loadOffsets()
-        reader = MongoReader(uri!!, databases!!, offsets)
-        reader!!.run()
+        for (database in databases) {
+            startDBReader(database, 0)
+        }
     }
 
     @Throws(InterruptedException::class)
     override fun poll(): List<SourceRecord> {
         log.trace("Polling records")
         val records = mutableListOf<SourceRecord>()
-        while (!reader!!.messages.isEmpty() && records.size < batchSize) {
-            val message = reader!!.messages.poll()
+        while (!messages.isEmpty() && records.size < batchSize) {
+            val message = messages.poll()
             val struct = getStruct(message)
             records.add(SourceRecord(
                     getPartition(getDB(message)),
@@ -102,6 +106,37 @@ class MongoSourceTask : SourceTask() {
 
     override fun stop() {
 
+    }
+
+    // Create a new DatabaseReader thread for
+    @Throws(Exception::class)
+    private fun startDBReader(db: String, errCount: Int = 0) {
+        if (errCount > maxErrCount) {
+            throw Exception("Can not execute database reader task!")
+        }
+        val startTime = System.currentTimeMillis()
+        var start = "0,0"
+        val timeOffset = offsets[MongoSourceTask.getPartition(db)]
+        if (!(timeOffset == null || timeOffset.isEmpty())) start = timeOffset[db] as String
+        log.trace("Starting database reader with configuration: ")
+        log.trace("uri: {}", uri)
+        log.trace("db: {}", db)
+        log.trace("start: {}", timeOffset)
+        val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, throwable ->
+            throwable.printStackTrace()
+            log.error("Error when read data from db: {}", db)
+            var _errCount = errCount + 1
+            // Reset error count if the task executed more than one hour
+            if ((System.currentTimeMillis() - startTime) > 3600000) {
+               _errCount = 0
+            }
+            loadOffsets()
+            startDBReader(db, _errCount)
+        }
+        val reader = DatabaseReader(uri, db, start, messages)
+        val t = Thread(reader)
+        t.uncaughtExceptionHandler = uncaughtExceptionHandler
+        t.start()
     }
 
     private fun getOffset(message: Document): Map<String, String> {
@@ -141,7 +176,7 @@ class MongoSourceTask : SourceTask() {
     }
 
     private fun loadOffsets() {
-        val partitions = databases!!.map({ MongoSourceTask.getPartition(it) })
+        val partitions = databases.map({ MongoSourceTask.getPartition(it) })
         offsets.putAll(context.offsetStorageReader().offsets<String>(partitions))
     }
 

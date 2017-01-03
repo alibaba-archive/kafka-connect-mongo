@@ -5,7 +5,7 @@
 #   docker build -t teambition/kafka-connect-mongo kafka-connect-mongo
 #   docker run -d --name kafka-connect-mongo --link kafka:kafka --link schema-registry:schema-registry teambition/kafka-connect-mongo
 
-FROM confluentinc/cp-kafka-connect-base
+FROM confluentinc/cp-kafka-connect
 
 MAINTAINER sailxjx@gmail.com
 
