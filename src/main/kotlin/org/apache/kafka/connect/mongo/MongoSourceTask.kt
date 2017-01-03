@@ -34,8 +34,8 @@ class MongoSourceTask : SourceTask() {
     private val offsets = HashMap<Map<String, String>, Map<String, Any>>()
     // Sleep time will get double of it's self when there was no records return in the poll function
     // But will not larger than maxSleepTime
-    private var sleepTime = 50
-    private var maxSleepTime = 10000
+    private var sleepTime = 50L
+    private var maxSleepTime = 10000L
     // How many times will a process retries before quit
     private val maxErrCount = 5
     internal var messages = ConcurrentLinkedQueue<Document>()
@@ -96,10 +96,10 @@ class MongoSourceTask : SourceTask() {
             log.trace(message.toString())
         }
         if (records.size == 0) {
-            sleepTime *= 2
-            Thread.sleep(Math.min(sleepTime, maxSleepTime).toLong())
+            sleepTime = Math.min(sleepTime * 2, maxSleepTime)
+            Thread.sleep(sleepTime)
         } else {
-            sleepTime = 50
+            sleepTime = 50L
         }
         return records
     }
@@ -126,8 +126,8 @@ class MongoSourceTask : SourceTask() {
             throwable.printStackTrace()
             log.error("Error when read data from db: {}", db)
             var _errCount = errCount + 1
-            // Reset error count if the task executed more than one hour
-            if ((System.currentTimeMillis() - startTime) > 3600000) {
+            // Reset error count if the task executed more than 5 minutes
+            if ((System.currentTimeMillis() - startTime) > 600000) {
                _errCount = 0
             }
             loadOffsets()
