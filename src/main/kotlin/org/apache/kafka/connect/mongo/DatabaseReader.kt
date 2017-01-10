@@ -8,6 +8,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
+import org.apache.kafka.connect.mongo.tools.JmxTool
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.conversions.Bson
@@ -18,6 +19,14 @@ import java.lang.Long.parseLong
 import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
 
+interface DatabaseReaderMBean {
+    val uri: String
+    val db: String
+    val start: String
+    val messages: ConcurrentLinkedQueue<Document>
+    var mQuery: String
+    var mDocCount: Int
+}
 /**
  * Connect and tail wait oplog
  * @author Xu Jingxin
@@ -26,10 +35,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * @param start timestamp.inc
  * @param messages
  */
-class DatabaseReader(private val uri: String,
-                     private val db: String,
-                     private val start: String,
-                     private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
+class DatabaseReader(override val uri: String,
+                     override val db: String,
+                     override val start: String,
+                     override val messages: ConcurrentLinkedQueue<Document>) : Runnable, DatabaseReaderMBean {
 
     private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     private val oplog: MongoCollection<Document>
@@ -37,7 +46,12 @@ class DatabaseReader(private val uri: String,
     private val mongoDatabase: MongoDatabase
     private var query: Bson? = null
 
+    override var mQuery: String = ""
+        get() = query.toString()
+    override var mDocCount = 0
+
     init {
+        JmxTool.registerMBean(this)
         val clientOptions = MongoClientOptions.builder()
                 .connectTimeout(1000 * 300)
         mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
@@ -61,6 +75,7 @@ class DatabaseReader(private val uri: String,
         for (document in documents) {
             log.trace("Document {}", document!!.toString())
             val doc = handleOp(document)
+            mDocCount += 1
             if (doc != null) messages.add(doc)
         }
     }
