@@ -9,6 +9,7 @@ import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONF
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
+import org.apache.kafka.connect.mongo.tools.JmxTool
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp
@@ -19,10 +20,16 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
+interface MongoSourceTaskMBean {
+    var mSleepTime: Long
+    val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
+    var mRecordCount: Int
+}
+
 /**
  * Created by Xu Jingxin on 16/8/3.
  */
-class MongoSourceTask : SourceTask() {
+class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     private val log = LoggerFactory.getLogger(MongoSourceTask::class.java)
 
     private var uri = ""
@@ -39,6 +46,16 @@ class MongoSourceTask : SourceTask() {
     // How many times will a process retries before quit
     private val maxErrCount = 5
     internal var messages = ConcurrentLinkedQueue<Document>()
+
+    override var mSleepTime: Long = sleepTime
+        get() = sleepTime
+    override val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
+        get() = offsets
+    override var mRecordCount = 0
+
+    init {
+        JmxTool.registerMBean(this)
+    }
 
     override fun version(): String {
         return MongoSourceConnector().version()
@@ -101,6 +118,7 @@ class MongoSourceTask : SourceTask() {
         } else {
             sleepTime = 50L
         }
+        mRecordCount += records.count()
         return records
     }
 

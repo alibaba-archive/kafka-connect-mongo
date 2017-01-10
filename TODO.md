@@ -7,6 +7,7 @@
 * [x] Support kafka 0.10
 * [x] Initial import all data on startup without offset
 * [x] Dockerized
+* [ ] Initial import data by scan _id
 
 # Test Cases
 * [x] Start and stop
