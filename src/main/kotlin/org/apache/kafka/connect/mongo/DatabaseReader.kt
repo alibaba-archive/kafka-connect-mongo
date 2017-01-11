@@ -18,6 +18,7 @@ import java.lang.Long.parseLong
 
 import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.TimeUnit
 
 interface DatabaseReaderMBean {
     val uri: String
@@ -71,6 +72,9 @@ class DatabaseReader(override val uri: String,
                 .sort(Document("\$natural", 1))
                 .projection(Projections.include("ts", "op", "ns", "o", "o2"))
                 .cursorType(CursorType.TailableAwait)
+                .batchSize(100)
+                .maxTime(60, TimeUnit.SECONDS)
+                .maxAwaitTime(60, TimeUnit.SECONDS)
                 .oplogReplay(true)
 
         for (document in documents) {

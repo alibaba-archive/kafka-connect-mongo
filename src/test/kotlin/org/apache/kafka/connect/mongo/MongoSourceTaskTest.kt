@@ -142,7 +142,7 @@ class MongoSourceTaskTest {
     private fun testBulkInsert() {
         // Insert an amount of documents
         // Check for the received count
-        val totalCount = Math.max(Random().nextInt(200), 100)
+        val totalCount = Math.max(Random().nextInt(200), 101)
         log.debug("Bulk insert count: {}", totalCount)
         bulkInsert(totalCount)
 
