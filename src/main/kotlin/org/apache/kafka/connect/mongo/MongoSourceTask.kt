@@ -152,6 +152,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
             startDBReader(db, _errCount)
         }
         val reader = DatabaseReader(uri, db, start, messages)
+        JmxTool.registerMBean(reader)
         val t = Thread(reader)
         t.uncaughtExceptionHandler = uncaughtExceptionHandler
         t.start()

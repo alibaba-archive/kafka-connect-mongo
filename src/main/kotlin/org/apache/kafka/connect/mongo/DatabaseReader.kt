@@ -52,7 +52,6 @@ class DatabaseReader(override val uri: String,
     override var mDocCount = 0
 
     init {
-        JmxTool.registerMBean(this)
         val clientOptions = MongoClientOptions.builder()
                 .connectTimeout(1000 * 300)
         mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
