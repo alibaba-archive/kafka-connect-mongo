@@ -1,3 +1,5 @@
+all: build push
+
 build:
 	@./build.sh
 

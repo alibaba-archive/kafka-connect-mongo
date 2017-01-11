@@ -84,8 +84,11 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         databases.map { it.replace("[\\s.]".toRegex(), "_") }
                 .forEach {
                     schemas.put(it, SchemaBuilder.struct().name(schemaName + "_" + it)
-                            .field("ts", Schema.OPTIONAL_INT32_SCHEMA).field("inc", Schema.OPTIONAL_INT32_SCHEMA)
-                            .field("id", Schema.OPTIONAL_STRING_SCHEMA).field("database", Schema.OPTIONAL_STRING_SCHEMA)
+                            .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
+                            .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
+                            .field("id", Schema.OPTIONAL_STRING_SCHEMA)
+                            .field("database", Schema.OPTIONAL_STRING_SCHEMA)
+                            .field("op", Schema.OPTIONAL_STRING_SCHEMA)
                             .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
                 }
 
@@ -188,6 +191,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         struct.put("inc", bsonTimestamp.inc)
         struct.put("id", _id)
         struct.put("database", db)
+        struct.put("op", message["op"])
         if (message["op"].toString() != "d") {
             struct.put("object", (message["o"] as Document).toJson())
         }

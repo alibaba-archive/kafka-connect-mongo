@@ -190,6 +190,9 @@ class MongoSourceTaskTest {
         assertNotEquals(values[1].get("id"), null)
         assertEquals(values[0].get("id"), values[2].get("id"))
         assertEquals(values[1].get("id"), values[3].get("id"))
+        assertEquals(values[0].get("op"), "i")
+        assertEquals(values[2].get("op"), "u")
+        assertEquals(values[3].get("op"), "d")
 
         val updatedValue = values[2].get("object") as String
         val updatedObject = JSON.parse(updatedValue) as BasicDBObject
