@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: ${PACKAGE_VERSION:="1.0.2"}
+: ${PACKAGE_VERSION:="1.0.3"}
 : ${IMAGE_NAME:="sailxjx/kafka-connect-mongo"}
 : ${SCALA_VERSIONS:="2.10 2.11"}
 : ${DEFAULT_SCALA_VERSION:="2.11"}
