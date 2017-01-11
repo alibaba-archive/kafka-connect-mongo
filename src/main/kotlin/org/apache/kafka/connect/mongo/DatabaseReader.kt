@@ -71,6 +71,7 @@ class DatabaseReader(override val uri: String,
                 .sort(Document("\$natural", 1))
                 .projection(Projections.include("ts", "op", "ns", "o", "o2"))
                 .cursorType(CursorType.TailableAwait)
+                .oplogReplay(true)
 
         for (document in documents) {
             log.trace("Document {}", document!!.toString())
