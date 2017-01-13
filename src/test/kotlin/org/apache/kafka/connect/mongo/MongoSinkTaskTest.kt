@@ -129,7 +129,6 @@ class MongoSinkTaskTest {
         val doc = Document()
                 .append("_id", _id)
                 .append("state", Random().nextInt())
-                .append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
         val message = Struct(valueSchema)
                 .put("id", _id.toHexString())
                 .put("ts", _id.timestamp)

@@ -57,6 +57,11 @@ class MongoSinkTask : SinkTask() {
                 continue
             }
             val doc = Document(flatObj)
+            doc.map {
+               if (it.value == null)  {
+                   doc.remove(it.key)
+               }
+            }
             log.trace("Adding update model to bulk: {}", doc.toString())
             bulks[ns]!!.add(UpdateOneModel<Document>(
                     Filters.eq("_id", ObjectId(id)),
@@ -64,15 +69,13 @@ class MongoSinkTask : SinkTask() {
                     UpdateOptions().upsert(true)
             ))
         }
-        log.trace("record size {}", records.size)
-        log.trace("bulk size {}", bulks.values.sumBy { it.size })
         for ((ns, docs) in bulks) {
             try {
                 val writeResult = getCollection(ns).bulkWrite(docs)
                 log.trace("Write result: {}", writeResult)
             } catch (e: Exception) {
                 // @todo Retry write documents
-                log.error("Bulk write error {}", e.stackTrace)
+                log.error("Bulk write error {}", e.message)
             }
         }
     }
