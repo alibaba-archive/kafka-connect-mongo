@@ -4,6 +4,7 @@ import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
+import com.mongodb.client.model.Filters
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -99,7 +100,7 @@ class ImportDB(val uri: String,
     private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
-    private var skipOffset = 0
+    private var offsetId: ObjectId? = null
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
@@ -115,14 +116,20 @@ class ImportDB(val uri: String,
 
     override fun run() {
         do {
-            log.info("Read documents at $dbName from offset {}", skipOffset)
-            val documents = mongoCollection.find().skip(skipOffset).limit(bulkSize)
+            log.info("Read documents at $dbName from offset {}", offsetId)
+            var documents = mongoCollection.find()
+            if (offsetId != null) {
+                documents = documents.filter(Filters.gt("_id", offsetId))
+            }
+            documents = documents
+                    .sort(Document("_id", 1))
+                    .limit(bulkSize)
             try {
                 for (document in documents) {
                     log.trace("Document {}", document!!.toString())
                     messages.add(getStruct(document))
+                    offsetId = document["_id"] as ObjectId
                 }
-                skipOffset += documents.count()
             } catch (e: Exception) {
                 e.printStackTrace()
                 log.error("Closed connection")

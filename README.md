@@ -49,6 +49,9 @@ databases=test.users
     ```
 5. Execute the script `./bin/connect-mongo producer.properties`
 
+Tips: the script will use `_id` as the offset for each bulk read, 
+so all your documents should have an auto increment field called `_id`.
+
 ## Execute import job by gradle (Development only)
 
 1. Edit file `etc/producer.properties`
