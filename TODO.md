@@ -9,7 +9,7 @@
 * [x] Initial import all data on startup without offset
 * [x] Dockerized
 * [x] Initial import data by scan _id
-* [ ] Config sink with databases and topics
+* [x] Config sink with databases and topics
 
 # Test Cases
 * [x] Start and stop
