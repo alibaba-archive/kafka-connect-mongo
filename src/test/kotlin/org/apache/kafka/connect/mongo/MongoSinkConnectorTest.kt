@@ -20,6 +20,7 @@ class MongoSinkConnectorTest {
         val props = mutableMapOf<String, String>()
         props.put("mongo.uri", "mongodb://localhost:12345")
         props.put("topics", "a,b,c")
+        props.put("databases", "t.a,t.b,t.c")
         connector.start(props)
 
         PowerMock.replayAll()

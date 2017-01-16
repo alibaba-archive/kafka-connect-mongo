@@ -14,6 +14,8 @@ import org.apache.kafka.connect.sink.SinkTask
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.bson.types.ObjectId
 
 /**
@@ -28,12 +30,17 @@ class MongoSinkTask : SinkTask() {
 
     private var mongoClient: MongoClient? = null
     private var collections = mutableMapOf<String, MongoCollection<Document>>()
+    private var topicMapToDb = mutableMapOf<String, String>()
 
     override fun put(records: Collection<SinkRecord>) {
         val bulks = mutableMapOf<String, MutableList<WriteModel<Document>>>()
         for (record in records) {
             val struct = record.value() as Struct
-            val ns = struct["database"] as String
+            val topic = record.topic()
+            if (topicMapToDb[topic] == null) {
+                throw Exception("Topic $topic is not defined in config.")
+            }
+            val ns = topicMapToDb[topic] as String
             val id = struct["id"] as String
 
             if (bulks[ns] == null) {
@@ -87,8 +94,13 @@ class MongoSinkTask : SinkTask() {
 
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration")
+        log.trace("Task Configurations {}", props)
         uri = props[MONGO_URI_CONFIG]!!
-
+        val topics = props[SOURCE_TOPICS_CONFIG]!!.split(",")
+        val databases = props[DATABASES_CONFIG]!!.split(",")
+        for ((i, topic) in topics.withIndex()) {
+            topicMapToDb[topic] = databases[i]
+        }
         val clientOptions = MongoClientOptions.builder()
                 .connectTimeout(1000 * 300)
         mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
@@ -99,7 +111,7 @@ class MongoSinkTask : SinkTask() {
 
     private fun getCollection(ns: String): MongoCollection<Document> {
         if (collections[ns] == null) {
-            val (dbName, collectionName) = ns.split("_").dropLastWhile(String::isEmpty)
+            val (dbName, collectionName) = ns.split(".").dropLastWhile(String::isEmpty)
             collections[ns] = mongoClient!!.getDatabase(dbName).getCollection(collectionName)
         }
         return collections[ns]!!

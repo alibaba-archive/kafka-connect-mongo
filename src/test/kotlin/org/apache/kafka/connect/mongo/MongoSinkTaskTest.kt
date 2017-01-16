@@ -51,14 +51,15 @@ class MongoSinkTaskTest {
     @Test
     fun putBulk() {
         PowerMock.replayAll()
-        val props = mutableMapOf<String, String>()
-        props["mongo.uri"] = "mongodb://localhost:12345"
-        props["topics"] = "a,b"
+        val topics = listOf("a", "b")
+        val props = mapOf(
+                "mongo.uri" to "mongodb://localhost:12345",
+                "topics" to topics.joinToString(","),
+                "databases" to "t.a,t.b"
+        )
         task!!.start(props)
 
         // Mock records
-        val topics = listOf("a", "b")
-
         for (i in 1..10) {
             val recordsMap = mutableMapOf(
                     "a" to mutableListOf<SinkRecord>(),
@@ -89,13 +90,14 @@ class MongoSinkTaskTest {
     @Test
     fun putSubtle() {
         PowerMock.replayAll()
+        val topic = "a"
         val props = mapOf(
                 "mongo.uri" to "mongodb://localhost:12345",
-                "topics" to "a"
+                "topics" to topic,
+                "databases" to "t.a"
         )
         task!!.start(props)
         // Mock records
-        val topic = "a"
         val r1 = createRecord(topic, "i")
         val r2 = createRecord(topic, "i")
         val r3 = updateRecord(r1)

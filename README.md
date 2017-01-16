@@ -65,12 +65,13 @@ connector.class=org.apache.kafka.connect.mongo.MongoSinkConnector
 tasks.max=1
 mongo.uri=mongodb://root:root@192.168.0.21:27017/?authSource=admin
 topics=topic1,topic2
+databases=mydb.topic1,mydb.topic2
 ```
 
 Now you can only use mongo sink connector as your restore tool, 
 you can restore data from kafka which given by mongo source connector.
  
-The messages should contain `databases`, `object` and `id` keys
+The messages should contain `object` and `id` fields
 
 ## LICENSE
 
