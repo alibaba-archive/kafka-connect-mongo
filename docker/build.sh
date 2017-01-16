@@ -27,5 +27,7 @@ DOCKER_FILE=${DOCKER_DIR}/Dockerfile
 docker build $DOCKER_BUILD_OPTS -t "${IMAGE_NAME}:${PACKAGE_VERSION}" ./
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "docker-registry.teambition.net/${IMAGE_NAME}:latest"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "docker-registry.teambition.net/${IMAGE_NAME}:${PACKAGE_VERSION}"
+docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "${IMAGE_NAME}:latest"
+docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "${IMAGE_NAME}:${PACKAGE_VERSION}"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "quay.io/${IMAGE_NAME}:latest"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "quay.io/${IMAGE_NAME}:${PACKAGE_VERSION}"
