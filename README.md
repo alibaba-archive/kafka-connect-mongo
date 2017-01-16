@@ -29,7 +29,7 @@ databases=test.users
 #javax.net.ssl.keyStorePassword=123456
 ```
 
-## Import data at the first time
+## Initial import data from mongo collection
 
 1. Build project `./gradlew clean distTar`
 2. Unzip tarball and enter the directory `cd build/distributions && tar -xvf connect-mongo-1.0.tgz && cd connect-mongo-1.0`
@@ -49,10 +49,29 @@ databases=test.users
     ```
 5. Execute the script `./bin/connect-mongo producer.properties`
 
+Tips: the script will use `_id` as the offset for each bulk read, 
+so all your documents should have an auto increment field called `_id`.
+
 ## Execute import job by gradle (Development only)
 
 1. Edit file `etc/producer.properties`
 2. Execute `./gradlew runImport`
+
+## Sink (Experimental)
+
+```properties
+name=mongo-sink-connector
+connector.class=org.apache.kafka.connect.mongo.MongoSinkConnector
+tasks.max=1
+mongo.uri=mongodb://root:root@192.168.0.21:27017/?authSource=admin
+topics=topic1,topic2
+databases=mydb.topic1,mydb.topic2
+```
+
+Now you can only use mongo sink connector as your restore tool, 
+you can restore data from kafka which given by mongo source connector.
+ 
+The messages should contain `object` and `id` fields
 
 ## LICENSE
 

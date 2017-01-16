@@ -4,6 +4,7 @@ import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
+import com.mongodb.client.model.Filters
 import org.bson.Document
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -34,11 +35,7 @@ class ImportJob(val uri: String,
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
     private val messages = ConcurrentLinkedQueue<JSONObject>()
-    private var producer: KafkaProducer<String, String>
-
-    init {
-       producer = KafkaProducer(props)
-    }
+    private var producer: KafkaProducer<String, String> = KafkaProducer(props)
 
     /**
      * Start job
@@ -100,17 +97,16 @@ class ImportDB(val uri: String,
                var messages: ConcurrentLinkedQueue<JSONObject>,
                val bulkSize: Int) : Runnable {
 
-    private val mongoClient: MongoClient
+    private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
-    private var skipOffset = 0
+    private var offsetId: ObjectId? = null
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
     }
 
     init {
-        mongoClient = MongoClient(MongoClientURI(uri))
         val (db, collection) = dbName.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
         mongoDatabase = mongoClient.getDatabase(db)
         mongoCollection = mongoDatabase.getCollection(collection)
@@ -120,14 +116,20 @@ class ImportDB(val uri: String,
 
     override fun run() {
         do {
-            log.info("Read documents at $dbName from offset {}", skipOffset)
-            val documents = mongoCollection.find().skip(skipOffset).limit(bulkSize)
+            log.info("Read documents at $dbName from offset {}", offsetId)
+            var documents = mongoCollection.find()
+            if (offsetId != null) {
+                documents = documents.filter(Filters.gt("_id", offsetId))
+            }
+            documents = documents
+                    .sort(Document("_id", 1))
+                    .limit(bulkSize)
             try {
                 for (document in documents) {
                     log.trace("Document {}", document!!.toString())
                     messages.add(getStruct(document))
+                    offsetId = document["_id"] as ObjectId
                 }
-                skipOffset += documents.count()
             } catch (e: Exception) {
                 e.printStackTrace()
                 log.error("Closed connection")

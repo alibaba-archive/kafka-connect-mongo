@@ -1,4 +1,5 @@
 # Features
+* [ ] Implement sink
 * [x] Implement with confluent 3.1.0
 * [x] Add message key
 * [x] Authorize in MongoDB with password
@@ -7,7 +8,8 @@
 * [x] Support kafka 0.10
 * [x] Initial import all data on startup without offset
 * [x] Dockerized
-* [ ] Initial import data by scan _id
+* [x] Initial import data by scan _id
+* [ ] Config sink with databases and topics
 
 # Test Cases
 * [x] Start and stop

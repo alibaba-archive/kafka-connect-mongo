@@ -32,9 +32,9 @@ class MongoSourceConnector : SourceConnector() {
     private var topicPrefix: String = ""
     private var schemaName: String = ""
 
-    override fun version(): String {
-        return AppInfoParser.getVersion()
-    }
+    override fun version(): String = AppInfoParser.getVersion()
+
+    override fun taskClass(): Class<out Task> = MongoSourceTask::class.java
 
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration")
@@ -60,13 +60,12 @@ class MongoSourceConnector : SourceConnector() {
         log.trace("Configurations {}", props)
     }
 
-    override fun taskClass(): Class<out Task> {
-        return MongoSourceTask::class.java
-    }
-
-    override fun taskConfigs(maxTasks: Int): List<Map<String, String>> {
-        val configs = ArrayList<Map<String, String>>()
-        val dbs = Arrays.asList<String>(*databases.split(",".toRegex()).dropLastWhile(String::isEmpty).toTypedArray())
+    /**
+     * Group tasks by number of dbs
+     */
+    override fun taskConfigs(maxTasks: Int): MutableList<MutableMap<String, String>> {
+        val configs = mutableListOf<MutableMap<String, String>>()
+        val dbs = databases.split(",").dropLastWhile(String::isEmpty)
         val numGroups = Math.min(dbs.size, maxTasks)
         val dbsGrouped = ConnectorUtils.groupPartitions(dbs, numGroups)
 
@@ -86,9 +85,7 @@ class MongoSourceConnector : SourceConnector() {
 
     }
 
-    override fun config(): ConfigDef {
-        return MongoSourceConfig.config
-    }
+    override fun config(): ConfigDef = MongoSourceConfig.config
 
     private fun getRequiredProp(props: Map<String, String>, key: String): String {
         val value = props[key]

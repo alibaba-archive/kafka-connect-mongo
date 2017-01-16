@@ -8,7 +8,6 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
-import org.apache.kafka.connect.mongo.tools.JmxTool
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.conversions.Bson

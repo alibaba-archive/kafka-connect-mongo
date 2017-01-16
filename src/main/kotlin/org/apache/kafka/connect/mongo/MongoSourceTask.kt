@@ -30,7 +30,14 @@ interface MongoSourceTaskMBean {
  * Created by Xu Jingxin on 16/8/3.
  */
 class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
-    private val log = LoggerFactory.getLogger(MongoSourceTask::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(MongoSourceTask::class.java)
+        private var schemas: MutableMap<String, Schema> = HashMap()
+
+        fun getPartition(db: String): Map<String, String> {
+            return Collections.singletonMap("mongo", db)
+        }
+    }
 
     private var uri = ""
     private var schemaName: String? = null
@@ -57,9 +64,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         JmxTool.registerMBean(this)
     }
 
-    override fun version(): String {
-        return MongoSourceConnector().version()
-    }
+    override fun version(): String = MongoSourceConnector().version()
 
     /**
      * Parse the config properties into in-use type and format
@@ -201,13 +206,5 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     private fun loadOffsets() {
         val partitions = databases.map({ MongoSourceTask.getPartition(it) })
         offsets.putAll(context.offsetStorageReader().offsets<String>(partitions))
-    }
-
-    companion object {
-        private var schemas: MutableMap<String, Schema> = HashMap()
-
-        fun getPartition(db: String): Map<String, String> {
-            return Collections.singletonMap("mongo", db)
-        }
     }
 }
