@@ -35,6 +35,7 @@ class MongoSinkTask : SinkTask() {
     override fun put(records: Collection<SinkRecord>) {
         val bulks = mutableMapOf<String, MutableList<WriteModel<Document>>>()
         for (record in records) {
+            log.trace("Put record: {}", record)
             val struct = record.value() as Struct
             val topic = record.topic()
             if (topicMapToDb[topic] == null) {
@@ -56,9 +57,11 @@ class MongoSinkTask : SinkTask() {
                 continue
             }
 
-            val flatObj: Map<String, Any>
+            val flatObj = mutableMapOf<String, Any?>()
             try {
-                flatObj = JSON.parse(struct["object"] as String) as Map<String, Any>
+                (JSON.parse(struct["object"] as String) as Map<*, *>).mapKeysTo(flatObj) {
+                    it.key.toString()
+                }
             } catch (e: Exception) {
                 log.error("JSON parse error: {}", struct["object"])
                 continue
@@ -81,7 +84,7 @@ class MongoSinkTask : SinkTask() {
                 val writeResult = getCollection(ns).bulkWrite(docs)
                 log.trace("Write result: {}", writeResult)
             } catch (e: Exception) {
-                // @todo Retry write documents
+                // @todo Retry write messages
                 log.error("Bulk write error {}", e.message)
             }
         }

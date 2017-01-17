@@ -16,6 +16,9 @@ import java.io.IOException
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import com.google.common.truth.Truth.assertThat
+import org.apache.kafka.connect.data.Schema
+import org.apache.kafka.connect.data.SchemaBuilder
+import org.apache.kafka.connect.data.Struct
 
 /**
  * @author Xu Jingxin
@@ -47,10 +50,10 @@ class ImportDataTest {
         recordsCount = Math.max(Random().nextInt(200), 100)
         val collectionName = "users"
         bulkInsert(recordsCount, collectionName)
-        val messages = ConcurrentLinkedQueue<JSONObject>()
+        val messages = ConcurrentLinkedQueue<Map<String, String>>()
         val bulkSize = 10
 
-        val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", messages, bulkSize)
+        val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", "import_test", messages, bulkSize)
         importDb.run()
 
         assertThat(messages.count()).isEqualTo(recordsCount)
@@ -73,17 +76,36 @@ class ImportDataTest {
 
         bulkInsert(20, "dogs")
         bulkInsert(10, "cats")
-        // Import 30 hundreds documents from two collections
+        // Import 30 hundreds messages from two collections
         importJob.start()
 
         // Read messages from topics
         kafkaUnit.readMessages("import_test_${dbName}_dogs", 20)
-        val cats = kafkaUnit.readMessages("import_test_${dbName}_cats", 10)
+        val cats = kafkaUnit.readKeyedMessages("import_test_${dbName}_cats", 10)
 
         cats.forEach {
-            val message = JSONObject(it)
-            assertThat(message["database"]).isEqualTo("test_cats")
-            assertThat(message.keySet()).containsAllOf("id", "database", "ts", "inc", "object")
+            log.debug("Cat record: {}", it)
+            val key = JSONObject(it.key()).toMap()
+            val message = JSONObject(it.message()).toMap()
+            val keySchema = key["schema"] as Map<*, *>
+            val keyPayload = key["payload"] as String
+            val messageSchema = message["schema"] as Map<*, *>
+            val messagePayload = message["payload"] as Map<*, *>
+            val fields = (messageSchema["fields"] as List<Map<*, *>>).map {
+                it["field"]
+            }
+
+            assertThat(it.topic()).isEqualTo("import_test_${dbName}_cats")
+            assertThat(keySchema).isEqualTo(mapOf(
+                    "type" to "string",
+                    "optional" to true
+            ))
+            assertThat(keyPayload).matches("^[0-9a-z]{24}$".toRegex(RegexOption.IGNORE_CASE).toPattern())
+            assertThat(messageSchema["type"]).isEqualTo("struct")
+            assertThat(messageSchema["optional"]).isEqualTo(false)
+            assertThat(messagePayload["database"]).isEqualTo("test_cats")
+            assertThat(fields).containsAllOf("id", "database", "ts", "op", "inc", "object")
+            assertThat(messagePayload.keys).containsAllOf("id", "database", "ts", "op", "inc", "object")
         }
 
         kafkaUnit.shutdown()
@@ -91,7 +113,7 @@ class ImportDataTest {
 
     /**
      * Bulk insert random document into collection
-     * @param count Count of documents
+     * @param count Count of messages
      * @param collectionName Name of collection
      */
     fun bulkInsert(count: Int, collectionName: String) {

@@ -5,16 +5,17 @@ import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
-import org.bson.Document
-import org.slf4j.LoggerFactory
-import java.util.concurrent.ConcurrentLinkedQueue
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.mongo.MongoSourceConfig
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import java.io.FileInputStream
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * @author Xu Jingxin
@@ -34,7 +35,7 @@ class ImportJob(val uri: String,
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
-    private val messages = ConcurrentLinkedQueue<JSONObject>()
+    private val messages = ConcurrentLinkedQueue<Map<String, String>>()
     private var producer: KafkaProducer<String, String> = KafkaProducer(props)
 
     /**
@@ -46,7 +47,7 @@ class ImportJob(val uri: String,
         var threadCount = 0
         dbs.split(",").dropLastWhile(String::isEmpty).forEach {
             log.trace("Import database: {}", it)
-            val importDB = ImportDB(uri, it, messages, bulkSize)
+            val importDB = ImportDB(uri, it, topicPrefix, messages, bulkSize)
             val t = Thread(importDB)
             threadCount += 1
             threadGroup.add(t)
@@ -72,14 +73,13 @@ class ImportJob(val uri: String,
     fun flush() {
         while (!messages.isEmpty()) {
             val message = messages.poll()
-            log.trace("Poll message {}", message)
-            val db = message["database"] as String
-            val topic = "${topicPrefix}_$db"
+            log.trace("Poll document {}", message)
 
-            val record = ProducerRecord<String, String>(
-                    topic,
-                    message["id"].toString(),
-                    message.toString())
+            val record = ProducerRecord(
+                    message["topic"],
+                    message["key"],
+                    message["value"]
+            )
             log.trace("Record {}", record)
             producer.send(record)
         }
@@ -94,13 +94,15 @@ class ImportJob(val uri: String,
  */
 class ImportDB(val uri: String,
                val dbName: String,
-               var messages: ConcurrentLinkedQueue<JSONObject>,
+               val topicPrefix: String,
+               var messages: ConcurrentLinkedQueue<Map<String, String>>,
                val bulkSize: Int) : Runnable {
 
     private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
     private var offsetId: ObjectId? = null
+    private val snakeDb: String = dbName.replace("\\.".toRegex(), "_")
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
@@ -116,36 +118,86 @@ class ImportDB(val uri: String,
 
     override fun run() {
         do {
-            log.info("Read documents at $dbName from offset {}", offsetId)
-            var documents = mongoCollection.find()
+            log.info("Read messages at $dbName from offset {}", offsetId)
+            var iterator = mongoCollection.find()
             if (offsetId != null) {
-                documents = documents.filter(Filters.gt("_id", offsetId))
+                iterator = iterator.filter(Filters.gt("_id", offsetId))
             }
-            documents = documents
+            iterator = iterator
                     .sort(Document("_id", 1))
                     .limit(bulkSize)
             try {
-                for (document in documents) {
-                    log.trace("Document {}", document!!.toString())
-                    messages.add(getStruct(document))
+                for (document in iterator) {
+                    messages.add(getResult(document))
                     offsetId = document["_id"] as ObjectId
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
-                log.error("Closed connection")
+                log.error("Querying error: {}", e.message)
             }
-        } while (documents.count() > 0)
+        } while (iterator.count() > 0)
     }
 
-    fun getStruct(document: Document): JSONObject {
-        val message = JSONObject()
+    fun getResult(document: Document): Map<String, String> {
         val id = document["_id"] as ObjectId
-        message.put("ts", id.timestamp)
-        message.put("inc", 0)
-        message.put("id", id.toHexString())
-        message.put("database", dbName.replace("\\.".toRegex(), "_"))
-        message.put("object", document.toJson())
-        return message
+        val key = JSONObject(mapOf(
+                "schema" to mapOf(
+                        "type" to "string",
+                        "optional" to true
+                ), "payload" to id.toHexString()
+        ))
+        val topic = "${topicPrefix}_$snakeDb"
+        val message = JSONObject(mapOf(
+                "schema" to mapOf(
+                        "type" to "struct",
+                        "fields" to listOf(
+                                mapOf(
+                                        "type" to "int32",
+                                        "optional" to true,
+                                        "field" to "ts"
+                                ),
+                                mapOf(
+                                        "type" to "int32",
+                                        "optional" to true,
+                                        "field" to "inc"
+                                ),
+                                mapOf(
+                                        "type" to "string",
+                                        "optional" to true,
+                                        "field" to "id"
+                                ),
+                                mapOf(
+                                        "type" to "string",
+                                        "optional" to true,
+                                        "field" to "database"
+                                ),
+                                mapOf(
+                                        "type" to "string",
+                                        "optional" to true,
+                                        "field" to "op"
+                                ),
+                                mapOf(
+                                        "type" to "string",
+                                        "optional" to true,
+                                        "field" to "object"
+                                )
+                        ),
+                        "optional" to false,
+                        "name" to topic
+                ),
+                "payload" to mapOf(
+                        "id" to id.toHexString(),
+                        "ts" to id.timestamp,
+                        "inc" to 0,
+                        "database" to snakeDb,
+                        "op" to "i",
+                        "object" to document.toJson()
+                )))
+        val record = mapOf(
+                "key" to key.toString(),
+                "value" to message.toString(),
+                "topic" to topic
+        )
+        return record
     }
 }
 

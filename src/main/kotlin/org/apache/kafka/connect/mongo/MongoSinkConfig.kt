@@ -31,6 +31,6 @@ class MongoSinkConfig(props: Map<String, String>) : AbstractConfig(MongoSinkConf
                 .define(SOURCE_TOPICS_CONFIG,
                         Type.STRING,
                         Importance.HIGH,
-                        SOURCE_TOPICS_CONFIG_DOC)
+                        SOURCE_TOPICS_CONFIG_DOC)!!
     }
 }

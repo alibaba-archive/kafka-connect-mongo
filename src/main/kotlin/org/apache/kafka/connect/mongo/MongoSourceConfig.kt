@@ -14,7 +14,7 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         private val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
 
         val BATCH_SIZE_CONFIG = "batch.size"
-        private val BATCH_SIZE_CONFIG_DOC = "Count of documents in each polling"
+        private val BATCH_SIZE_CONFIG_DOC = "Count of messages in each polling"
 
         val SCHEMA_NAME_CONFIG = "schema.name"
         private val SCHEMA_NAME_CONFIG_DOC = "Schema name"

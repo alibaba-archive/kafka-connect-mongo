@@ -75,7 +75,7 @@ class MongoSinkTaskTest {
             }
         }
 
-        // Verify documents in mongodb
+        // Verify messages in mongodb
         val documents = mongod.getDatabase("t")!!.getCollection("a").find()
         documents.forEach {
             assertThat(it.keys).containsAllOf("_id", "state")
