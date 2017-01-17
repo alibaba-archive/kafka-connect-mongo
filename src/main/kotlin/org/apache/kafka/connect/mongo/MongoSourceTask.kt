@@ -197,7 +197,9 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         struct.put("id", _id)
         struct.put("database", db)
         struct.put("op", message["op"])
-        if (message["op"].toString() != "d") {
+        if (message["op"].toString() == "d") {
+            struct.put("object", null)
+        } else {
             struct.put("object", (message["o"] as Document).toJson())
         }
         return struct

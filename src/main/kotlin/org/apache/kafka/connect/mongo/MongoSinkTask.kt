@@ -33,6 +33,7 @@ class MongoSinkTask : SinkTask() {
     private var topicMapToDb = mutableMapOf<String, String>()
 
     override fun put(records: Collection<SinkRecord>) {
+        log.debug("Receive records {}", records.size)
         val bulks = mutableMapOf<String, MutableList<WriteModel<Document>>>()
         for (record in records) {
             log.trace("Put record: {}", record)
@@ -67,11 +68,6 @@ class MongoSinkTask : SinkTask() {
                 continue
             }
             val doc = Document(flatObj)
-            doc.map {
-               if (it.value == null)  {
-                   doc.remove(it.key)
-               }
-            }
             log.trace("Adding update model to bulk: {}", doc.toString())
             bulks[ns]!!.add(UpdateOneModel<Document>(
                     Filters.eq("_id", ObjectId(id)),

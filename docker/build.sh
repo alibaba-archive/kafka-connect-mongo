@@ -11,7 +11,7 @@ PACKAGE_NAME="connect-mongo-${PACKAGE_VERSION}.tgz"
 
 set -ex
 
-echo "Building kafka-connect-mongo"
+echo "Building kafka-connect-mongo $PACKAGE_VERSION"
 cd $SOURCE_DIR
 ./gradlew clean distTar
 cd $DOCKER_DIR
