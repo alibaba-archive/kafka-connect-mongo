@@ -7,7 +7,6 @@ import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.mongo.MongoSourceConfig
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -103,6 +102,7 @@ class ImportDB(val uri: String,
     private val mongoCollection: MongoCollection<Document>
     private var offsetId: ObjectId? = null
     private val snakeDb: String = dbName.replace("\\.".toRegex(), "_")
+    private var offsetCount = 0
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
@@ -118,7 +118,7 @@ class ImportDB(val uri: String,
 
     override fun run() {
         do {
-            log.info("Read messages at $dbName from offset {}", offsetId)
+            log.info("Read messages at $dbName from offset {}, count {}", offsetId, offsetCount)
             var iterator = mongoCollection.find()
             if (offsetId != null) {
                 iterator = iterator.filter(Filters.gt("_id", offsetId))
@@ -130,6 +130,7 @@ class ImportDB(val uri: String,
                 for (document in iterator) {
                     messages.add(getResult(document))
                     offsetId = document["_id"] as ObjectId
+                    offsetCount += 1
                 }
             } catch (e: Exception) {
                 log.error("Querying error: {}", e.message)
