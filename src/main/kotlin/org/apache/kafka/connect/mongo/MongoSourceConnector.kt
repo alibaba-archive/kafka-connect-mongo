@@ -37,7 +37,7 @@ class MongoSourceConnector : SourceConnector() {
     override fun taskClass(): Class<out Task> = MongoSourceTask::class.java
 
     override fun start(props: Map<String, String>) {
-        log.trace("Parsing configuration")
+        log.trace("Parsing configuration: {}", props)
         databases = getRequiredProp(props, DATABASES_CONFIG)
         batchSize = getRequiredProp(props, BATCH_SIZE_CONFIG)
         uri = getRequiredProp(props, MONGO_URI_CONFIG)

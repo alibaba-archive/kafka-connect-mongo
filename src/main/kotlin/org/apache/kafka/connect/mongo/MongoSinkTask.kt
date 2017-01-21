@@ -18,10 +18,15 @@ import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
 import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.bson.types.ObjectId
 
+interface MongoSinkTaskMBean {
+    var mProps: Map<String, String>?
+    var mTopicMapToDb: MutableMap<String, String>
+}
+
 /**
  * @author Xu Jingxin
  */
-class MongoSinkTask : SinkTask() {
+class MongoSinkTask : SinkTask(), MongoSinkTaskMBean {
     companion object {
         private val log = LoggerFactory.getLogger(MongoSinkTask::class.java)
     }
@@ -31,6 +36,10 @@ class MongoSinkTask : SinkTask() {
     private var mongoClient: MongoClient? = null
     private var collections = mutableMapOf<String, MongoCollection<Document>>()
     private var topicMapToDb = mutableMapOf<String, String>()
+
+    override var mProps: Map<String, String>? = null
+    override var mTopicMapToDb: MutableMap<String, String> = topicMapToDb
+        get() = topicMapToDb
 
     override fun put(records: Collection<SinkRecord>) {
         log.debug("Receive records {}", records.size)
@@ -92,8 +101,8 @@ class MongoSinkTask : SinkTask() {
     }
 
     override fun start(props: Map<String, String>) {
-        log.trace("Parsing configuration")
-        log.trace("Task Configurations {}", props)
+        log.trace("Parsing configuration: {}", props)
+        mProps = props
         uri = props[MONGO_URI_CONFIG]!!
         val topics = props[SOURCE_TOPICS_CONFIG]!!.split(",")
         val databases = props[DATABASES_CONFIG]!!.split(",")

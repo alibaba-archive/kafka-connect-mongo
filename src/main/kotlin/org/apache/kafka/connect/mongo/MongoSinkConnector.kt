@@ -51,7 +51,7 @@ class MongoSinkConnector: SinkConnector() {
     }
 
     override fun start(props: Map<String, String>) {
-        log.trace("Parsing configuration")
+        log.trace("Parsing configuration: {}", props)
         uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topics = getRequiredProp(props, SOURCE_TOPICS_CONFIG)
         databases = getRequiredProp(props, DATABASES_CONFIG)
