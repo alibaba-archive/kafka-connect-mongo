@@ -19,7 +19,7 @@ import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CO
 import org.bson.types.ObjectId
 
 interface MongoSinkTaskMBean {
-    var mProps: Map<String, String>?
+    var mProps: String
     var mTopicMapToDb: MutableMap<String, String>
 }
 
@@ -37,7 +37,7 @@ class MongoSinkTask : SinkTask(), MongoSinkTaskMBean {
     private var collections = mutableMapOf<String, MongoCollection<Document>>()
     private var topicMapToDb = mutableMapOf<String, String>()
 
-    override var mProps: Map<String, String>? = null
+    override var mProps: String = ""
     override var mTopicMapToDb: MutableMap<String, String> = topicMapToDb
         get() = topicMapToDb
 
@@ -102,7 +102,7 @@ class MongoSinkTask : SinkTask(), MongoSinkTaskMBean {
 
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration: {}", props)
-        mProps = props
+        mProps = props.toString()
         uri = props[MONGO_URI_CONFIG]!!
         val topics = props[SOURCE_TOPICS_CONFIG]!!.split(",")
         val databases = props[DATABASES_CONFIG]!!.split(",")

@@ -24,7 +24,7 @@ interface MongoSourceTaskMBean {
     var mSleepTime: Long
     val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
     var mRecordCount: Int
-    var mProps: Map<String, String>?
+    var mProps: String
 }
 
 /**
@@ -60,7 +60,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     override val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
         get() = offsets
     override var mRecordCount = 0
-    override var mProps: Map<String, String>? = null
+    override var mProps: String = ""
 
     init {
         JmxTool.registerMBean(this)
@@ -74,7 +74,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
      */
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration: {}", props)
-        mProps = props
+        mProps = props.toString()
         try {
             batchSize = Integer.parseInt(props[BATCH_SIZE_CONFIG])
         } catch (e: Exception) {
