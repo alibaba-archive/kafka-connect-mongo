@@ -21,11 +21,11 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 interface MongoSourceTaskMBean {
-    var mSleepTime: Long
+    val mSleepTime: Long
     val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
-    var mRecordCount: Int
-    var mProps: String
-    var mMsgCount: Int
+    val mRecordCount: Int
+    val mProps: String
+    val mMsgCount: Int
 }
 
 /**
@@ -57,14 +57,11 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     internal var messages = ConcurrentLinkedQueue<Document>()
     private val databaseReaders = mutableMapOf<String, DatabaseReader>()
 
-    override var mSleepTime: Long = sleepTime
-        get() = sleepTime
-    override val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
-        get() = offsets
+    override val mSleepTime get() = sleepTime
+    override val mOffsets get() = offsets
     override var mRecordCount = 0
     override var mProps: String = ""
-    override var mMsgCount: Int = messages.count()
-        get() = messages.count()
+    override val mMsgCount get() = messages.count()
 
     init {
         JmxTool.registerMBean(this)

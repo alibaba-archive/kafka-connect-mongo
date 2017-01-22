@@ -25,9 +25,9 @@ interface DatabaseReaderMBean {
     val uri: String
     val db: String
     val start: String
-    var mQuery: String
-    var mDocCount: Int
-    var mState: String
+    val mQuery: String
+    val mDocCount: Int
+    val mState: String
 }
 
 
@@ -53,11 +53,9 @@ class DatabaseReader(override val uri: String,
     private var query: Bson? = null
     private var state = State.READY
 
-    override var mQuery: String = ""
-        get() = query.toString()
+    override val mQuery get() = query.toString()
     override var mDocCount = 0
-    override var mState = state.toString()
-        get() = state.toString()
+    override val mState get() = state.toString()
 
     init {
         val clientOptions = MongoClientOptions.builder()

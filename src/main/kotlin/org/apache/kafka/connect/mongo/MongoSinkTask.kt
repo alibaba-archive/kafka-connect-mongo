@@ -20,7 +20,7 @@ import org.bson.types.ObjectId
 
 interface MongoSinkTaskMBean {
     var mProps: String
-    var mTopicMapToDb: MutableMap<String, String>
+    val mTopicMapToDb: MutableMap<String, String>
 }
 
 /**
@@ -38,8 +38,7 @@ class MongoSinkTask : SinkTask(), MongoSinkTaskMBean {
     private var topicMapToDb = mutableMapOf<String, String>()
 
     override var mProps: String = ""
-    override var mTopicMapToDb: MutableMap<String, String> = topicMapToDb
-        get() = topicMapToDb
+    override val mTopicMapToDb get() = topicMapToDb
 
     override fun put(records: Collection<SinkRecord>) {
         log.debug("Receive records {}", records.size)
