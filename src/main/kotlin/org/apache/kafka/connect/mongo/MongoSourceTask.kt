@@ -25,6 +25,7 @@ interface MongoSourceTaskMBean {
     val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
     var mRecordCount: Int
     var mProps: String
+    var mMsgCount: Int
 }
 
 /**
@@ -54,6 +55,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     // How many times will a process retries before quit
     private val maxErrCount = 5
     internal var messages = ConcurrentLinkedQueue<Document>()
+    private val databaseReaders = mutableMapOf<String, DatabaseReader>()
 
     override var mSleepTime: Long = sleepTime
         get() = sleepTime
@@ -61,6 +63,8 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         get() = offsets
     override var mRecordCount = 0
     override var mProps: String = ""
+    override var mMsgCount: Int = messages.count()
+        get() = messages.count()
 
     init {
         JmxTool.registerMBean(this)
@@ -132,8 +136,15 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         return records
     }
 
+    /**
+     * Disconnect mongo client and cleanup messages
+     */
     override fun stop() {
-
+        log.info("Graceful stop mongo source task")
+        databaseReaders.forEach { _, reader ->
+            reader.stop()
+        }
+        messages.clear()
     }
 
     // Create a new DatabaseReader thread for
@@ -162,6 +173,7 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
             startDBReader(db, _errCount)
         }
         val reader = DatabaseReader(uri, db, start, messages)
+        databaseReaders[db] = reader
         JmxTool.registerMBean(reader)
         val t = Thread(reader)
         t.uncaughtExceptionHandler = uncaughtExceptionHandler

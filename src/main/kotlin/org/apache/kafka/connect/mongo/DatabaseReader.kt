@@ -19,6 +19,8 @@ import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
+enum class State { READY, CLOSED }
+
 interface DatabaseReaderMBean {
     val uri: String
     val db: String
@@ -26,7 +28,10 @@ interface DatabaseReaderMBean {
     val messages: ConcurrentLinkedQueue<Document>
     var mQuery: String
     var mDocCount: Int
+    var state: State
 }
+
+
 /**
  * Connect and tail wait oplog
  * @author Xu Jingxin
@@ -39,8 +44,10 @@ class DatabaseReader(override val uri: String,
                      override val db: String,
                      override val start: String,
                      override val messages: ConcurrentLinkedQueue<Document>) : Runnable, DatabaseReaderMBean {
+    companion object {
+        private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
+    }
 
-    private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     private val oplog: MongoCollection<Document>
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
@@ -49,6 +56,7 @@ class DatabaseReader(override val uri: String,
     override var mQuery: String = ""
         get() = query.toString()
     override var mDocCount = 0
+    override var state = State.READY
 
     init {
         val clientOptions = MongoClientOptions.builder()
@@ -75,12 +83,24 @@ class DatabaseReader(override val uri: String,
                 .maxAwaitTime(60, TimeUnit.SECONDS)
                 .oplogReplay(true)
 
-        for (document in documents) {
-            log.trace("Document {}", document!!.toString())
-            val doc = handleOp(document)
-            mDocCount += 1
-            if (doc != null) messages.add(doc)
+        try {
+            for (document in documents) {
+                log.trace("Document {}", document!!.toString())
+                val doc = handleOp(document)
+                mDocCount += 1
+                if (doc != null) messages.add(doc)
+            }
+        } catch (e: Exception) {
+            log.error("Connection closed: {}", e.message)
+            if (state != State.CLOSED) {
+                throw e
+            }
         }
+    }
+
+    fun stop() {
+        state = State.CLOSED
+        mongoClient.close()
     }
 
     /**

@@ -1,24 +1,21 @@
 package org.apache.kafka.connect.mongo.tools
 
+import com.google.common.truth.Truth.assertThat
 import com.mongodb.client.MongoDatabase
+import info.batey.kafka.unit.KafkaUnit
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.mongo.utils.Mongod
-import info.batey.kafka.unit.KafkaUnit
 import org.bson.Document
 import org.json.JSONObject
 import org.junit.After
-import org.slf4j.LoggerFactory
-import org.junit.Test
 import org.junit.Before
+import org.junit.Test
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import com.google.common.truth.Truth.assertThat
-import org.apache.kafka.connect.data.Schema
-import org.apache.kafka.connect.data.SchemaBuilder
-import org.apache.kafka.connect.data.Struct
 
 /**
  * @author Xu Jingxin
