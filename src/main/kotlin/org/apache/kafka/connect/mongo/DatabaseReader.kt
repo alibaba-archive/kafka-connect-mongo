@@ -25,10 +25,9 @@ interface DatabaseReaderMBean {
     val uri: String
     val db: String
     val start: String
-    val messages: ConcurrentLinkedQueue<Document>
     var mQuery: String
     var mDocCount: Int
-    var state: State
+    var mState: String
 }
 
 
@@ -43,7 +42,7 @@ interface DatabaseReaderMBean {
 class DatabaseReader(override val uri: String,
                      override val db: String,
                      override val start: String,
-                     override val messages: ConcurrentLinkedQueue<Document>) : Runnable, DatabaseReaderMBean {
+                     private val messages: ConcurrentLinkedQueue<Document>) : Runnable, DatabaseReaderMBean {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }
@@ -52,11 +51,13 @@ class DatabaseReader(override val uri: String,
     private val mongoClient: MongoClient
     private val mongoDatabase: MongoDatabase
     private var query: Bson? = null
+    private var state = State.READY
 
     override var mQuery: String = ""
         get() = query.toString()
     override var mDocCount = 0
-    override var state = State.READY
+    override var mState = state.toString()
+        get() = state.toString()
 
     init {
         val clientOptions = MongoClientOptions.builder()
