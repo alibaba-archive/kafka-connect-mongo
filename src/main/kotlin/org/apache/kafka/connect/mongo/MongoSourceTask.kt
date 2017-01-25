@@ -158,8 +158,13 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         log.trace("uri: {}", uri)
         log.trace("db: {}", db)
         log.trace("start: {}", timeOffset)
+        val reader = DatabaseReader(uri, db, start, messages)
+        databaseReaders[db] = reader
+        JmxTool.registerMBean(reader)
+        val t = Thread(reader)
         val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, throwable ->
             throwable.printStackTrace()
+            reader.stop()
             log.error("Error when read data from db: {}", db)
             var _errCount = errCount + 1
             // Reset error count if the task executed more than 5 minutes
@@ -169,10 +174,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
             loadOffsets()
             startDBReader(db, _errCount)
         }
-        val reader = DatabaseReader(uri, db, start, messages)
-        databaseReaders[db] = reader
-        JmxTool.registerMBean(reader)
-        val t = Thread(reader)
         t.uncaughtExceptionHandler = uncaughtExceptionHandler
         t.start()
     }

@@ -14,8 +14,8 @@ import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 import java.lang.Long.parseLong
+import java.util.*
 
-import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
@@ -28,6 +28,7 @@ interface DatabaseReaderMBean {
     val mQuery: String
     val mDocCount: Int
     val mState: String
+    val mStartAt: String
 }
 
 
@@ -56,6 +57,7 @@ class DatabaseReader(override val uri: String,
     override val mQuery get() = query.toString()
     override var mDocCount = 0
     override val mState get() = state.toString()
+    override val mStartAt = Date().toString()
 
     init {
         val clientOptions = MongoClientOptions.builder()
@@ -98,8 +100,13 @@ class DatabaseReader(override val uri: String,
     }
 
     fun stop() {
+        if (state == State.CLOSED) return
         state = State.CLOSED
-        mongoClient.close()
+        try {
+            mongoClient.close()
+        } catch (e: Exception) {
+            log.error("Close db client error: {}", e.message)
+        }
     }
 
     /**
