@@ -5,7 +5,7 @@
 docker push "docker-registry.teambition.net/${IMAGE_NAME}:${PACKAGE_VERSION}"
 docker push "docker-registry.teambition.net/${IMAGE_NAME}:latest"
 
-[[ $BUILD_ENV -eq "beta" ]] && exit 0
+[[ $BUILD_ENV == "beta" ]] && exit 0
 
 docker push "${IMAGE_NAME}:${PACKAGE_VERSION}"
 docker push "${IMAGE_NAME}:latest"

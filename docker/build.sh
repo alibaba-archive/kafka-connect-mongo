@@ -27,7 +27,7 @@ docker build $DOCKER_BUILD_OPTS -t "${IMAGE_NAME}:${PACKAGE_VERSION}" ./
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "docker-registry.teambition.net/${IMAGE_NAME}:latest"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "docker-registry.teambition.net/${IMAGE_NAME}:${PACKAGE_VERSION}"
 
-[[ $BUILD_ENV -eq "beta" ]] && exit 0
+[[ $BUILD_ENV == "beta" ]] && exit 0
 
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "${IMAGE_NAME}:latest"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "quay.io/${IMAGE_NAME}:latest"
