@@ -3,6 +3,8 @@
 PACKAGE_VERSION=$(grep -E '^version' ../build.gradle | awk '{print $2}')
 PACKAGE_VERSION="${PACKAGE_VERSION//\'}"
 
+BUILD_ENV=$(echo "${PACKAGE_VERSION}" | cut -d "-" -f2)
+
 : ${IMAGE_NAME:="sailxjx/kafka-connect-mongo"}
 : ${SCALA_VERSIONS:="2.10 2.11"}
 : ${DEFAULT_SCALA_VERSION:="2.11"}
