@@ -1,5 +1,5 @@
 group 'org.apache.kafka'
-version '1.1.5-beta-1'
+version '1.1.5'
 
 buildscript {
     ext.kotlin_version = '1.1.0'
