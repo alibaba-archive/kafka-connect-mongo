@@ -53,6 +53,9 @@ class DatabaseReader(override val uri: String,
     private val mongoDatabase: MongoDatabase
     private var query: Bson? = null
     private var state = State.READY
+    // Do not write documents until messages are produced into kafka
+    // Reduce memory usage
+    private val maxMessageSize = 2000
 
     override val mQuery get() = query.toString()
     override var mDocCount = 0
@@ -90,6 +93,18 @@ class DatabaseReader(override val uri: String,
                 val doc = handleOp(document)
                 mDocCount += 1
                 if (doc != null) messages.add(doc)
+                // Stop pulling data when length of message is too large!
+                while (messages.size > maxMessageSize) {
+                    log.warn("Message overwhelm! Message count {}, Total read docs {}", messages.size, mDocCount)
+                    Thread.sleep(500)
+                }
+                if (mDocCount % 1000 == 0) {
+                    log.info("Read database {}, docs {}, messages {}, memory usage {}",
+                            db,
+                            mDocCount,
+                            messages.size,
+                            Runtime.getRuntime().totalMemory())
+                }
             }
         } catch (e: Exception) {
             log.error("Connection closed: {}", e.message)
