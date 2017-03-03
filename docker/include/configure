@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-dub template "/etc/kafka-connect-mongo/worker.properties.template" "/etc/kafka-connect-mongo/worker.properties"
-dub template "/etc/kafka-connect-mongo/log4j.properties.template" "/etc/kafka-connect-mongo/log4j.properties"

@@ -9,8 +9,18 @@ services:
       CONNECT_REST_PORT: 38083
       CONNECT_BOOTSTRAP_SERVERS: 192.168.0.21:39092
       JMX_PORT: 9997
-      CONNECT_LOG_LEVEL: TRACE
+      CONNECT_LOG4J_ROOT_LOGLEVEL: TRACE
       CONNECT_GROUP_ID: connect-mongo-cluster
       CONNECT_OFFSET_STORAGE_TOPIC: connect-mongo-offsets
       CONNECT_CONFIG_STORAGE_TOPIC: connect-mongo-configs
       CONNECT_STATUS_STORAGE_TOPIC: connect-mongo-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "true"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER_SCHEMAS_ENABLE: "true"
+      CONNECT_INTERNAL_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
