@@ -112,15 +112,19 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         val records = mutableListOf<SourceRecord>()
         while (!messages.isEmpty() && records.size < batchSize) {
             val message = messages.poll()
-            val struct = getStruct(message)
-            records.add(SourceRecord(
-                    getPartition(getDB(message)),
-                    getOffset(message),
-                    getTopic(message),
-                    Schema.OPTIONAL_STRING_SCHEMA,
-                    struct.get("id"),
-                    struct.schema(),
-                    struct))
+            try {
+                val struct = getStruct(message)
+                records.add(SourceRecord(
+                        getPartition(getDB(message)),
+                        getOffset(message),
+                        getTopic(message),
+                        Schema.OPTIONAL_STRING_SCHEMA,
+                        struct.get("id"),
+                        struct.schema(),
+                        struct))
+            } catch (e: Exception) {
+                log.error(e.message)
+            }
             log.trace(message.toString())
         }
         if (records.size == 0) {
@@ -197,9 +201,10 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         return db
     }
 
+    @Throws(Exception::class)
     private fun getStruct(message: Document): Struct {
         val db = getDB(message).replace("[\\s.]".toRegex(), "_")
-        val schema = schemas[db]
+        val schema = schemas[db] ?: throw Exception("Can not find the schema of database $db")
         val struct = Struct(schema)
         val bsonTimestamp = message["ts"] as BsonTimestamp
         val body = message["o"] as Document
