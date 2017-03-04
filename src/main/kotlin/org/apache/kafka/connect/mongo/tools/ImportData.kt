@@ -144,6 +144,9 @@ class ImportDB(val uri: String,
                 log.error("Querying error: {}", e.message)
             }
         } while (iterator.count() > 0)
+        log.info("Task finish, database {}, count {}",
+                dbName,
+                offsetCount)
     }
 
     fun getResult(document: Document): Map<String, String> {
