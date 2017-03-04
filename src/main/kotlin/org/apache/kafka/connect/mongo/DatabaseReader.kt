@@ -95,7 +95,10 @@ class DatabaseReader(override val uri: String,
                 if (doc != null) messages.add(doc)
                 // Stop pulling data when length of message is too large!
                 while (messages.size > maxMessageSize) {
-                    log.warn("Message overwhelm! Message count {}, Total read docs {}", messages.size, mDocCount)
+                    log.warn("Message overwhelm! database {}, docs {}, messages {}",
+                            db,
+                            mDocCount,
+                            messages.size)
                     Thread.sleep(500)
                 }
                 if (mDocCount % 1000 == 0) {

@@ -103,6 +103,7 @@ class ImportDB(val uri: String,
     private var offsetId: ObjectId? = null
     private val snakeDb: String = dbName.replace("\\.".toRegex(), "_")
     private var offsetCount = 0
+    private val maxMessageSize = 3000;
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
@@ -131,6 +132,13 @@ class ImportDB(val uri: String,
                     messages.add(getResult(document))
                     offsetId = document["_id"] as ObjectId
                     offsetCount += 1
+                }
+                while (messages.size > maxMessageSize) {
+                    log.warn("Message overwhelm! database {}, docs {}, messages {}",
+                            dbName,
+                            offsetCount,
+                            messages.size)
+                    Thread.sleep(500)
                 }
             } catch (e: Exception) {
                 log.error("Querying error: {}", e.message)
