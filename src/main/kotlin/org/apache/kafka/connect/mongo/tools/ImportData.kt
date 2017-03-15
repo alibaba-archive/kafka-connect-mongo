@@ -227,19 +227,6 @@ fun main(args: Array<String>) {
 
     if (missingKey != null) throw Exception("Missing config property: $missingKey")
 
-    val tsLocation = props[MongoSourceConfig.TRUSTSTORE_LOCATION]
-    val tsPassword = props[MongoSourceConfig.TRUSTSTORE_PASSWORD]
-    if (tsLocation != null && tsPassword != null) {
-        System.setProperty("javax.net.ssl.trustStore", tsLocation as String)
-        System.setProperty("javax.net.ssl.trustStorePassword", tsPassword as String)
-    }
-    val ksLocation = props[MongoSourceConfig.KEYSTORE_LOCATION]
-    val ksPassword = props[MongoSourceConfig.KEYSTORE_PASSWORD]
-    if (ksLocation != null && ksPassword != null) {
-        System.setProperty("javax.net.ssl.keyStore", ksLocation as String)
-        System.setProperty("javax.net.ssl.keyStorePassword", ksPassword as String)
-    }
-
     val importJob = ImportJob(
             props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
             props[MongoSourceConfig.DATABASES_CONFIG] as String,

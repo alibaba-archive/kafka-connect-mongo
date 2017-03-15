@@ -21,12 +21,8 @@ batch.size=100
 schema.name=mongo_local_schema
 topic.prefix=mongo_local
 databases=test.users
-# If use ssl, the location and password of truststore and keystore files are required
+# If use ssl, add configs on jvm by set environment variables `-Djavax.net.ssl.trustStore=/secrets/truststore.jks -Djavax.net.ssl.trustStorePassword=123456 -Djavax.net.ssl.keyStore=/secrets/keystore.jks -Djavax.net.ssl.keyStorePassword=123456`
 #mongo.uri=mongodb://user:pwd@128.0.0.1:27017/?ssl=true&authSource=admin&replicaSet=rs0&sslInvalidHostNameAllowed=true
-#javax.net.ssl.trustStore=truststore.jks
-#javax.net.ssl.trustStorePassword=123456
-#javax.net.ssl.keyStore=keystore.ks
-#javax.net.ssl.keyStorePassword=123456
 ```
 
 ## Initial import data from mongo collection

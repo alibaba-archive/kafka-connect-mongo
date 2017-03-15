@@ -25,18 +25,6 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         val DATABASES_CONFIG = "databases"
         private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
-        val TRUSTSTORE_LOCATION = "javax.net.ssl.trustStore"
-        private val TRUSTSTORE_LOCATION_DOC = "Location of truststore.jks"
-
-        val TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword"
-        private val TRUSTSTORE_PASSWORD_DOC = "Password of truststore"
-
-        val KEYSTORE_LOCATION = "javax.net.ssl.keyStore"
-        private val KEYSTORE_LOCATION_DOC = "Location of keystore.jks"
-
-        val KEYSTORE_PASSWORD = "javax.net.ssl.keyStorePassword"
-        private val KEYSTORE_PASSWORD_DOC = "Password of keystore"
-
         var config = ConfigDef()
                 .define(MONGO_URI_CONFIG,
                         Type.STRING,
@@ -57,22 +45,6 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
                 .define(DATABASES_CONFIG,
                         Type.STRING,
                         Importance.HIGH,
-                        DATABASES_CONFIG_DOC)
-                .define(TRUSTSTORE_LOCATION,
-                        Type.STRING,
-                        Importance.LOW,
-                        TRUSTSTORE_LOCATION_DOC)
-                .define(TRUSTSTORE_PASSWORD,
-                        Type.STRING,
-                        Importance.LOW,
-                        TRUSTSTORE_PASSWORD_DOC)
-                .define(KEYSTORE_LOCATION,
-                        Type.STRING,
-                        Importance.LOW,
-                        KEYSTORE_LOCATION_DOC)
-                .define(KEYSTORE_PASSWORD,
-                        Type.STRING,
-                        Importance.LOW,
-                        KEYSTORE_PASSWORD_DOC)!!
+                        DATABASES_CONFIG_DOC)!!
     }
 }
