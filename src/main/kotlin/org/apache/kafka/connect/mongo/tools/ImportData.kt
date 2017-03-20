@@ -83,7 +83,6 @@ class ImportJob(val uri: String,
             producer.send(record)
         }
     }
-
 }
 
 /**
