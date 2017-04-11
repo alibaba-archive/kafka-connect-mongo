@@ -145,6 +145,11 @@ class ImportDB(val uri: String,
                 log.error("Querying error: {}", e.message)
             }
         } while (iterator.count() > 0)
+        try {
+            mongoClient.close()
+        } catch (e: Exception) {
+            log.error("Close db client error: {}", e.message)
+        }
         log.info("Task finish, database {}, count {}",
                 dbName,
                 offsetCount)
@@ -230,7 +235,7 @@ object JobConfig {
 
 fun main(args: Array<String>) {
     if (args.isEmpty()) throw Exception("Missing config file path!")
-    val log = LoggerFactory.getLogger("ImportData")
+    val log = LoggerFactory.getLogger(ImportJob::class.java)
 
     val configFilePath = args[0]
     val props = Properties()
