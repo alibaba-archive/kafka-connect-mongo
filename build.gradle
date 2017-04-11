@@ -1,8 +1,8 @@
 group 'org.apache.kafka'
-version '1.2.0'
+version '1.2.1-beta-1'
 
 buildscript {
-    ext.kotlin_version = '1.1.0'
+    ext.kotlin_version = '1.1.1'
     // confluent 3.0 -> 0.10.0.0
     // confluent 3.1 -> 0.10.1.0
     // confluent 3.2 -> 0.10.2.0
@@ -10,7 +10,6 @@ buildscript {
 
     repositories {
         jcenter()
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap-1.1/' }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -26,7 +25,6 @@ mainClassName = "org.apache.kafka.connect.mongo.tools.ImportDataKt"
 
 repositories {
     jcenter()
-    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap-1.1/' }
 }
 
 defaultTasks 'clean', 'assembleDist'
@@ -40,6 +38,7 @@ dependencies {
     compile 'org.json:json:20160810'
     compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
     compile 'org.mongodb:mongodb-driver:3.3.0'
+    compile 'org.quartz-scheduler:quartz:2.2.3'
 
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.30'

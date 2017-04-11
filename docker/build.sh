@@ -6,7 +6,7 @@ SOURCE_DIR=$DOCKER_DIR/..
 
 . settings.sh
 
-PACKAGE_NAME="connect-mongo-${PACKAGE_VERSION}.tgz"
+PACKAGE_NAME="${IMAGE_NAME}-${PACKAGE_VERSION}.tgz"
 
 set -ex
 
