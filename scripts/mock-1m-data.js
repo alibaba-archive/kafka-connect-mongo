@@ -1,4 +1,4 @@
-// mongo 192.168.0.21:27017/kafka -u root -p root --authenticationDatabase admin mock-1m-data.js
+// mongo mongo:27017/kafka -u root -p root --authenticationDatabase admin mock-1m-data.js
 db = db.getSiblingDB('kafka')
 
 for (var i = 0; i < 100; i++) {

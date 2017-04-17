@@ -7,7 +7,7 @@ services:
       - "38083:38083"
     environment:
       CONNECT_REST_PORT: 38083
-      CONNECT_BOOTSTRAP_SERVERS: 192.168.0.21:39092
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092,kafka:39092,kafka:49092
       JMX_PORT: 9997
       CONNECT_LOG4J_ROOT_LOGLEVEL: TRACE
       CONNECT_GROUP_ID: connect-mongo-cluster

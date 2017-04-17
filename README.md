@@ -33,7 +33,7 @@ databases=test.users
 4. Fill in the your configs, for example [etc/producer.properties]:
     ```properties
     # Producer properties
-    bootstrap.servers=192.168.0.124:39092
+    bootstrap.servers=kafka:29092,kafka:39092,kafka:49092
     compression.type=none
     key.serializer=org.apache.kafka.common.serialization.StringSerializer
     value.serializer=org.apache.kafka.common.serialization.StringSerializer
@@ -59,7 +59,7 @@ so all your messages should have an auto increment field called `_id`.
 name=mongo-sink-connector
 connector.class=org.apache.kafka.connect.mongo.MongoSinkConnector
 tasks.max=1
-mongo.uri=mongodb://root:root@192.168.0.21:27017/?authSource=admin
+mongo.uri=mongodb://root:root@127.0.0.1:27017/?authSource=admin
 topics=topic1,topic2
 databases=mydb.topic1,mydb.topic2
 ```
