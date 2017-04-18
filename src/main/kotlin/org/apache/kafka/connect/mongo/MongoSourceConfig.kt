@@ -25,7 +25,7 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         val DATABASES_CONFIG = "databases"
         private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
-        var config = ConfigDef()
+        var config: ConfigDef = ConfigDef()
                 .define(MONGO_URI_CONFIG,
                         Type.STRING,
                         Importance.HIGH,
@@ -45,6 +45,6 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
                 .define(DATABASES_CONFIG,
                         Type.STRING,
                         Importance.HIGH,
-                        DATABASES_CONFIG_DOC)!!
+                        DATABASES_CONFIG_DOC)
     }
 }

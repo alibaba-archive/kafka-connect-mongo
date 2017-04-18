@@ -104,7 +104,7 @@ class ImportDB(val uri: String,
     private var offsetId: ObjectId? = null
     private val snakeDb: String = dbName.replace("\\.".toRegex(), "_")
     private var offsetCount = 0
-    private val maxMessageSize = 3000;
+    private val maxMessageSize = 3000
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
