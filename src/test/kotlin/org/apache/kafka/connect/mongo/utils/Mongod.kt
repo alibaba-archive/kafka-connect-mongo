@@ -32,7 +32,6 @@ class Mongod {
     private var mongodConfig: IMongodConfig? = null
     private var mongoClient: MongoClient? = null
 
-    @Throws(Exception::class)
     fun start() : Mongod {
         mongodStarter = MongodStarter.getDefaultInstance()
         mongodConfig = MongodConfigBuilder()
@@ -60,7 +59,6 @@ class Mongod {
         return this
     }
 
-    @Throws(Exception::class)
     fun stop() : Mongod {
         mongodProcess!!.stop()
         mongodExecutable!!.stop()

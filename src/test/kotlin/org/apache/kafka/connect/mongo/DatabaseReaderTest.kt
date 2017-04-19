@@ -16,20 +16,17 @@ class DatabaseReaderTest {
     private var reader : DatabaseReader? = null
 
     @Before
-    @Throws(Exception::class)
     fun setUp() {
         val db = mongod.start().getDatabase("mydb")!!
         db.createCollection("test")
     }
 
     @After
-    @Throws(Exception::class)
     fun tearDown() {
         mongod.stop()
     }
 
     @Test
-    @Throws(Exception::class)
     fun connectWithPassword() {
         mongod.createUserWithPassword()
 

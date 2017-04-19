@@ -31,13 +31,11 @@ class ImportDataTest {
     private var db: MongoDatabase? = null
 
     @Before
-    @Throws(Exception::class)
     fun setUp() {
         db = mongod.start().getDatabase(dbName)
     }
 
     @After
-    @Throws(Exception::class)
     fun teardown() {
         mongod.stop()
     }
@@ -60,7 +58,6 @@ class ImportDataTest {
      * Test read config properties and initialize kafka producer
      */
     @Test
-    @Throws(IOException::class)
     fun startJob() {
         val kafkaUnit = KafkaUnit(5000, 5001)
         kafkaUnit.startup()
@@ -108,6 +105,10 @@ class ImportDataTest {
         kafkaUnit.shutdown()
     }
 
+    @Test
+    fun importAvro() {
+
+    }
     /**
      * Bulk insert random document into collection
      * @param count Count of messages

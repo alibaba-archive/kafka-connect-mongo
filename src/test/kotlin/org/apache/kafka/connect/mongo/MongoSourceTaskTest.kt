@@ -40,7 +40,6 @@ class MongoSourceTaskTest {
     private val mongod = Mongod()
 
     @Before
-    @Throws(Exception::class)
     fun setUp() {
         val db = mongod.start().getDatabase(mydb)!!
         collections.forEach { db.createCollection(it) }
@@ -59,13 +58,11 @@ class MongoSourceTaskTest {
     }
 
     @After
-    @Throws(Exception::class)
     fun tearDown() {
         mongod.stop()
     }
 
     @Test
-    @Throws(Exception::class)
     fun pollWithNullOffset() {
         expectOffsetLookupReturnNull()
         PowerMock.replayAll()
@@ -78,7 +75,6 @@ class MongoSourceTaskTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun pollWithOffset() {
         expectOffsetLookupReturnOffset()
         PowerMock.replayAll()
@@ -138,7 +134,6 @@ class MongoSourceTaskTest {
         test1.deleteOne(Filters.eq("text", "doc2"))
     }
 
-    @Throws(InterruptedException::class)
     private fun testBulkInsert() {
         // Insert an amount of documents
         // Check for the received count
@@ -156,7 +151,6 @@ class MongoSourceTaskTest {
         assertEquals(totalCount.toLong(), records.size.toLong())
     }
 
-    @Throws(InterruptedException::class)
     private fun testSubtleInsert() {
         // Insert some pre defined actions
         // Check for the document structure

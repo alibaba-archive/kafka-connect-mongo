@@ -11,7 +11,6 @@ import org.powermock.api.easymock.PowerMock
  */
 class MongoSinkConnectorTest {
     @Test
-    @Throws(Exception::class)
     fun taskConfigs() {
         val connector = MongoSinkConnector()
         val context = PowerMock.createMock(ConnectorContext::class.java)

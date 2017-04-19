@@ -106,7 +106,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         }
     }
 
-    @Throws(InterruptedException::class)
     override fun poll(): List<SourceRecord> {
         log.trace("Polling records")
         val records = mutableListOf<SourceRecord>()
@@ -149,7 +148,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     }
 
     // Create a new DatabaseReader thread for
-    @Throws(Exception::class)
     private fun startDBReader(db: String, errCount: Int = 0) {
         if (errCount > maxErrCount) {
             throw Exception("Can not execute database reader task!")
@@ -201,7 +199,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         return db
     }
 
-    @Throws(Exception::class)
     private fun getStruct(message: Document): Struct {
         val db = getDB(message).replace("[\\s.]".toRegex(), "_")
         val schema = schemas[db] ?: throw Exception("Can not find the schema of database $db")

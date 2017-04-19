@@ -73,7 +73,6 @@ class DatabaseReader(override val uri: String,
         log.trace("Start from {}", start)
     }
 
-    @Throws(Exception::class)
     override fun run() {
         log.trace("Querying oplog...")
         val documents = oplog

@@ -11,13 +11,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 
 /**
- * Created by Xu Jingxin on 16/8/17.
- */
+* @author Xu Jingxin
+*/
 class MongoSourceConnectorTest {
     private var connector: MongoSourceConnector? = null
 
     @Before
-    @Throws(Exception::class)
     fun setUp() {
         connector = MongoSourceConnector()
         val context = PowerMock.createMock(ConnectorContext::class.java)
@@ -34,7 +33,6 @@ class MongoSourceConnectorTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun taskConfigs() {
         PowerMock.replayAll()
 
@@ -55,7 +53,6 @@ class MongoSourceConnectorTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun config() {
         PowerMock.replayAll()
 
