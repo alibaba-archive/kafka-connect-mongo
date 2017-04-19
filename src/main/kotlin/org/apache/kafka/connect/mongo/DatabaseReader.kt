@@ -31,7 +31,6 @@ interface DatabaseReaderMBean {
     val mStartAt: String
 }
 
-
 /**
  * Connect and tail wait oplog
  * @author Xu Jingxin
