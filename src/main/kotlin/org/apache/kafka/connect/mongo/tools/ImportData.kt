@@ -18,6 +18,11 @@ import java.io.FileInputStream
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
+data class MessageData(val topic: String,
+                       val key: JSONObject,
+                       val value: JSONObject) {
+}
+
 /**
  * @author Xu Jingxin
  * Import all the data from one collection into kafka
@@ -36,7 +41,7 @@ class ImportJob(val uri: String,
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
-    private val messages = ConcurrentLinkedQueue<Map<String, String>>()
+    private val messages = ConcurrentLinkedQueue<MessageData>()
     private var producer: KafkaProducer<String, String> = KafkaProducer(props)
 
     /**
@@ -77,9 +82,9 @@ class ImportJob(val uri: String,
             log.trace("Poll document {}", message)
 
             val record = ProducerRecord(
-                    message["topic"],
-                    message["key"],
-                    message["value"]
+                    message.topic,
+                    message.key.toString(),
+                    message.value.toString()
             )
             log.trace("Record {}", record)
             producer.send(record)
@@ -95,7 +100,7 @@ class ImportJob(val uri: String,
 class ImportDB(val uri: String,
                val dbName: String,
                val topicPrefix: String,
-               var messages: ConcurrentLinkedQueue<Map<String, String>>,
+               var messages: ConcurrentLinkedQueue<MessageData>,
                val bulkSize: Int) : Runnable {
 
     private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
@@ -155,7 +160,7 @@ class ImportDB(val uri: String,
                 offsetCount)
     }
 
-    fun getResult(document: Document): Map<String, String> {
+    fun getResult(document: Document): MessageData {
         val id = document["_id"] as ObjectId
         val key = JSONObject(mapOf(
                 "schema" to mapOf(
@@ -210,12 +215,7 @@ class ImportDB(val uri: String,
                         "op" to "i",
                         "object" to document.toJson()
                 )))
-        val record = mapOf(
-                "key" to key.toString(),
-                "value" to message.toString(),
-                "topic" to topic
-        )
-        return record
+        return MessageData(topic, key, message)
     }
 }
 

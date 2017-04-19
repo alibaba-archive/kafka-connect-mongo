@@ -10,6 +10,7 @@
 * [x] Dockerized
 * [x] Initial import data by scan _id
 * [x] Config sink with databases and topics
+* [ ] Rewrite mongo exporter with source connect
 
 # Test Cases
 * [x] Start and stop

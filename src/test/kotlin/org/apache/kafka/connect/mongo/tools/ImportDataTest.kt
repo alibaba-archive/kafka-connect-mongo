@@ -13,7 +13,6 @@ import org.junit.Test
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -27,7 +26,6 @@ class ImportDataTest {
 
     private val mongod = Mongod()
     private val dbName = "test"
-    private var recordsCount = 0
     private var db: MongoDatabase? = null
 
     @Before
@@ -42,16 +40,16 @@ class ImportDataTest {
 
     @Test
     fun importDB() {
-        recordsCount = Math.max(Random().nextInt(200), 100)
+        val count = Math.max(Random().nextInt(200), 100)
         val collectionName = "users"
-        bulkInsert(recordsCount, collectionName)
-        val messages = ConcurrentLinkedQueue<Map<String, String>>()
+        bulkInsert(count, collectionName)
+        val messages = ConcurrentLinkedQueue<MessageData>()
         val bulkSize = 10
 
         val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", "import_test", messages, bulkSize)
         importDb.run()
 
-        assertThat(messages.count()).isEqualTo(recordsCount)
+        assertThat(messages.count()).isEqualTo(count)
     }
 
     /**
@@ -105,10 +103,6 @@ class ImportDataTest {
         kafkaUnit.shutdown()
     }
 
-    @Test
-    fun importAvro() {
-
-    }
     /**
      * Bulk insert random document into collection
      * @param count Count of messages
