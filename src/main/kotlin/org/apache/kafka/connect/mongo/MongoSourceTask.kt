@@ -9,7 +9,6 @@ import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONF
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
-import org.apache.kafka.connect.mongo.tools.JmxTool
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp
@@ -20,22 +19,13 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-interface MongoSourceTaskMBean {
-    val mSleepTime: Long
-    val mOffsets: HashMap<Map<String, String>, Map<String, Any>>
-    val mRecordCount: Int
-    val mProps: String
-    val mMsgCount: Int
-}
-
 /**
- * Created by Xu Jingxin on 16/8/3.
- */
-class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
+* @author Xu Jingxin
+*/
+open class MongoSourceTask : SourceTask() {
+    open protected val log = LoggerFactory.getLogger(MongoSourceTask::class.java)!!
     companion object {
-        private val log = LoggerFactory.getLogger(MongoSourceTask::class.java)
         private var schemas: MutableMap<String, Schema> = HashMap()
-
         fun getPartition(db: String): Map<String, String> {
             return Collections.singletonMap("mongo", db)
         }
@@ -57,16 +47,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
     internal var messages = ConcurrentLinkedQueue<Document>()
     private val databaseReaders = mutableMapOf<String, DatabaseReader>()
 
-    override val mSleepTime get() = sleepTime
-    override val mOffsets get() = offsets
-    override var mRecordCount = 0
-    override var mProps: String = ""
-    override val mMsgCount get() = messages.count()
-
-    init {
-        JmxTool.registerMBean(this)
-    }
-
     override fun version(): String = MongoSourceConnector().version()
 
     /**
@@ -75,7 +55,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
      */
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration: {}", props)
-        mProps = props.toString()
         try {
             batchSize = Integer.parseInt(props[BATCH_SIZE_CONFIG])
         } catch (e: Exception) {
@@ -132,7 +111,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         } else {
             sleepTime = 50L
         }
-        mRecordCount += records.count()
         return records
     }
 
@@ -162,7 +140,6 @@ class MongoSourceTask : SourceTask(), MongoSourceTaskMBean {
         log.trace("start: {}", timeOffset)
         val reader = DatabaseReader(uri, db, start, messages)
         databaseReaders[db] = reader
-        JmxTool.registerMBean(reader)
         val t = Thread(reader)
         val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, throwable ->
             throwable.printStackTrace()

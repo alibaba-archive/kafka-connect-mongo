@@ -18,10 +18,8 @@ import java.util.*
 /**
  * Connect mongodb with configs
  */
-class MongoSourceConnector : SourceConnector() {
-    companion object {
-        private val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)
-    }
+open class MongoSourceConnector : SourceConnector() {
+    open protected val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)!!
     private var databases: String = ""
     private var uri: String = ""
     private var batchSize: String = ""
@@ -39,8 +37,6 @@ class MongoSourceConnector : SourceConnector() {
         uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
-
-        log.trace("Configurations {}", props)
     }
 
     /**
@@ -64,13 +60,11 @@ class MongoSourceConnector : SourceConnector() {
         return configs
     }
 
-    override fun stop() {
-
-    }
+    override fun stop() {}
 
     override fun config(): ConfigDef = MongoSourceConfig.config
 
-    private fun getRequiredProp(props: Map<String, String>, key: String): String {
+    protected fun getRequiredProp(props: Map<String, String>, key: String): String {
         val value = props[key]
         if (value == null || value.isEmpty()) {
             throw ConnectException("Missing $key config")

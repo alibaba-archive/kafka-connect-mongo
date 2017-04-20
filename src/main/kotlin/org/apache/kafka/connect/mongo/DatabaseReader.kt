@@ -21,16 +21,6 @@ import java.util.concurrent.TimeUnit
 
 enum class State { READY, CLOSED }
 
-interface DatabaseReaderMBean {
-    val uri: String
-    val db: String
-    val start: String
-    val mQuery: String
-    val mDocCount: Int
-    val mState: String
-    val mStartAt: String
-}
-
 /**
  * Connect and tail wait oplog
  * @author Xu Jingxin
@@ -39,10 +29,10 @@ interface DatabaseReaderMBean {
  * @param start timestamp.inc
  * @param messages
  */
-class DatabaseReader(override val uri: String,
-                     override val db: String,
-                     override val start: String,
-                     private val messages: ConcurrentLinkedQueue<Document>) : Runnable, DatabaseReaderMBean {
+class DatabaseReader(val uri: String,
+                     val db: String,
+                     val start: String,
+                     private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }
@@ -55,11 +45,6 @@ class DatabaseReader(override val uri: String,
     // Do not write documents until messages are produced into kafka
     // Reduce memory usage
     private val maxMessageSize = 2000
-
-    override val mQuery get() = query.toString()
-    override var mDocCount = 0
-    override val mState get() = state.toString()
-    override val mStartAt = Date().toString()
 
     init {
         val clientOptions = MongoClientOptions.builder()
@@ -85,24 +70,25 @@ class DatabaseReader(override val uri: String,
                 .maxAwaitTime(60, TimeUnit.SECONDS)
                 .oplogReplay(true)
 
+        var count = 0
         try {
             for (document in documents) {
                 log.trace("Document {}", document!!.toString())
                 val doc = handleOp(document)
-                mDocCount += 1
+                count += 1
                 if (doc != null) messages.add(doc)
                 // Stop pulling data when length of message is too large!
                 while (messages.size > maxMessageSize) {
                     log.warn("Message overwhelm! database {}, docs {}, messages {}",
                             db,
-                            mDocCount,
+                            count,
                             messages.size)
                     Thread.sleep(500)
                 }
-                if (mDocCount % 1000 == 0) {
+                if (count % 1000 == 0) {
                     log.info("Read database {}, docs {}, messages {}, memory usage {}",
                             db,
-                            mDocCount,
+                            count,
                             messages.size,
                             Runtime.getRuntime().totalMemory())
                 }

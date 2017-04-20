@@ -39,7 +39,6 @@ dependencies {
     compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
     compile 'org.mongodb:mongodb-driver:3.3.0'
     compile 'org.quartz-scheduler:quartz:2.2.3'
-    compile group: 'org.apache.avro', name: 'avro', version: '1.7.7'
 
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.30'

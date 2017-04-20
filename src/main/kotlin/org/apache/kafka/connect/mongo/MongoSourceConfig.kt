@@ -8,22 +8,22 @@ import org.apache.kafka.common.config.ConfigDef.Importance
 /**
  * @author Xu Jingxin
  */
-class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSourceConfig.config, props) {
+class MongoSourceConfig(props: Map<String, String>): AbstractConfig(MongoSourceConfig.config, props) {
     companion object {
         val MONGO_URI_CONFIG = "mongo.uri"
-        private val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
+        val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
 
         val BATCH_SIZE_CONFIG = "batch.size"
-        private val BATCH_SIZE_CONFIG_DOC = "Count of messages in each polling"
+        val BATCH_SIZE_CONFIG_DOC = "Count of messages in each polling"
 
         val SCHEMA_NAME_CONFIG = "schema.name"
-        private val SCHEMA_NAME_CONFIG_DOC = "Schema name"
+        val SCHEMA_NAME_CONFIG_DOC = "Schema name"
 
         val TOPIC_PREFIX_CONFIG = "topic.prefix"
-        private val TOPIC_PREFIX_CONFIG_DOC = "Prefix of each topic, final topic will be prefix_db_collection"
+        val TOPIC_PREFIX_CONFIG_DOC = "Prefix of each topic, final topic will be prefix_db_collection"
 
         val DATABASES_CONFIG = "databases"
-        private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
+        val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
         var config: ConfigDef = ConfigDef()
                 .define(MONGO_URI_CONFIG,
