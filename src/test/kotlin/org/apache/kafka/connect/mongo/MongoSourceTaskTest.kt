@@ -37,12 +37,12 @@ class MongoSourceTaskTest {
     private var task: MongoSourceTask? = null
     private var sourceTaskContext: SourceTaskContext? = null
     private var offsetStorageReader: OffsetStorageReader? = null
-    private var sourceProperties: MutableMap<String, String>? = null
+    private var sourceProperties = mutableMapOf<String, String>()
     private val mongod = Mongod()
 
     @Before
     fun setUp() {
-        val db = mongod.start().getDatabase(mydb)!!
+        val db = mongod.start().getDatabase(mydb)
         collections.forEach { db.createCollection(it) }
 
         task = MongoSourceTask()
@@ -50,12 +50,11 @@ class MongoSourceTaskTest {
         sourceTaskContext = PowerMock.createMock(SourceTaskContext::class.java)
         task!!.initialize(sourceTaskContext)
 
-        sourceProperties = HashMap<String, String>()
-        sourceProperties!!.put("mongo.uri", "mongodb://localhost:12345")
-        sourceProperties!!.put("batch.size", "20")
-        sourceProperties!!.put("schema.name", "schema")
-        sourceProperties!!.put("topic.prefix", "prefix")
-        sourceProperties!!.put("databases", "mydb.test1,mydb.test2,mydb.test3")
+        sourceProperties.put("mongo.uri", "mongodb://localhost:12345")
+        sourceProperties.put("batch.size", "20")
+        sourceProperties.put("schema.name", "schema")
+        sourceProperties.put("topic.prefix", "prefix")
+        sourceProperties.put("databases", "mydb.test1,mydb.test2,mydb.test3")
     }
 
     @After
@@ -68,7 +67,7 @@ class MongoSourceTaskTest {
         expectOffsetLookupReturnNull()
         PowerMock.replayAll()
 
-        task!!.start(sourceProperties!!)
+        task!!.start(sourceProperties)
         testBulkInsert()
         testSubtleInsert()
 
@@ -80,7 +79,7 @@ class MongoSourceTaskTest {
         expectOffsetLookupReturnOffset()
         PowerMock.replayAll()
 
-        task!!.start(sourceProperties!!)
+        task!!.start(sourceProperties)
         testBulkInsert()
         testSubtleInsert()
 
@@ -106,7 +105,7 @@ class MongoSourceTaskTest {
      * Insert documents on random collections
      */
     private fun bulkInsert(totalNumber: Int) {
-        val db = mongod.getDatabase(mydb)!!
+        val db = mongod.getDatabase(mydb)
         for (i in 0..totalNumber - 1) {
             val newDocument = Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
             db.getCollection(collections[Random().nextInt(3)]).insertOne(newDocument)
@@ -120,7 +119,7 @@ class MongoSourceTaskTest {
      * One delete
      */
     private fun subtleInsert() {
-        val db = mongod.getDatabase(mydb)!!
+        val db = mongod.getDatabase(mydb)
         val doc1 = Document().append("text", "doc1")
         val doc2 = Document().append("text", "doc2")
 

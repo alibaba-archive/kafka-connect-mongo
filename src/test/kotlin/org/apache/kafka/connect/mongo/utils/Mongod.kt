@@ -76,7 +76,7 @@ class Mongod {
         return this
     }
 
-    fun getDatabase(db: String): MongoDatabase? {
-        return mongoClient?.getDatabase(db)
+    fun getDatabase(db: String): MongoDatabase {
+        return mongoClient!!.getDatabase(db)
     }
 }

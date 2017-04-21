@@ -1,46 +1,59 @@
 package org.apache.kafka.connect.mongo
 
 import com.mongodb.MongoClient
-import com.mongodb.MongoClientOptions
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
-import org.apache.kafka.connect.mongo.interfaces.DatabaseRunner
+import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.quartz.Job
+import org.quartz.JobExecutionContext
 import org.slf4j.LoggerFactory
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Export the whole collection into message queue
  * @author Xu Jingxin
  */
-class CollectionExporter(val uri: String,
-                         val db: String,
-                         val messages: ConcurrentLinkedQueue<Document>): DatabaseRunner(uri, db, messages) {
+class CollectionExporter: Job {
     companion object {
         private val log = LoggerFactory.getLogger(CollectionExporter::class.java)
     }
-
-    private val mongoClient = MongoClient(MongoClientURI(uri))
-    private val mongoDatabase: MongoDatabase
-    private val mongoCollection: MongoCollection<Document>
+    private var uri = ""
+    private var db = ""
+    private var messages = ConcurrentLinkedQueue<Document>()
+    private var mongoClient: MongoClient? = null
+    private var mongoDatabase: MongoDatabase? = null
+    private var mongoCollection: MongoCollection<Document>? = null
     private val bulkSize = 1000
     private val maxSize = 3000
     private var count = 0
 
-    init {
-        val (db, collection) = db.trim().split(".")
-        mongoDatabase = mongoClient.getDatabase(db)
-        mongoCollection = mongoDatabase.getCollection(collection)
+    override fun execute(context: JobExecutionContext) {
+        init(context)
+        run()
     }
 
-    override fun run() {
+    fun init(context: JobExecutionContext) {
+        uri = context.mergedJobDataMap["uri"] as String
+        db = context.mergedJobDataMap["db"] as String
+        log.info("Init collection exporter, uri {}, db {}", uri, db)
+        messages = context.mergedJobDataMap["messages"] as ConcurrentLinkedQueue<Document>
+
+        mongoClient = MongoClient(MongoClientURI(uri))
+        val (db, collection) = db.trim().split(".")
+        mongoDatabase = mongoClient!!.getDatabase(db)
+        mongoCollection = mongoDatabase!!.getCollection(collection)
+    }
+
+    fun run() {
         var offsetId: ObjectId? = null
         do {
             log.info("Read messages at $db from offset {}, count {}", offsetId, count)
-            val iterator = mongoCollection.find()
+            val iterator = mongoCollection!!.find()
             if (offsetId != null) {
                 iterator.filter(Filters.gt("_id", offsetId))
             }
@@ -49,7 +62,7 @@ class CollectionExporter(val uri: String,
 
             try {
                 for (document in iterator) {
-                    messages.add(document)
+                    messages.add(getPayload(document))
                     offsetId = document["_id"] as ObjectId
                     count += 1
                 }
@@ -68,14 +81,23 @@ class CollectionExporter(val uri: String,
         stop()
     }
 
-    override fun stop() {
+    fun stop() {
         try {
-            mongoClient.close()
+            mongoClient?.close()
         } catch (e: Exception) {
             log.error("Close db client error: {}", e.message)
         }
         log.info("Export database {} finish, documents count is {}",
                 db,
                 count)
+    }
+
+    private fun getPayload(doc: Document): Document {
+        return Document(mapOf(
+                "ts" to BsonTimestamp(Math.floor((Date().time / 1000).toDouble()).toInt(), 0),
+                "op" to "i",
+                "ns" to db,
+                "o" to doc
+        ))
     }
 }

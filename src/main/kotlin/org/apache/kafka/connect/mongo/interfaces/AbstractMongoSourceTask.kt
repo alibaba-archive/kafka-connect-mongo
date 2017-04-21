@@ -10,6 +10,7 @@ import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONF
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConnector
 import org.apache.kafka.connect.source.SourceRecord
 import org.bson.BsonTimestamp
 import org.bson.Document
@@ -35,13 +36,10 @@ abstract class AbstractMongoSourceTask: SourceTask() {
     // Runtime states
     // Sleep time will get double of it's self when there was no records return in the poll function
     // But will not larger than maxSleepTime
-    protected var sleepTime = 50L
-    protected var maxSleepTime = 10000L
-    // How many times will a process retries before quit
-    private val maxErrCount = 5
-    private val databaseRunners = mutableMapOf<String, DatabaseRunner>()
+    private var sleepTime = 50L
+    private var maxSleepTime = 10000L
 
-    abstract protected fun loadDatabaseRunner(db: String): DatabaseRunner
+    override fun version(): String = MongoSourceConnector().version()
 
     /**
      * Parse the config properties into in-use type and format
@@ -66,19 +64,6 @@ abstract class AbstractMongoSourceTask: SourceTask() {
                             .field("op", Schema.OPTIONAL_STRING_SCHEMA)
                             .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
                 }
-
-        databases.forEach { startDBReader(it, 0) }
-    }
-
-    /**
-     * Disconnect mongo client and cleanup messages
-     */
-    override fun stop() {
-        log.info("Graceful stop mongo source task")
-        databaseRunners.forEach { _, runner ->
-            runner.stop()
-        }
-        messages.clear()
     }
 
     override fun poll(): List<SourceRecord> {
@@ -108,28 +93,6 @@ abstract class AbstractMongoSourceTask: SourceTask() {
             sleepTime = 50L
         }
         return records
-    }
-
-    // Create a new DatabaseReader thread for
-    protected fun startDBReader(db: String, errCount: Int = 0) {
-        if (errCount > maxErrCount) throw Exception("Can not execute database runner!")
-        val startTime = System.currentTimeMillis()
-        val runner = loadDatabaseRunner(db)
-        databaseRunners[db] = runner
-        val t = Thread(runner)
-        val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, throwable ->
-            throwable.printStackTrace()
-            runner.stop()
-            log.error("Error when read data from db: {}", db)
-            var _errCount = errCount + 1
-            // Reset error count if the task executed more than 5 minutes
-            if ((System.currentTimeMillis() - startTime) > 600000) {
-               _errCount = 0
-            }
-            startDBReader(db, _errCount)
-        }
-        t.uncaughtExceptionHandler = uncaughtExceptionHandler
-        t.start()
     }
 
     /**
