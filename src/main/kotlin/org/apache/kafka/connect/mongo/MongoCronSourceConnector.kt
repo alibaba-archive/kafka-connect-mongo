@@ -1,7 +1,6 @@
 package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.common.config.ConfigDef
-import org.apache.kafka.connect.connector.Task
 import org.slf4j.LoggerFactory
 import org.apache.kafka.connect.mongo.MongoCronSourceConfig.Companion.SCHEDULE_CONFIG
 

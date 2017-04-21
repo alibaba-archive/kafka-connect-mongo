@@ -8,6 +8,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
+import org.apache.kafka.connect.mongo.interfaces.DatabaseRunner
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.conversions.Bson
@@ -32,7 +33,7 @@ enum class State { READY, CLOSED }
 class DatabaseReader(val uri: String,
                      val db: String,
                      val start: String,
-                     private val messages: ConcurrentLinkedQueue<Document>) : Runnable {
+                     val messages: ConcurrentLinkedQueue<Document>): DatabaseRunner(uri, db, messages) {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }
@@ -101,7 +102,7 @@ class DatabaseReader(val uri: String,
         }
     }
 
-    fun stop() {
+    override fun stop() {
         if (state == State.CLOSED) return
         state = State.CLOSED
         try {

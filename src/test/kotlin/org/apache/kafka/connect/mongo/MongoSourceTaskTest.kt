@@ -21,10 +21,11 @@ import org.junit.Test
 import org.powermock.api.easymock.PowerMock
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlin.collections.HashMap
 
 /**
- * Created by Xu Jingxin on 16/8/16.
- */
+* @author Xu Jingxin
+*/
 class MongoSourceTaskTest {
 
     companion object {
@@ -87,21 +88,18 @@ class MongoSourceTaskTest {
     }
 
     private fun expectOffsetLookupReturnNull() {
-        expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader)
-        expect(offsetStorageReader!!.offsets(EasyMock.anyObject<List<Map<String, String>>>())).andReturn(HashMap<Map<String, String>, Map<String, Any>>())
+        expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader).anyTimes()
+        expect(offsetStorageReader!!.offset(EasyMock.anyObject<Map<String, String>>())).andReturn(HashMap<String, Any>()).anyTimes()
     }
 
     private fun expectOffsetLookupReturnOffset() {
-        val offsetMap = HashMap<Map<String, String>, Map<String, Any>>()
+        expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader).anyTimes()
         for (collection in collections) {
             val timestamp = BsonTimestamp(Math.floor((System.currentTimeMillis() / 1000).toDouble()).toInt(), 0)
-            offsetMap.put(
-                    MongoSourceTask.getPartition("mydb." + collection),
-                    Collections.singletonMap<String, Any>("mydb." + collection, timestamp.time.toString() + ",0"))
+            expect(offsetStorageReader!!.offset(Collections.singletonMap("mongo", "mydb." + collection)))
+                    .andReturn(Collections.singletonMap<String, Any>("mydb." + collection, timestamp.time.toString() + ",0"))
+                    .anyTimes()
         }
-        log.debug("Offsets: {}", offsetMap)
-        expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader)
-        expect(offsetStorageReader!!.offsets(EasyMock.anyObject<List<Map<String, String>>>())).andReturn(offsetMap)
     }
 
     /**
