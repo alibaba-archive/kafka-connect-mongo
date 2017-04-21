@@ -20,8 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 data class MessageData(val topic: String,
                        val key: JSONObject,
-                       val value: JSONObject) {
-}
+                       val value: JSONObject)
 
 /**
  * @author Xu Jingxin

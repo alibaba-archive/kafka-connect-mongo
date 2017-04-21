@@ -17,7 +17,7 @@ class DatabaseReaderTest {
 
     @Before
     fun setUp() {
-        val db = mongod.start().getDatabase("mydb")!!
+        val db = mongod.start().getDatabase("mydb")
         db.createCollection("test")
     }
 
@@ -40,7 +40,7 @@ class DatabaseReaderTest {
         // Wait for database reader connection client
         Thread.sleep(500)
 
-        val collection = mongod.getDatabase("mydb")!!.getCollection("test")
+        val collection = mongod.getDatabase("mydb").getCollection("test")
         for (i in 0..100) {
             collection.insertOne(Document().append("name", "Eric$i"))
         }

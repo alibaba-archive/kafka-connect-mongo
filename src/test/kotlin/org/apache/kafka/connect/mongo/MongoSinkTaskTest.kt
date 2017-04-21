@@ -76,7 +76,7 @@ class MongoSinkTaskTest {
         }
 
         // Verify messages in mongodb
-        val documents = mongod.getDatabase("t")!!.getCollection("a").find()
+        val documents = mongod.getDatabase("t").getCollection("a").find()
         documents.forEach {
             assertThat(it.keys).containsAllOf("_id", "state")
             assertThat(it["state"]).isInstanceOf(Int::class.javaObjectType)
@@ -105,7 +105,7 @@ class MongoSinkTaskTest {
 
         task!!.put(listOf(r1, r2, r3, r4))
 
-        val documents = mongod.getDatabase("t")!!.getCollection("a").find()
+        val documents = mongod.getDatabase("t").getCollection("a").find()
         assertThat(documents.count()).isEqualTo(1)
         val doc1 = documents.first()
         assertThat(doc1["_id"].toString()).isEqualTo(r1.key())
@@ -115,7 +115,7 @@ class MongoSinkTaskTest {
     }
 
     private fun countAll(topics: List<String>): Int {
-        val db = mongod.getDatabase("t")!!
+        val db = mongod.getDatabase("t")
         val count = topics.sumBy {
             db.getCollection(it).count().toInt()
         }
