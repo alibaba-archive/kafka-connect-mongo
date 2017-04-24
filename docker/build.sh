@@ -27,7 +27,7 @@ docker build $DOCKER_BUILD_OPTS -t "${IMAGE_NAME}:${PACKAGE_VERSION}" ./
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "docker-registry.teambition.net/library/${IMAGE_NAME}:latest"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "docker-registry.teambition.net/library/${IMAGE_NAME}:${PACKAGE_VERSION}"
 
-[[ $BUILD_ENV == "beta" ]] && exit 0
+[[ $PACKAGE_VERSION =~ ^[0-9\.]+$ ]] || exit 0
 
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "sailxjx/${IMAGE_NAME}:latest"
 docker tag $DOCKER_TAG_OPTS "${IMAGE_NAME}:${PACKAGE_VERSION}" "sailxjx/${IMAGE_NAME}:${PACKAGE_VERSION}"
