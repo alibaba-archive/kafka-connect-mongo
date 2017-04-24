@@ -25,6 +25,23 @@ databases=test.users
 #mongo.uri=mongodb://user:pwd@128.0.0.1:27017/?ssl=true&authSource=admin&replicaSet=rs0&sslInvalidHostNameAllowed=true
 ```
 
+## Schedule export data from mongodb
+
+Simply change the connector class to MongoCronSourceConnector and add a schedule parameter in the source config,
+this connector will export all the data from your collection to kafka through the same way of mongo source connect. 
+
+```properties
+name=mongo-cron-source-connector
+connector.class=org.apache.kafka.connect.mongo.MongoCronSourceConnector
+tasks.max=1
+mongo.uri=mongodb://127.0.0.1:27017
+batch.size=100
+schema.name=mongo_local_schema
+topic.prefix=mongo_local
+databases=test.users
+schedule=0 0 * * * ?  # Execute every hour, in quartz cron pattern
+```
+
 ## Initial import data from mongo collection
 
 1. Build project `./gradlew clean distTar`
