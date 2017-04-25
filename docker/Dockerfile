@@ -8,8 +8,5 @@ FROM confluentinc/cp-kafka-connect-base:3.2.0
 
 MAINTAINER sailxjx@gmail.com
 
-RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
-
 COPY targets "/usr/local/kafka-connect-mongo/"
 RUN ln -sf /usr/local/kafka-connect-mongo/lib /usr/share/java/kafka-connect-mongo
