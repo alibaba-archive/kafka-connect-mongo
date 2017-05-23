@@ -1,6 +1,7 @@
 package org.apache.kafka.connect.mongo
 
 import com.mongodb.MongoClient
+import com.mongodb.MongoClientOptions
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
@@ -18,10 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * Export the whole collection into message queue
  * @author Xu Jingxin
  */
-class CollectionExporter: Job {
+class CollectionExporter : Job {
     companion object {
         private val log = LoggerFactory.getLogger(CollectionExporter::class.java)
     }
+
     private var uri = ""
     private var db = ""
     private var messages = ConcurrentLinkedQueue<Document>()
@@ -42,8 +44,9 @@ class CollectionExporter: Job {
         db = context.mergedJobDataMap["db"] as String
         log.info("Init collection exporter, uri {}, db {}", uri, db)
         messages = context.mergedJobDataMap["messages"] as ConcurrentLinkedQueue<Document>
-
-        mongoClient = MongoClient(MongoClientURI(uri))
+        val clientOptions = MongoClientOptions.builder()
+                .connectTimeout(1000 * 300)
+        mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
         val (db, collection) = db.trim().split(".")
         mongoDatabase = mongoClient!!.getDatabase(db)
         mongoCollection = mongoDatabase!!.getCollection(collection)

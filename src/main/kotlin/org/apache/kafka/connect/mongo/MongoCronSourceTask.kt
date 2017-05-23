@@ -15,12 +15,14 @@ class MongoCronSourceTask: AbstractMongoSourceTask() {
     var scheduler: Scheduler? = null
 
     override fun start(props: Map<String, String>) {
+        log.info("Start schedule")
         super.start(props)
         schedule = props[SCHEDULE_CONFIG] ?: throw Exception("Invalid schedule!")
         startSchedule()
     }
 
     override fun stop() {
+        log.info("Stop schedule")
         scheduler?.shutdown()
     }
 

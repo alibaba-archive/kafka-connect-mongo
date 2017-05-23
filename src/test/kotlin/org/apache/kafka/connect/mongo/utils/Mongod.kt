@@ -32,7 +32,7 @@ class Mongod {
     private var mongodConfig: IMongodConfig? = null
     private var mongoClient: MongoClient? = null
 
-    fun start() : Mongod {
+    fun start(): Mongod {
         mongodStarter = MongodStarter.getDefaultInstance()
         mongodConfig = MongodConfigBuilder()
                 .version(Version.Main.V3_3)
@@ -59,14 +59,14 @@ class Mongod {
         return this
     }
 
-    fun stop() : Mongod {
+    fun stop(): Mongod {
         mongodProcess!!.stop()
         mongodExecutable!!.stop()
         FileUtils.deleteDirectory(File(REPLICATION_PATH))
         return this
     }
 
-    fun createUserWithPassword() : Mongod {
+    fun createUserWithPassword(): Mongod {
         val adminDatabase = mongoClient!!.getDatabase("admin")
         val cmdArguments = BasicDBObject()
         cmdArguments.put("createUser", "test")
