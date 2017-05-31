@@ -3,8 +3,6 @@ package org.apache.kafka.connect.mongo.interfaces
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
-import org.apache.kafka.connect.source.SourceTask
-import org.slf4j.Logger
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
@@ -12,16 +10,18 @@ import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CO
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConnector
 import org.apache.kafka.connect.source.SourceRecord
+import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.slf4j.Logger
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * @author Xu Jingxin
  */
-abstract class AbstractMongoSourceTask: SourceTask() {
+abstract class AbstractMongoSourceTask : SourceTask() {
     abstract val log: Logger
     // Configs
     protected var uri = ""

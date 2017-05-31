@@ -24,8 +24,8 @@ import java.util.*
 import kotlin.collections.HashMap
 
 /**
-* @author Xu Jingxin
-*/
+ * @author Xu Jingxin
+ */
 class MongoSourceTaskTest {
 
     companion object {

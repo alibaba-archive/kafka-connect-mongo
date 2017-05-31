@@ -32,7 +32,7 @@ enum class State { READY, CLOSED }
 class DatabaseReader(val uri: String,
                      val db: String,
                      val start: String,
-                     val messages: ConcurrentLinkedQueue<Document>): Runnable {
+                     val messages: ConcurrentLinkedQueue<Document>) : Runnable {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }

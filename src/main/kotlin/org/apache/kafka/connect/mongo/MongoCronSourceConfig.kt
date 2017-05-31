@@ -2,23 +2,24 @@ package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.common.config.AbstractConfig
 import org.apache.kafka.common.config.ConfigDef
-import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
+import org.apache.kafka.common.config.ConfigDef.Importance.HIGH
+import org.apache.kafka.common.config.ConfigDef.Type.INT
+import org.apache.kafka.common.config.ConfigDef.Type.STRING
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG_DOC
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG_DOC
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG_DOC
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG_DOC
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG_DOC
-import org.apache.kafka.common.config.ConfigDef.Type.*
-import org.apache.kafka.common.config.ConfigDef.Importance.*
 
 /**
  * @author Xu Jingxin
  */
-class MongoCronSourceConfig(props: Map<String, String>): AbstractConfig(MongoCronSourceConfig.config, props) {
+class MongoCronSourceConfig(props: Map<String, String>) : AbstractConfig(MongoCronSourceConfig.config, props) {
     companion object {
         val SCHEDULE_CONFIG = "schedule"
         val SCHEDULE_CONFIG_DOC = "Schedule job in quartz cron pattern"

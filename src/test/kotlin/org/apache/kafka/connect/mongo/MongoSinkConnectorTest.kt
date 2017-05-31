@@ -1,9 +1,8 @@
 package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.connect.connector.ConnectorContext
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
 import org.powermock.api.easymock.PowerMock
 
 /**

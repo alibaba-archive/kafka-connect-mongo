@@ -40,6 +40,7 @@ class ImportJob(val uri: String,
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
     }
+
     private val messages = ConcurrentLinkedQueue<MessageData>()
     private var producer: KafkaProducer<String, String> = KafkaProducer(props)
 
@@ -218,7 +219,7 @@ class ImportDB(val uri: String,
     }
 }
 
-class ScheduleJob: Job {
+class ScheduleJob : Job {
     override fun execute(context: JobExecutionContext) {
         val props = context.mergedJobDataMap["props"] as Properties
         val uri = context.mergedJobDataMap[MongoSourceConfig.MONGO_URI_CONFIG] as String

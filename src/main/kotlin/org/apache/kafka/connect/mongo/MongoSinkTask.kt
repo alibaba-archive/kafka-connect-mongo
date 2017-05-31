@@ -9,14 +9,14 @@ import com.mongodb.util.JSON
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.connect.data.Struct
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.sink.SinkTask
 import org.bson.Document
-import org.slf4j.LoggerFactory
-import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
-import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
-import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.bson.types.ObjectId
+import org.slf4j.LoggerFactory
 
 /**
  * @author Xu Jingxin

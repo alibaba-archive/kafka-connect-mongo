@@ -1,5 +1,6 @@
 package org.apache.kafka.connect.mongo
 
+import com.google.common.truth.Truth.assertThat
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
@@ -10,10 +11,8 @@ import org.apache.kafka.connect.sink.SinkTaskContext
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.junit.After
-import org.junit.Test
-import com.google.common.truth.Truth.assertThat
-
 import org.junit.Before
+import org.junit.Test
 import org.powermock.api.easymock.PowerMock
 import java.util.*
 

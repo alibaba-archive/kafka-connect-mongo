@@ -4,9 +4,9 @@ import org.apache.kafka.connect.mongo.interfaces.AbstractMongoSourceTask
 import org.slf4j.LoggerFactory
 
 /**
-* @author Xu Jingxin
-*/
-class MongoSourceTask: AbstractMongoSourceTask() {
+ * @author Xu Jingxin
+ */
+class MongoSourceTask : AbstractMongoSourceTask() {
     override val log = LoggerFactory.getLogger(MongoSourceTask::class.java)!!
     // How many times will a process retries before quit
     private val maxErrCount = 5
@@ -14,7 +14,7 @@ class MongoSourceTask: AbstractMongoSourceTask() {
 
     override fun start(props: Map<String, String>) {
         super.start(props)
-        databases.forEach {startReader(it, 0)}
+        databases.forEach { startReader(it, 0) }
     }
 
     /**
@@ -46,14 +46,14 @@ class MongoSourceTask: AbstractMongoSourceTask() {
         val reader = loadReader(db)
         databaseReaders[db] = reader
         val t = Thread(reader)
-        val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, throwable ->
+        val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, throwable ->
             throwable.printStackTrace()
             reader.stop()
             log.error("Error when read data from db: {}", db)
             var _errCount = errCount + 1
             // Reset error count if the task executed more than 5 minutes
             if ((System.currentTimeMillis() - startTime) > 600000) {
-               _errCount = 0
+                _errCount = 0
             }
             startReader(db, _errCount)
         }

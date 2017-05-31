@@ -1,15 +1,18 @@
 package org.apache.kafka.connect.mongo.utils
 
-import com.mongodb.*
+import com.mongodb.BasicDBList
+import com.mongodb.BasicDBObject
+import com.mongodb.MongoClient
+import com.mongodb.ServerAddress
 import com.mongodb.client.MongoDatabase
 import de.flapdoodle.embed.mongo.MongodExecutable
 import de.flapdoodle.embed.mongo.MongodProcess
 import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.IMongodConfig
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder
-import de.flapdoodle.embed.mongo.distribution.Version
 import de.flapdoodle.embed.mongo.config.Net
 import de.flapdoodle.embed.mongo.config.Storage
+import de.flapdoodle.embed.mongo.distribution.Version
 import de.flapdoodle.embed.process.runtime.Network
 import org.apache.commons.io.FileUtils
 import java.io.File

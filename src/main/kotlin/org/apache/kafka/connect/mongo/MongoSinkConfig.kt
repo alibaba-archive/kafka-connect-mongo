@@ -2,13 +2,13 @@ package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.common.config.AbstractConfig
 import org.apache.kafka.common.config.ConfigDef
-import org.apache.kafka.common.config.ConfigDef.Type
 import org.apache.kafka.common.config.ConfigDef.Importance
+import org.apache.kafka.common.config.ConfigDef.Type
 
 /**
  * @author Xu Jingxin
  */
-class MongoSinkConfig(props: Map<String, String>) : AbstractConfig(MongoSinkConfig.config, props){
+class MongoSinkConfig(props: Map<String, String>) : AbstractConfig(MongoSinkConfig.config, props) {
     companion object {
         val MONGO_URI_CONFIG = "mongo.uri"
         private val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"

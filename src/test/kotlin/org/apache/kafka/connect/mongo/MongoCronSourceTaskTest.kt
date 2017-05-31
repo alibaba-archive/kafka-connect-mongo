@@ -1,5 +1,7 @@
 package org.apache.kafka.connect.mongo
 
+import com.google.common.truth.Truth.assertThat
+import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.mongo.utils.Mongod
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTaskContext
@@ -8,8 +10,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.powermock.api.easymock.PowerMock
-import com.google.common.truth.Truth.assertThat
-import org.apache.kafka.connect.data.Struct
 import java.util.*
 
 /**

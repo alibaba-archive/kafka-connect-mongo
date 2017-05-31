@@ -4,20 +4,21 @@ import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.utils.AppInfoParser
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
+import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.apache.kafka.connect.sink.SinkConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
-import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
-import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
-import org.apache.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
 
 /**
  * @author Xu Jingxin
  */
-class MongoSinkConnector: SinkConnector() {
+class MongoSinkConnector : SinkConnector() {
     companion object {
         private val log = LoggerFactory.getLogger(MongoSinkConnector::class.java)
     }
+
     private var uri = ""
     private var topics = ""
     private var databases = ""

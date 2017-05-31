@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class DatabaseReaderTest {
     private val mongod = Mongod()
-    private var reader : DatabaseReader? = null
+    private var reader: DatabaseReader? = null
 
     @Before
     fun setUp() {

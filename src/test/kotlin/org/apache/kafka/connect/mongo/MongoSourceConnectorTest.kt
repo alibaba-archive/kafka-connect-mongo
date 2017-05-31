@@ -1,18 +1,16 @@
 package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.connect.connector.ConnectorContext
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.powermock.api.easymock.PowerMock
-
-import java.util.HashMap
-
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import java.util.*
 
 /**
-* @author Xu Jingxin
-*/
+ * @author Xu Jingxin
+ */
 class MongoSourceConnectorTest {
     private var connector: MongoSourceConnector? = null
 
