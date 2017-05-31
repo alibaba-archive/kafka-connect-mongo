@@ -1,18 +1,21 @@
 package org.apache.kafka.connect.mongo
 
-import org.slf4j.LoggerFactory
 import org.apache.kafka.connect.mongo.MongoCronSourceConfig.Companion.SCHEDULE_CONFIG
 import org.apache.kafka.connect.mongo.interfaces.AbstractMongoSourceTask
-import org.quartz.*
+import org.quartz.CronScheduleBuilder
+import org.quartz.JobBuilder
+import org.quartz.JobDataMap
+import org.quartz.TriggerBuilder
 import org.quartz.impl.StdSchedulerFactory
+import org.slf4j.LoggerFactory
 
 /**
  * @author Xu Jingxin
  */
-class MongoCronSourceTask: AbstractMongoSourceTask() {
+class MongoCronSourceTask : AbstractMongoSourceTask() {
     override val log = LoggerFactory.getLogger(MongoCronSourceTask::class.java)!!
     var schedule = ""
-    var scheduler: Scheduler? = null
+    val scheduler = StdSchedulerFactory.getDefaultScheduler()!!
 
     override fun start(props: Map<String, String>) {
         log.info("Start schedule")
@@ -23,12 +26,11 @@ class MongoCronSourceTask: AbstractMongoSourceTask() {
 
     override fun stop() {
         log.info("Stop schedule")
-        scheduler?.shutdown()
+        scheduler.shutdown()
     }
 
     private fun startSchedule() {
-        scheduler = StdSchedulerFactory.getDefaultScheduler()
-        scheduler!!.start()
+        scheduler.start()
         databases.forEach { db ->
             val job = JobBuilder.newJob(CollectionExporter::class.java)
                     .setJobData(JobDataMap(mapOf(
@@ -42,7 +44,7 @@ class MongoCronSourceTask: AbstractMongoSourceTask() {
                     .withIdentity("trigger_mongo_exporter_$db", "group1")
                     .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
                     .build()
-            scheduler!!.scheduleJob(job, trigger)
+            scheduler.scheduleJob(job, trigger)
         }
     }
 }

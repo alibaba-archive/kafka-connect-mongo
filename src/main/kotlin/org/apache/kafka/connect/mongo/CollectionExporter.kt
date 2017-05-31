@@ -80,7 +80,7 @@ class CollectionExporter : Job {
             } catch (e: Exception) {
                 log.error("Querying error: {}", e.message)
             }
-        } while (iterator.count() > 0)
+        } while (iterator.count() == bulkSize)
         stop()
     }
 
