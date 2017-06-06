@@ -2,6 +2,7 @@ package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.connect.mongo.interfaces.AbstractMongoSourceTask
 import org.slf4j.LoggerFactory
+import java.util.*
 
 /**
  * @author Xu Jingxin
@@ -29,7 +30,7 @@ class MongoSourceTask : AbstractMongoSourceTask() {
     }
 
     private fun loadReader(db: String): DatabaseReader {
-        var start = "0,0"
+        var start = getDefaultOffset()
         val partition = getPartition(db)
         val timeOffset = context.offsetStorageReader().offset(partition)
         if (!(timeOffset == null || timeOffset.isEmpty())) start = timeOffset[db] as String
@@ -60,4 +61,9 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         t.uncaughtExceptionHandler = uncaughtExceptionHandler
         t.start()
     }
+
+    /**
+     * Start from current time will skip a lot of redundant scan on oplog
+     */
+    private fun getDefaultOffset() = "${Math.floor(Date().time.toDouble() / 1000).toInt()},0"
 }

@@ -66,8 +66,8 @@ class DatabaseReader(val uri: String,
                 .projection(Projections.include("ts", "op", "ns", "o", "o2"))
                 .cursorType(CursorType.TailableAwait)
                 .batchSize(100)
-                .maxTime(60, TimeUnit.SECONDS)
-                .maxAwaitTime(60, TimeUnit.SECONDS)
+                .maxTime(600, TimeUnit.SECONDS)
+                .maxAwaitTime(600, TimeUnit.SECONDS)
                 .oplogReplay(true)
 
         var count = 0
