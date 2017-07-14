@@ -2,6 +2,10 @@ package org.apache.kafka.connect.mongo
 
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.quartz.Job
@@ -29,24 +33,28 @@ class CollectionExporter : Job {
     fun run(context: JobExecutionContext) {
         jobDataMap = context.mergedJobDataMap["data"] as CronJobDataMap
         val mongoClient = MongoClient(MongoClientURI(jobDataMap.uri))
-        jobDataMap.databases.forEach { ns ->
-            log.info("Export from database $ns")
-            val (db, collection) = ns.trim().split(".")
-            var count = 0
-            try {
-                mongoClient.getDatabase(db)
-                    .getCollection(collection)
-                    .find()
-                    .forEach {
-                        jobDataMap.messages.add(getPayload(ns, it))
-                        count += 1
-                        while (jobDataMap.messages.size > maxSize) Thread.sleep(200)
-                    }
+        runBlocking {
+            jobDataMap.databases.map { ns ->
+                async(CommonPool) {
+                    log.info("Export from database $ns")
+                    val (db, collection) = ns.trim().split(".")
+                    var count = 0
+                    try {
+                        mongoClient.getDatabase(db)
+                            .getCollection(collection)
+                            .find()
+                            .forEach {
+                                jobDataMap.messages.add(getPayload(ns, it))
+                                count += 1
+                                while (jobDataMap.messages.size > maxSize) delay(200)
+                            }
 
-                log.info("Export database finish: {}, count {}", ns, count)
-            } catch (e: Exception) {
-                log.error("Export error: {}", e.toString())
-            }
+                        log.info("Export database finish: {}, count {}", ns, count)
+                    } catch (e: Exception) {
+                        log.error("Export error: {}", e.toString())
+                    }
+                }
+            }.forEach { it.await() }
         }
         try {
             mongoClient.close()
