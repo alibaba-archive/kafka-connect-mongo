@@ -30,21 +30,19 @@ class MongoCronSourceTask : AbstractMongoSourceTask() {
     }
 
     private fun startSchedule() {
+        log.info("Start schedule")
         scheduler.start()
-        databases.forEach { db ->
-            val job = JobBuilder.newJob(CollectionExporter::class.java)
-                    .setJobData(JobDataMap(mapOf(
-                            "uri" to uri,
-                            "db" to db,
-                            "messages" to messages
-                    )))
-                    .withIdentity("job_mongo_exporter_$db", "group1")
-                    .build()
-            val trigger = TriggerBuilder.newTrigger()
-                    .withIdentity("trigger_mongo_exporter_$db", "group1")
-                    .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-                    .build()
-            scheduler.scheduleJob(job, trigger)
-        }
+
+        val job = JobBuilder.newJob(CollectionExporter::class.java)
+            .setJobData(JobDataMap(mapOf("data" to CronJobDataMap(uri, databases, messages))))
+            .withIdentity("job_mongo_exporter", "group1")
+            .build()
+
+        val trigger = TriggerBuilder.newTrigger()
+            .withIdentity("trigger_mongo_exporter", "group1")
+            .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+            .build()
+
+        scheduler.scheduleJob(job, trigger)
     }
 }
