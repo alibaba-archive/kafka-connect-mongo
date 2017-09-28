@@ -97,8 +97,8 @@ class MongoSourceTaskTest {
         for (collection in collections) {
             val timestamp = BsonTimestamp(Math.floor((System.currentTimeMillis() / 1000).toDouble()).toInt(), 0)
             expect(offsetStorageReader!!.offset(Collections.singletonMap("mongo", "mydb." + collection)))
-                    .andReturn(Collections.singletonMap<String, Any>("mydb." + collection, timestamp.time.toString() + ",0"))
-                    .anyTimes()
+                .andReturn(Collections.singletonMap<String, Any>("mydb." + collection, timestamp.time.toString() + ",0"))
+                .anyTimes()
         }
     }
 
@@ -130,7 +130,7 @@ class MongoSourceTaskTest {
         test1.insertOne(doc1)
         test1.insertOne(doc2)
         test1.updateOne(Filters.eq("text", "doc1"),
-                Document("\$set", Document("name", "Stephen")))
+            Document("\$set", Document("name", "Stephen")))
         test1.deleteOne(Filters.eq("text", "doc2"))
         // Ensure messages are inserted
         Thread.sleep(1000)

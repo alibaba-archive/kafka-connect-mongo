@@ -8,14 +8,11 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
-import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
-import java.lang.Long.parseLong
 import java.util.*
-
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
@@ -37,6 +34,7 @@ class DatabaseReader(val uri: String,
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }
+
     private val BATCH_SIZE = 100
 
     private val oplog: MongoCollection<Document>
@@ -50,7 +48,7 @@ class DatabaseReader(val uri: String,
 
     init {
         val clientOptions = MongoClientOptions.builder()
-                .connectTimeout(1000 * 300)
+            .connectTimeout(1000 * 300)
         mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
@@ -72,14 +70,14 @@ class DatabaseReader(val uri: String,
         }
         log.trace("Querying oplog...")
         val documents = oplog
-                .find(query)
-                .sort(Document("\$natural", 1))
-                .projection(Projections.include("ts", "op", "ns", "o", "o2"))
-                .cursorType(CursorType.TailableAwait)
-                .batchSize(BATCH_SIZE)
-                .maxTime(600, TimeUnit.SECONDS)
-                .maxAwaitTime(600, TimeUnit.SECONDS)
-                .oplogReplay(true)
+            .find(query)
+            .sort(Document("\$natural", 1))
+            .projection(Projections.include("ts", "op", "ns", "o", "o2"))
+            .cursorType(CursorType.TailableAwait)
+            .batchSize(BATCH_SIZE)
+            .maxTime(600, TimeUnit.SECONDS)
+            .maxAwaitTime(600, TimeUnit.SECONDS)
+            .oplogReplay(true)
 
         var count = 0
         try {
@@ -91,17 +89,17 @@ class DatabaseReader(val uri: String,
                 // Stop pulling data when length of message is too large!
                 while (messages.size > maxMessageSize) {
                     log.warn("Message overwhelm! database {}, docs {}, messages {}",
-                            db,
-                            count,
-                            messages.size)
+                        db,
+                        count,
+                        messages.size)
                     Thread.sleep(500)
                 }
                 if (count % 1000 == 0) {
                     log.info("Read database {}, docs {}, messages {}, memory usage {}",
-                            db,
-                            count,
-                            messages.size,
-                            Runtime.getRuntime().totalMemory())
+                        db,
+                        count,
+                        messages.size,
+                        Runtime.getRuntime().totalMemory())
                 }
             }
         } catch (e: Exception) {
@@ -128,25 +126,25 @@ class DatabaseReader(val uri: String,
         val mongoCollection = getNSCollection(db)
         log.info("Bulk import at $db from _objectId {}, count {}", offsetId, offsetCount)
         mongoCollection
-                .find()
-                .filter(Filters.gt("_id", offsetId))
-                .sort(Document("_id", 1))
-                .asSequence()
-                .forEach { document ->
-                    messages.add(formatAsOpLog(document))
-                    offsetId = document["_id"] as ObjectId
-                    offsetCount += 1
-                    while (messages.size > maxMessageSize) {
-                        log.warn("Message overwhelm! database {}, docs {}, messages {}",
-                                db,
-                                offsetCount,
-                                messages.size)
-                        Thread.sleep(500)
-                    }
+            .find()
+            .filter(Filters.gt("_id", offsetId))
+            .sort(Document("_id", 1))
+            .asSequence()
+            .forEach { document ->
+                messages.add(formatAsOpLog(document))
+                offsetId = document["_id"] as ObjectId
+                offsetCount += 1
+                while (messages.size > maxMessageSize) {
+                    log.warn("Message overwhelm! database {}, docs {}, messages {}",
+                        db,
+                        offsetCount,
+                        messages.size)
+                    Thread.sleep(500)
                 }
+            }
         log.info("Import Task finished, database {}, count {}",
-                db,
-                offsetCount)
+            db,
+            offsetCount)
     }
 
     private fun formatAsOpLog(doc: Document): Document {
@@ -197,20 +195,20 @@ class DatabaseReader(val uri: String,
     }
 
     private fun getNSCollection(ns: String): MongoCollection<Document> {
-        val dbAndCollection =  ns.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
+        val dbAndCollection = ns.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
         val nsDB = mongoClient.getDatabase(dbAndCollection[0])
         return nsDB.getCollection(dbAndCollection[1])
     }
 
     private fun createQuery(): Bson? {
         query = Filters.and(
-                Filters.exists("fromMigrate", false),
-                Filters.gt("ts", start.ts),
-                Filters.or(
-                        Filters.eq("op", "i"),
-                        Filters.eq("op", "u"),
-                        Filters.eq("op", "d")),
-                Filters.eq("ns", db))
+            Filters.exists("fromMigrate", false),
+            Filters.gt("ts", start.ts),
+            Filters.or(
+                Filters.eq("op", "i"),
+                Filters.eq("op", "u"),
+                Filters.eq("op", "d")),
+            Filters.eq("ns", db))
 
         return query
     }

@@ -29,29 +29,29 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
         val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
         var config: ConfigDef = ConfigDef()
-                .define(MONGO_URI_CONFIG,
-                        Type.STRING,
-                        Importance.HIGH,
-                        MONGO_URI_CONFIG_DOC)
-                .define(BATCH_SIZE_CONFIG,
-                        Type.INT,
-                        Importance.HIGH,
-                        BATCH_SIZE_CONFIG_DOC)
-                .define(INITIAL_IMPORT_CONFIG,
-                        Type.STRING,
-                        Importance.HIGH,
-                        INITIAL_IMPORT_CONFIG_DOC)
-                .define(SCHEMA_NAME_CONFIG,
-                        Type.STRING,
-                        Importance.HIGH,
-                        SCHEMA_NAME_CONFIG_DOC)
-                .define(TOPIC_PREFIX_CONFIG,
-                        Type.STRING,
-                        Importance.HIGH,
-                        TOPIC_PREFIX_CONFIG_DOC)
-                .define(DATABASES_CONFIG,
-                        Type.STRING,
-                        Importance.HIGH,
-                        DATABASES_CONFIG_DOC)
+            .define(MONGO_URI_CONFIG,
+                Type.STRING,
+                Importance.HIGH,
+                MONGO_URI_CONFIG_DOC)
+            .define(BATCH_SIZE_CONFIG,
+                Type.INT,
+                Importance.HIGH,
+                BATCH_SIZE_CONFIG_DOC)
+            .define(INITIAL_IMPORT_CONFIG,
+                Type.STRING,
+                Importance.HIGH,
+                INITIAL_IMPORT_CONFIG_DOC)
+            .define(SCHEMA_NAME_CONFIG,
+                Type.STRING,
+                Importance.HIGH,
+                SCHEMA_NAME_CONFIG_DOC)
+            .define(TOPIC_PREFIX_CONFIG,
+                Type.STRING,
+                Importance.HIGH,
+                TOPIC_PREFIX_CONFIG_DOC)
+            .define(DATABASES_CONFIG,
+                Type.STRING,
+                Importance.HIGH,
+                DATABASES_CONFIG_DOC)
     }
 }

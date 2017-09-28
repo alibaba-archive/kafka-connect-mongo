@@ -38,10 +38,10 @@ class Mongod {
     fun start(): Mongod {
         mongodStarter = MongodStarter.getDefaultInstance()
         mongodConfig = MongodConfigBuilder()
-                .version(Version.Main.V3_3)
-                .replication(Storage(REPLICATION_PATH, "rs0", 1024))
-                .net(Net(12345, Network.localhostIsIPv6()))
-                .build()
+            .version(Version.Main.V3_3)
+            .replication(Storage(REPLICATION_PATH, "rs0", 1024))
+            .net(Net(12345, Network.localhostIsIPv6()))
+            .build()
         mongodExecutable = mongodStarter!!.prepare(mongodConfig)
         mongodProcess = mongodExecutable!!.start()
         mongoClient = MongoClient(ServerAddress("localhost", 12345))
@@ -66,16 +66,6 @@ class Mongod {
         mongodProcess!!.stop()
         mongodExecutable!!.stop()
         FileUtils.deleteDirectory(File(REPLICATION_PATH))
-        return this
-    }
-
-    fun createUserWithPassword(): Mongod {
-        val adminDatabase = mongoClient!!.getDatabase("admin")
-        val cmdArguments = BasicDBObject()
-        cmdArguments.put("createUser", "test")
-        cmdArguments.put("pwd", "123456")
-        cmdArguments.put("roles", listOf("readWrite"))
-        adminDatabase.runCommand(cmdArguments)
         return this
     }
 

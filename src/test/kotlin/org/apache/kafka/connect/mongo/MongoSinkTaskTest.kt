@@ -25,12 +25,12 @@ class MongoSinkTaskTest {
     private var taskContext: SinkTaskContext? = null
     private val keySchema = Schema.OPTIONAL_STRING_SCHEMA
     private val valueSchema = SchemaBuilder.struct()
-            .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
-            .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
-            .field("id", Schema.OPTIONAL_STRING_SCHEMA)
-            .field("database", Schema.OPTIONAL_STRING_SCHEMA)
-            .field("op", Schema.OPTIONAL_STRING_SCHEMA)
-            .field("object", Schema.OPTIONAL_STRING_SCHEMA).build()
+        .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
+        .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
+        .field("id", Schema.OPTIONAL_STRING_SCHEMA)
+        .field("database", Schema.OPTIONAL_STRING_SCHEMA)
+        .field("op", Schema.OPTIONAL_STRING_SCHEMA)
+        .field("object", Schema.OPTIONAL_STRING_SCHEMA).build()
     private var offset = 0L
 
     @Before
@@ -52,17 +52,17 @@ class MongoSinkTaskTest {
         PowerMock.replayAll()
         val topics = listOf("a", "b")
         val props = mapOf(
-                "mongo.uri" to "mongodb://localhost:12345",
-                "topics" to topics.joinToString(","),
-                "databases" to "t.a,t.b"
+            "mongo.uri" to "mongodb://localhost:12345",
+            "topics" to topics.joinToString(","),
+            "databases" to "t.a,t.b"
         )
         task!!.start(props)
 
         // Mock records
         for (i in 1..10) {
             val recordsMap = mutableMapOf(
-                    "a" to mutableListOf<SinkRecord>(),
-                    "b" to mutableListOf<SinkRecord>()
+                "a" to mutableListOf<SinkRecord>(),
+                "b" to mutableListOf()
             )
             for (n in 1..10) {
                 val topic = topics[Random().nextInt(2)]
@@ -91,9 +91,9 @@ class MongoSinkTaskTest {
         PowerMock.replayAll()
         val topic = "a"
         val props = mapOf(
-                "mongo.uri" to "mongodb://localhost:12345",
-                "topics" to topic,
-                "databases" to "t.a"
+            "mongo.uri" to "mongodb://localhost:12345",
+            "topics" to topic,
+            "databases" to "t.a"
         )
         task!!.start(props)
         // Mock records
@@ -115,10 +115,9 @@ class MongoSinkTaskTest {
 
     private fun countAll(topics: List<String>): Int {
         val db = mongod.getDatabase("t")
-        val count = topics.sumBy {
+        return topics.sumBy {
             db.getCollection(it).count().toInt()
         }
-        return count
     }
 
     /**
@@ -127,25 +126,24 @@ class MongoSinkTaskTest {
     private fun createRecord(topic: String, op: String): SinkRecord {
         val _id = ObjectId()
         val doc = Document()
-                .append("_id", _id)
-                .append("state", Random().nextInt())
+            .append("_id", _id)
+            .append("state", Random().nextInt())
         val message = Struct(valueSchema)
-                .put("id", _id.toHexString())
-                .put("ts", _id.timestamp)
-                .put("inc", 0)
-                .put("op", op)
-                .put("database", "t_$topic")
-                .put("object", doc.toJson())
-        val sinkRecord = SinkRecord(
-                topic,
-                0,
-                keySchema,
-                message["id"],
-                valueSchema,
-                message,
-                ++offset
+            .put("id", _id.toHexString())
+            .put("ts", _id.timestamp)
+            .put("inc", 0)
+            .put("op", op)
+            .put("database", "t_$topic")
+            .put("object", doc.toJson())
+        return SinkRecord(
+            topic,
+            0,
+            keySchema,
+            message["id"],
+            valueSchema,
+            message,
+            ++offset
         )
-        return sinkRecord
     }
 
     /**
@@ -155,26 +153,25 @@ class MongoSinkTaskTest {
         val _id = ObjectId(record.key() as String)
         // Modify the state key
         val doc = Document()
-                .append("_id", _id)
-                .append("state", -1)
-                .append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
+            .append("_id", _id)
+            .append("state", -1)
+            .append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
         val message = Struct(valueSchema)
-                .put("id", _id.toHexString())
-                .put("ts", _id.timestamp)
-                .put("inc", 1)
-                .put("op", "u")
-                .put("database", "t_${record.topic()}")
-                .put("object", doc.toJson())
-        val sinkRecord = SinkRecord(
-                record.topic(),
-                0,
-                keySchema,
-                message["id"],
-                valueSchema,
-                message,
-                ++offset
+            .put("id", _id.toHexString())
+            .put("ts", _id.timestamp)
+            .put("inc", 1)
+            .put("op", "u")
+            .put("database", "t_${record.topic()}")
+            .put("object", doc.toJson())
+        return SinkRecord(
+            record.topic(),
+            0,
+            keySchema,
+            message["id"],
+            valueSchema,
+            message,
+            ++offset
         )
-        return sinkRecord
     }
 
     /**
@@ -184,20 +181,19 @@ class MongoSinkTaskTest {
         var message = record.value() as Struct
         val id = message["id"]
         message = Struct(valueSchema)
-                .put("id", id)
-                .put("ts", message["ts"])
-                .put("inc", 0)
-                .put("op", "d")
-                .put("database", message["database"])
-        val sinkRecord = SinkRecord(
-                record.topic(),
-                0,
-                keySchema,
-                id,
-                valueSchema,
-                message,
-                ++offset
+            .put("id", id)
+            .put("ts", message["ts"])
+            .put("inc", 0)
+            .put("op", "d")
+            .put("database", message["database"])
+        return SinkRecord(
+            record.topic(),
+            0,
+            keySchema,
+            id,
+            valueSchema,
+            message,
+            ++offset
         )
-        return sinkRecord
     }
 }

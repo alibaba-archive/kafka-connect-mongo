@@ -2,7 +2,6 @@ package org.apache.kafka.connect.mongo
 
 import org.apache.kafka.connect.mongo.interfaces.AbstractMongoSourceTask
 import org.slf4j.LoggerFactory
-import java.util.*
 
 /**
  * @author Xu Jingxin
@@ -33,10 +32,10 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         val partition = getPartition(db)
         val timeOffset = context.offsetStorageReader().offset(partition)
         val start = if (!(timeOffset == null || timeOffset.isEmpty())) timeOffset[db] as String else null
-        val startOffset =  MongoSourceOffset(start)
+        val startOffset = MongoSourceOffset(start)
         log.info("Start database reader for db: {}, start from: {}",
-                db,
-                startOffset.toString())
+            db,
+            startOffset.toString())
         return DatabaseReader(uri, db, startOffset, messages, initialImport)
     }
 

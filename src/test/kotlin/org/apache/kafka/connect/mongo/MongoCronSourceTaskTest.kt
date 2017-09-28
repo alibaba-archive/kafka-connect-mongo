@@ -41,12 +41,12 @@ class MongoCronSourceTaskTest {
         var second = Calendar.getInstance().get(Calendar.SECOND) + 2
         if (second > 59) second = 0
         val props = mapOf(
-                "mongo.uri" to "mongodb://localhost:12345",
-                "batch.size" to "20",
-                "schema.name" to "schema",
-                "topic.prefix" to "prefix",
-                "databases" to "mydb.c1,mydb.c2",
-                "schedule" to "$second * * * * ?"
+            "mongo.uri" to "mongodb://localhost:12345",
+            "batch.size" to "20",
+            "schema.name" to "schema",
+            "topic.prefix" to "prefix",
+            "databases" to "mydb.c1,mydb.c2",
+            "schedule" to "$second * * * * ?"
         )
         task!!.start(props)
 
@@ -79,7 +79,7 @@ class MongoCronSourceTaskTest {
             val doc = Document().append("n", it)
             val collectionName = collections[Random().nextInt(2)]
             if (docs[collectionName] == null) {
-                docs[collectionName] = mutableListOf<Document>()
+                docs[collectionName] = mutableListOf()
             }
             val docList = docs[collectionName] as MutableList<Document>
             docList.add(doc)

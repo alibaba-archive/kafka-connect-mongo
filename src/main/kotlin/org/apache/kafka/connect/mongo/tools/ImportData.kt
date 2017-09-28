@@ -82,9 +82,9 @@ class ImportJob(val uri: String,
             log.trace("Poll document {}", message)
 
             val record = ProducerRecord(
-                    message.topic,
-                    message.key.toString(),
-                    message.value.toString()
+                message.topic,
+                message.key.toString(),
+                message.value.toString()
             )
             log.trace("Record {}", record)
             producer.send(record)
@@ -131,8 +131,8 @@ class ImportDB(val uri: String,
                 iterator = iterator.filter(Filters.gt("_id", offsetId))
             }
             iterator = iterator
-                    .sort(Document("_id", 1))
-                    .limit(bulkSize)
+                .sort(Document("_id", 1))
+                .limit(bulkSize)
             try {
                 for (document in iterator) {
                     messages.add(getResult(document))
@@ -141,9 +141,9 @@ class ImportDB(val uri: String,
                 }
                 while (messages.size > maxMessageSize) {
                     log.warn("Message overwhelm! database {}, docs {}, messages {}",
-                            dbName,
-                            offsetCount,
-                            messages.size)
+                        dbName,
+                        offsetCount,
+                        messages.size)
                     Thread.sleep(500)
                 }
             } catch (e: Exception) {
@@ -156,65 +156,65 @@ class ImportDB(val uri: String,
             log.error("Close db client error: {}", e.message)
         }
         log.info("Task finish, database {}, count {}",
-                dbName,
-                offsetCount)
+            dbName,
+            offsetCount)
     }
 
     fun getResult(document: Document): MessageData {
         val id = document["_id"] as ObjectId
         val key = JSONObject(mapOf(
-                "schema" to mapOf(
-                        "type" to "string",
-                        "optional" to true
-                ), "payload" to id.toHexString()
+            "schema" to mapOf(
+                "type" to "string",
+                "optional" to true
+            ), "payload" to id.toHexString()
         ))
         val topic = "${topicPrefix}_$snakeDb"
         val message = JSONObject(mapOf(
-                "schema" to mapOf(
-                        "type" to "struct",
-                        "fields" to listOf(
-                                mapOf(
-                                        "type" to "int32",
-                                        "optional" to true,
-                                        "field" to "ts"
-                                ),
-                                mapOf(
-                                        "type" to "int32",
-                                        "optional" to true,
-                                        "field" to "inc"
-                                ),
-                                mapOf(
-                                        "type" to "string",
-                                        "optional" to true,
-                                        "field" to "id"
-                                ),
-                                mapOf(
-                                        "type" to "string",
-                                        "optional" to true,
-                                        "field" to "database"
-                                ),
-                                mapOf(
-                                        "type" to "string",
-                                        "optional" to true,
-                                        "field" to "op"
-                                ),
-                                mapOf(
-                                        "type" to "string",
-                                        "optional" to true,
-                                        "field" to "object"
-                                )
-                        ),
-                        "optional" to false,
-                        "name" to topic
+            "schema" to mapOf(
+                "type" to "struct",
+                "fields" to listOf(
+                    mapOf(
+                        "type" to "int32",
+                        "optional" to true,
+                        "field" to "ts"
+                    ),
+                    mapOf(
+                        "type" to "int32",
+                        "optional" to true,
+                        "field" to "inc"
+                    ),
+                    mapOf(
+                        "type" to "string",
+                        "optional" to true,
+                        "field" to "id"
+                    ),
+                    mapOf(
+                        "type" to "string",
+                        "optional" to true,
+                        "field" to "database"
+                    ),
+                    mapOf(
+                        "type" to "string",
+                        "optional" to true,
+                        "field" to "op"
+                    ),
+                    mapOf(
+                        "type" to "string",
+                        "optional" to true,
+                        "field" to "object"
+                    )
                 ),
-                "payload" to mapOf(
-                        "id" to id.toHexString(),
-                        "ts" to id.timestamp,
-                        "inc" to 0,
-                        "database" to snakeDb,
-                        "op" to "i",
-                        "object" to document.toJson()
-                )))
+                "optional" to false,
+                "name" to topic
+            ),
+            "payload" to mapOf(
+                "id" to id.toHexString(),
+                "ts" to id.timestamp,
+                "inc" to 0,
+                "database" to snakeDb,
+                "op" to "i",
+                "object" to document.toJson()
+            )))
         return MessageData(topic, key, message)
     }
 }
@@ -242,9 +242,9 @@ fun main(args: Array<String>) {
     props.load(FileInputStream(configFilePath))
 
     val missingKey = arrayOf(
-            MongoSourceConfig.MONGO_URI_CONFIG,
-            MongoSourceConfig.DATABASES_CONFIG,
-            MongoSourceConfig.TOPIC_PREFIX_CONFIG).find { props[it] == null }
+        MongoSourceConfig.MONGO_URI_CONFIG,
+        MongoSourceConfig.DATABASES_CONFIG,
+        MongoSourceConfig.TOPIC_PREFIX_CONFIG).find { props[it] == null }
 
     if (missingKey != null) throw Exception("Missing config property: $missingKey")
 
@@ -253,11 +253,11 @@ fun main(args: Array<String>) {
         log.info("Execute in single use mode")
         // Execute once
         ImportJob(
-                props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
-                props[MongoSourceConfig.DATABASES_CONFIG] as String,
-                props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
-                props)
-                .start()
+            props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
+            props[MongoSourceConfig.DATABASES_CONFIG] as String,
+            props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
+            props)
+            .start()
     } else {
         log.info("Execute in cron mode with schedule of {}", schedule)
         props["props"] = props
@@ -265,13 +265,13 @@ fun main(args: Array<String>) {
         val scheduler = StdSchedulerFactory.getDefaultScheduler()
         scheduler.start()
         val job = JobBuilder.newJob(ScheduleJob::class.java)
-                .setJobData(JobDataMap(props))
-                .withIdentity("job_mongo_import", "group1")
-                .build()
+            .setJobData(JobDataMap(props))
+            .withIdentity("job_mongo_import", "group1")
+            .build()
         val trigger = TriggerBuilder.newTrigger()
-                .withIdentity("trigger_mongo_import", "group1")
-                .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-                .build()
+            .withIdentity("trigger_mongo_import", "group1")
+            .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+            .build()
         scheduler.scheduleJob(job, trigger)
     }
 }

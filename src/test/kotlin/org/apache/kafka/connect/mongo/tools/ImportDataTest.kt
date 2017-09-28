@@ -89,8 +89,8 @@ class ImportDataTest {
 
             assertThat(it.topic()).isEqualTo("import_test_${dbName}_cats")
             assertThat(keySchema).isEqualTo(mapOf(
-                    "type" to "string",
-                    "optional" to true
+                "type" to "string",
+                "optional" to true
             ))
             assertThat(keyPayload).matches("^[0-9a-z]{24}$".toRegex(RegexOption.IGNORE_CASE).toPattern())
             assertThat(messageSchema["type"]).isEqualTo("struct")
@@ -115,8 +115,8 @@ class ImportDataTest {
         val collection = db.getCollection(collectionName)!!
         for (i in 0..count - 1) {
             documents.add(Document().append(
-                    RandomStringUtils.random(Random().nextInt(100), true, false),
-                    Random().nextInt()
+                RandomStringUtils.random(Random().nextInt(100), true, false),
+                Random().nextInt()
             ))
         }
         collection.insertMany(documents)

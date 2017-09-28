@@ -59,15 +59,15 @@ abstract class AbstractMongoSourceTask : SourceTask() {
 
         log.trace("Init schema")
         databases.map { it.replace(".", "_") }
-                .forEach {
-                    schemas.put(it, SchemaBuilder.struct().name(schemaName + "_" + it)
-                            .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
-                            .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
-                            .field("id", Schema.OPTIONAL_STRING_SCHEMA)
-                            .field("database", Schema.OPTIONAL_STRING_SCHEMA)
-                            .field("op", Schema.OPTIONAL_STRING_SCHEMA)
-                            .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
-                }
+            .forEach {
+                schemas.put(it, SchemaBuilder.struct().name(schemaName + "_" + it)
+                    .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
+                    .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
+                    .field("id", Schema.OPTIONAL_STRING_SCHEMA)
+                    .field("database", Schema.OPTIONAL_STRING_SCHEMA)
+                    .field("op", Schema.OPTIONAL_STRING_SCHEMA)
+                    .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
+            }
     }
 
     override fun poll(): List<SourceRecord> {
@@ -78,13 +78,13 @@ abstract class AbstractMongoSourceTask : SourceTask() {
             try {
                 val struct = getStruct(message)
                 records.add(SourceRecord(
-                        getPartition(getDB(message)),
-                        getOffset(message),
-                        getTopic(message),
-                        Schema.OPTIONAL_STRING_SCHEMA,
-                        struct.get("id"),
-                        struct.schema(),
-                        struct))
+                    getPartition(getDB(message)),
+                    getOffset(message),
+                    getTopic(message),
+                    Schema.OPTIONAL_STRING_SCHEMA,
+                    struct.get("id"),
+                    struct.schema(),
+                    struct))
             } catch (e: Exception) {
                 log.error(e.message)
             }

@@ -46,13 +46,13 @@ class MongoSinkTask : SinkTask() {
             val id = struct["id"] as String
 
             if (bulks[ns] == null) {
-                bulks[ns] = mutableListOf<WriteModel<Document>>()
+                bulks[ns] = mutableListOf()
             }
 
             // Delete object by id if object is empty
             if (struct["object"] == null) {
                 bulks[ns]!!.add(DeleteOneModel<Document>(
-                        Filters.eq("_id", ObjectId(id))
+                    Filters.eq("_id", ObjectId(id))
                 ))
                 log.trace("Adding delete model to bulk: {}", id)
                 continue
@@ -70,9 +70,9 @@ class MongoSinkTask : SinkTask() {
             val doc = Document(flatObj)
             log.trace("Adding update model to bulk: {}", doc.toString())
             bulks[ns]!!.add(UpdateOneModel<Document>(
-                    Filters.eq("_id", ObjectId(id)),
-                    Document("\$set", doc),
-                    UpdateOptions().upsert(true)
+                Filters.eq("_id", ObjectId(id)),
+                Document("\$set", doc),
+                UpdateOptions().upsert(true)
             ))
         }
         for ((ns, docs) in bulks) {
@@ -100,7 +100,7 @@ class MongoSinkTask : SinkTask() {
             topicMapToDb[topic] = databases[i]
         }
         val clientOptions = MongoClientOptions.builder()
-                .connectTimeout(1000 * 300)
+            .connectTimeout(1000 * 300)
         mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
     }
 
