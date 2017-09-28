@@ -22,6 +22,7 @@ class MongoSourceConnectorTest {
 
         val props = HashMap<String, String>()
         props.put("mongo.uri", "mongodb://localhost:12345")
+        props.put("initial.import", "true")
         props.put("batch.size", "100")
         props.put("schema.name", "schema")
         props.put("topic.prefix", "prefix")

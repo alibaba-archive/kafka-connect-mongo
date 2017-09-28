@@ -26,16 +26,18 @@ enum class State { READY, CLOSED }
  * @author Xu Jingxin
  * @param uri mongodb://[user:pwd@]host:port
  * @param db mydb.test
- * @param start timestamp.inc
+ * @param start
  * @param messages
  */
 class DatabaseReader(val uri: String,
                      val db: String,
-                     val start: String,
-                     val messages: ConcurrentLinkedQueue<Document>) : Runnable {
+                     val start: MongoSourceOffset,
+                     val messages: ConcurrentLinkedQueue<Document>,
+                     val initialImport: Boolean) : Runnable {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }
+    private val BATCH_SIZE = 100
 
     private val oplog: MongoCollection<Document>
     private val mongoClient: MongoClient
@@ -58,14 +60,23 @@ class DatabaseReader(val uri: String,
         log.trace("Start from {}", start)
     }
 
+    /**
+     * If start in the old format 'latest_timestamp,inc', use oplog tailing by default
+     * If start in the new format 'latest_timestamp,inc,object_id,finished_import':
+     *    if finished_import is true, use oplog tailing and update latest_timestamp
+     *    else start mongo collection import from the object_id first then tailing
+     */
     override fun run() {
+        if (!start.finishedImport && initialImport) {
+            importCollection(db, start.objectId)
+        }
         log.trace("Querying oplog...")
         val documents = oplog
                 .find(query)
                 .sort(Document("\$natural", 1))
                 .projection(Projections.include("ts", "op", "ns", "o", "o2"))
                 .cursorType(CursorType.TailableAwait)
-                .batchSize(100)
+                .batchSize(BATCH_SIZE)
                 .maxTime(600, TimeUnit.SECONDS)
                 .maxAwaitTime(600, TimeUnit.SECONDS)
                 .oplogReplay(true)
@@ -111,6 +122,43 @@ class DatabaseReader(val uri: String,
         }
     }
 
+    private fun importCollection(db: String, objectId: ObjectId) {
+        var offsetCount = 0L
+        var offsetId = objectId
+        val mongoCollection = getNSCollection(db)
+        log.info("Bulk import at $db from _objectId {}, count {}", offsetId, offsetCount)
+        mongoCollection
+                .find()
+                .filter(Filters.gt("_id", offsetId))
+                .sort(Document("_id", 1))
+                .asSequence()
+                .forEach { document ->
+                    messages.add(formatAsOpLog(document))
+                    offsetId = document["_id"] as ObjectId
+                    offsetCount += 1
+                    while (messages.size > maxMessageSize) {
+                        log.warn("Message overwhelm! database {}, docs {}, messages {}",
+                                db,
+                                offsetCount,
+                                messages.size)
+                        Thread.sleep(500)
+                    }
+                }
+        log.info("Import Task finished, database {}, count {}",
+                db,
+                offsetCount)
+    }
+
+    private fun formatAsOpLog(doc: Document): Document {
+        val opDoc = Document()
+        opDoc["ts"] = start.ts
+        opDoc["ns"] = db
+        opDoc["initialImport"] = true
+        opDoc["op"] = "i"  // Treat as insertion
+        opDoc["o"] = doc
+        return opDoc
+    }
+
     /**
      * Handle operations
      * i: keep oplog
@@ -134,10 +182,7 @@ class DatabaseReader(val uri: String,
 
     private fun findOneById(doc: Document): Document? {
         try {
-            val db = doc["ns"].toString().split("\\.".toRegex()).dropLastWhile(String::isEmpty)
-
-            val nsDB = mongoClient.getDatabase(db[0])
-            val nsCollection = nsDB.getCollection(db[1])
+            val nsCollection = getNSCollection(doc["ns"].toString())
             val _id = (doc["o2"] as Document)["_id"] as ObjectId
 
             val docs = nsCollection.find(Filters.eq("_id", _id)).into(ArrayList<Document>())
@@ -151,13 +196,16 @@ class DatabaseReader(val uri: String,
         return null
     }
 
-    private fun createQuery(): Bson? {
-        val timestamp = parseLong(start.split(",".toRegex())[0])
-        val inc = parseLong(start.split(",".toRegex())[1])
+    private fun getNSCollection(ns: String): MongoCollection<Document> {
+        val dbAndCollection =  ns.split("\\.".toRegex()).dropLastWhile(String::isEmpty)
+        val nsDB = mongoClient.getDatabase(dbAndCollection[0])
+        return nsDB.getCollection(dbAndCollection[1])
+    }
 
+    private fun createQuery(): Bson? {
         query = Filters.and(
                 Filters.exists("fromMigrate", false),
-                Filters.gt("ts", BsonTimestamp(timestamp.toInt(), inc.toInt())),
+                Filters.gt("ts", start.ts),
                 Filters.or(
                         Filters.eq("op", "i"),
                         Filters.eq("op", "u"),
