@@ -5,10 +5,12 @@ import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConnector
+import org.apache.kafka.connect.mongo.MongoSourceOffset
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp
@@ -27,6 +29,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     protected var uri = ""
     protected var schemaName = ""
     protected var batchSize = 100
+    protected var initialImport = true
     protected var topicPrefix = ""
     // Database and collection joined with dot [mydb.a,mydb.b]
     protected var databases = listOf<String>()
@@ -48,6 +51,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration: {}", props)
         batchSize = Integer.parseInt(props[BATCH_SIZE_CONFIG])
+        initialImport = props[INITIAL_IMPORT_CONFIG]?.toLowerCase()?.equals("true") ?: true
         schemaName = props[SCHEMA_NAME_CONFIG] ?: throw Exception("Invalid config $SCHEMA_NAME_CONFIG")
         topicPrefix = props[TOPIC_PREFIX_CONFIG] ?: throw Exception("Invalid config $TOPIC_PREFIX_CONFIG")
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")
@@ -104,7 +108,9 @@ abstract class AbstractMongoSourceTask : SourceTask() {
 
     private fun getOffset(message: Document): Map<String, String> {
         val timestamp = message["ts"] as BsonTimestamp
-        val offsetVal = timestamp.time.toString() + "," + timestamp.inc
+        val objectId = (message["o"] as Document)["_id"] as ObjectId
+        val finishedImport = message["initialImport"] == null
+        val offsetVal = MongoSourceOffset.toOffsetString(timestamp, objectId, finishedImport)
         return Collections.singletonMap(getDB(message), offsetVal)
     }
 

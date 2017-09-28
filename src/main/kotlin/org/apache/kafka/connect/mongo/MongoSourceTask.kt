@@ -30,14 +30,14 @@ class MongoSourceTask : AbstractMongoSourceTask() {
     }
 
     private fun loadReader(db: String): DatabaseReader {
-        var start = getDefaultOffset()
         val partition = getPartition(db)
         val timeOffset = context.offsetStorageReader().offset(partition)
-        if (!(timeOffset == null || timeOffset.isEmpty())) start = timeOffset[db] as String
+        val start = if (!(timeOffset == null || timeOffset.isEmpty())) timeOffset[db] as String else null
+        val startOffset =  MongoSourceOffset(start)
         log.info("Start database reader for db: {}, start from: {}",
                 db,
-                start)
-        return DatabaseReader(uri, db, start, messages)
+                startOffset.toString())
+        return DatabaseReader(uri, db, startOffset, messages, initialImport)
     }
 
     // Create a new DatabaseReader thread for
@@ -61,9 +61,4 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         t.uncaughtExceptionHandler = uncaughtExceptionHandler
         t.start()
     }
-
-    /**
-     * Start from current time will skip a lot of redundant scan on oplog
-     */
-    private fun getDefaultOffset() = "${Math.floor(Date().time.toDouble() / 1000).toInt()},0"
 }

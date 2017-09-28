@@ -7,6 +7,7 @@ import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
+import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import org.apache.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
@@ -23,6 +24,7 @@ open class MongoSourceConnector : SourceConnector() {
     private var databases: String = ""
     private var uri: String = ""
     private var batchSize: String = ""
+    private var initialImport: String = ""
     private var topicPrefix: String = ""
     private var schemaName: String = ""
 
@@ -34,6 +36,7 @@ open class MongoSourceConnector : SourceConnector() {
         log.trace("Parsing configuration: {}", props)
         databases = getRequiredProp(props, DATABASES_CONFIG)
         batchSize = getRequiredProp(props, BATCH_SIZE_CONFIG)
+        initialImport = getRequiredProp(props, INITIAL_IMPORT_CONFIG)
         uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
@@ -52,6 +55,7 @@ open class MongoSourceConnector : SourceConnector() {
             val config = HashMap<String, String>()
             config.put(MONGO_URI_CONFIG, uri)
             config.put(DATABASES_CONFIG, StringUtils.join(dbsGrouped[i], ","))
+            config.put(INITIAL_IMPORT_CONFIG, initialImport)
             config.put(BATCH_SIZE_CONFIG, batchSize)
             config.put(TOPIC_PREFIX_CONFIG, topicPrefix)
             config.put(SCHEMA_NAME_CONFIG, schemaName)

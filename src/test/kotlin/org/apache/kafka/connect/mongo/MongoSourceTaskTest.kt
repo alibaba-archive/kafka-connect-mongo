@@ -51,6 +51,7 @@ class MongoSourceTaskTest {
         task!!.initialize(sourceTaskContext)
 
         sourceProperties.put("mongo.uri", "mongodb://localhost:12345")
+        sourceProperties.put("initial.import", "true")
         sourceProperties.put("batch.size", "20")
         sourceProperties.put("schema.name", "schema")
         sourceProperties.put("topic.prefix", "prefix")
@@ -67,7 +68,7 @@ class MongoSourceTaskTest {
         expectOffsetLookupReturnNull()
         PowerMock.replayAll()
 
-        task!!.start(sourceProperties)
+        testInitialWhenStart()
         testBulkInsert()
         testSubtleInsert()
 
@@ -79,7 +80,7 @@ class MongoSourceTaskTest {
         expectOffsetLookupReturnOffset()
         PowerMock.replayAll()
 
-        task!!.start(sourceProperties)
+        testInitialWhenStart()
         testBulkInsert()
         testSubtleInsert()
 
@@ -110,6 +111,8 @@ class MongoSourceTaskTest {
             val newDocument = Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
             db.getCollection(collections[Random().nextInt(3)]).insertOne(newDocument)
         }
+        // Ensure messages are inserted
+        Thread.sleep(1000)
     }
 
     /**
@@ -129,6 +132,8 @@ class MongoSourceTaskTest {
         test1.updateOne(Filters.eq("text", "doc1"),
                 Document("\$set", Document("name", "Stephen")))
         test1.deleteOne(Filters.eq("text", "doc2"))
+        // Ensure messages are inserted
+        Thread.sleep(1000)
     }
 
     private fun testBulkInsert() {
@@ -145,7 +150,30 @@ class MongoSourceTaskTest {
             records.addAll(pollRecords)
         } while (!pollRecords.isEmpty())
         log.debug("Record size: {}", records.size)
-        assertEquals(totalCount.toLong(), records.size.toLong())
+        // records contains all the collection documents and oplog documents
+        val disDitinctRecords = records.distinctBy { (it.value() as Struct).get("id") }
+        assertEquals(totalCount.toLong(), disDitinctRecords.size.toLong())
+    }
+
+    private fun testInitialWhenStart() {
+        // Insert an amount of documents
+        // Check for the received count
+        val totalCount = Math.max(Random().nextInt(200), 101)
+        log.debug("Bulk insert count: {}", totalCount)
+        bulkInsert(totalCount)
+        task!!.start(sourceProperties)
+
+        Thread.sleep(2000)
+        val records = ArrayList<SourceRecord>()
+        var pollRecords: List<SourceRecord>
+        do {
+            pollRecords = task!!.poll()
+            records.addAll(pollRecords)
+        } while (!pollRecords.isEmpty())
+        log.debug("Record size: {}", records.size)
+        // records contains all the collection documents and oplog documents
+        val disDitinctRecords = records.distinctBy { (it.value() as Struct).get("id") }
+        assertEquals(totalCount.toLong(), disDitinctRecords.size.toLong())
     }
 
     private fun testSubtleInsert() {
