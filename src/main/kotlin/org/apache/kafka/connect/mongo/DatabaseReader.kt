@@ -127,6 +127,7 @@ class DatabaseReader(val uri: String,
         log.info("Bulk import at $db from _objectId {}, count {}", offsetId, offsetCount)
         mongoCollection
             .find()
+            .batchSize(BATCH_SIZE)
             .filter(Filters.gt("_id", offsetId))
             .sort(Document("_id", 1))
             .asSequence()

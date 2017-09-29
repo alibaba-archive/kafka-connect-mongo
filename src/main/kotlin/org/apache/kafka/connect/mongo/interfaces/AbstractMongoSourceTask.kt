@@ -29,7 +29,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     protected var uri = ""
     protected var schemaName = ""
     protected var batchSize = 100
-    protected var initialImport = true
+    protected var initialImport = false
     protected var topicPrefix = ""
     // Database and collection joined with dot [mydb.a,mydb.b]
     protected var databases = listOf<String>()
@@ -51,7 +51,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration: {}", props)
         batchSize = Integer.parseInt(props[BATCH_SIZE_CONFIG])
-        initialImport = props[INITIAL_IMPORT_CONFIG]?.toLowerCase()?.equals("true") ?: true
+        initialImport = props[INITIAL_IMPORT_CONFIG]?.toLowerCase()?.equals("true") ?: false
         schemaName = props[SCHEMA_NAME_CONFIG] ?: throw Exception("Invalid config $SCHEMA_NAME_CONFIG")
         topicPrefix = props[TOPIC_PREFIX_CONFIG] ?: throw Exception("Invalid config $TOPIC_PREFIX_CONFIG")
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")

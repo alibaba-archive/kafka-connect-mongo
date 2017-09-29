@@ -39,7 +39,8 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSource
                 BATCH_SIZE_CONFIG_DOC)
             .define(INITIAL_IMPORT_CONFIG,
                 Type.STRING,
-                Importance.HIGH,
+                "false",
+                Importance.LOW,
                 INITIAL_IMPORT_CONFIG_DOC)
             .define(SCHEMA_NAME_CONFIG,
                 Type.STRING,
