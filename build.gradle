@@ -1,8 +1,8 @@
 group 'org.apache.kafka'
-version '1.4.1-snapshot'
+version '1.4.1'
 
 buildscript {
-    ext.kotlin_version = '1.1.2-5'
+    ext.kotlin_version = '1.1.50'
     // confluent 3.0 -> 0.10.0.0
     // confluent 3.1 -> 0.10.1.0
     // confluent 3.2 -> 0.10.2.0
