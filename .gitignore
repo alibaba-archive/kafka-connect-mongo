@@ -2,3 +2,10 @@
 .gradle/
 tmp/
 target/
+
+bin
+build
+.settings
+.vscode
+.project
+.classpath
