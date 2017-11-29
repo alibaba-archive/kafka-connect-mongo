@@ -233,45 +233,47 @@ object JobConfig {
     val SCHEDULE = "schedule"
 }
 
-fun main(args: Array<String>) {
-    if (args.isEmpty()) throw Exception("Missing config file path!")
-    val log = LoggerFactory.getLogger(ImportJob::class.java)
+object ImportData {
+    fun run(args: Array<String>) {
+        if (args.isEmpty()) throw Exception("Missing config file path!")
+        val log = LoggerFactory.getLogger(ImportJob::class.java)
 
-    val configFilePath = args[0]
-    val props = Properties()
-    props.load(FileInputStream(configFilePath))
+        val configFilePath = args[0]
+        val props = Properties()
+        props.load(FileInputStream(configFilePath))
 
-    val missingKey = arrayOf(
-        MongoSourceConfig.MONGO_URI_CONFIG,
-        MongoSourceConfig.DATABASES_CONFIG,
-        MongoSourceConfig.TOPIC_PREFIX_CONFIG).find { props[it] == null }
+        val missingKey = arrayOf(
+            MongoSourceConfig.MONGO_URI_CONFIG,
+            MongoSourceConfig.DATABASES_CONFIG,
+            MongoSourceConfig.TOPIC_PREFIX_CONFIG).find { props[it] == null }
 
-    if (missingKey != null) throw Exception("Missing config property: $missingKey")
+        if (missingKey != null) throw Exception("Missing config property: $missingKey")
 
-    val schedule = props[JobConfig.SCHEDULE] as String?
-    if (schedule.isNullOrEmpty()) {
-        log.info("Execute in single use mode")
-        // Execute once
-        ImportJob(
-            props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
-            props[MongoSourceConfig.DATABASES_CONFIG] as String,
-            props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
-            props)
-            .start()
-    } else {
-        log.info("Execute in cron mode with schedule of {}", schedule)
-        props["props"] = props
-        // Execute in cron mode
-        val scheduler = StdSchedulerFactory.getDefaultScheduler()
-        scheduler.start()
-        val job = JobBuilder.newJob(ScheduleJob::class.java)
-            .setJobData(JobDataMap(props))
-            .withIdentity("job_mongo_import", "group1")
-            .build()
-        val trigger = TriggerBuilder.newTrigger()
-            .withIdentity("trigger_mongo_import", "group1")
-            .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-            .build()
-        scheduler.scheduleJob(job, trigger)
+        val schedule = props[JobConfig.SCHEDULE] as String?
+        if (schedule.isNullOrEmpty()) {
+            log.info("Execute in single use mode")
+            // Execute once
+            ImportJob(
+                props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
+                props[MongoSourceConfig.DATABASES_CONFIG] as String,
+                props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
+                props)
+                .start()
+        } else {
+            log.info("Execute in cron mode with schedule of {}", schedule)
+            props["props"] = props
+            // Execute in cron mode
+            val scheduler = StdSchedulerFactory.getDefaultScheduler()
+            scheduler.start()
+            val job = JobBuilder.newJob(ScheduleJob::class.java)
+                .setJobData(JobDataMap(props))
+                .withIdentity("job_mongo_import", "group1")
+                .build()
+            val trigger = TriggerBuilder.newTrigger()
+                .withIdentity("trigger_mongo_import", "group1")
+                .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+                .build()
+            scheduler.scheduleJob(job, trigger)
+        }
     }
 }
