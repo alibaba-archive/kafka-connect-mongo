@@ -43,6 +43,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     private var maxSleepTime = 10000L
 
     override fun version(): String = MongoSourceConnector().version()
+    protected var unrecoverable: Throwable? = null
 
     /**
      * Parse the config properties into in-use type and format
@@ -71,6 +72,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     }
 
     override fun poll(): List<SourceRecord> {
+        unrecoverable?.let { throw it }
         log.trace("Polling records")
         val records = mutableListOf<SourceRecord>()
         while (!messages.isEmpty() && records.size < batchSize) {

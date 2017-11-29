@@ -41,7 +41,10 @@ class MongoSourceTask : AbstractMongoSourceTask() {
 
     // Create a new DatabaseReader thread for
     private fun startReader(db: String, errCount: Int = 0) {
-        if (errCount > maxErrCount) throw Exception("Can not execute database reader!")
+        if (errCount > maxErrCount) {
+            unrecoverable = Exception("Can not execute database reader!")
+            return
+        }
         val startTime = System.currentTimeMillis()
         val reader = loadReader(db)
         databaseReaders[db] = reader
