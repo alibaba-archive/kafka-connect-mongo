@@ -1,10 +1,11 @@
 package org.apache.kafka.connect.mongo.tools
 
+import com.mongodb.BasicDBObject
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
-import com.mongodb.client.model.Filters
+import com.mongodb.util.JSON
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.connect.mongo.MongoSourceConfig
@@ -35,7 +36,7 @@ class ImportJob(val uri: String,
                 val dbs: String,
                 val topicPrefix: String,
                 val props: Properties,
-                val bulkSize: Int = 1000) {
+                val filter: BasicDBObject? = null) {
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportJob::class.java)
@@ -53,7 +54,12 @@ class ImportJob(val uri: String,
         var threadCount = 0
         dbs.split(",").dropLastWhile(String::isEmpty).forEach {
             log.trace("Import database: {}", it)
-            val importDB = ImportDB(uri, it, topicPrefix, messages, bulkSize)
+            val importDB = ImportDB(
+                uri = uri,
+                dbName = it,
+                topicPrefix = topicPrefix,
+                messages = messages,
+                filter = filter)
             val t = Thread(importDB)
             threadCount += 1
             threadGroup.add(t)
@@ -101,7 +107,7 @@ class ImportDB(val uri: String,
                val dbName: String,
                val topicPrefix: String,
                var messages: ConcurrentLinkedQueue<MessageData>,
-               val bulkSize: Int) : Runnable {
+               val filter: BasicDBObject? = null) : Runnable {
 
     private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
     private val mongoDatabase: MongoDatabase
@@ -124,32 +130,27 @@ class ImportDB(val uri: String,
     }
 
     override fun run() {
-        do {
-            log.info("Read messages at $dbName from offset {}, count {}", offsetId, offsetCount)
-            var iterator = mongoCollection.find()
-            if (offsetId != null) {
-                iterator = iterator.filter(Filters.gt("_id", offsetId))
-            }
-            iterator = iterator
-                .sort(Document("_id", 1))
-                .limit(bulkSize)
-            try {
-                for (document in iterator) {
-                    messages.add(getResult(document))
-                    offsetId = document["_id"] as ObjectId
+        log.info("Read messages at $dbName from offset {}, count {}", offsetId, offsetCount)
+        val iterator = if (filter == null) mongoCollection.find() else mongoCollection.find(filter)
+        iterator
+            .sort(Document("_id", 1))
+            .asSequence()
+            .forEach {
+                try {
+                    messages.add(getResult(it))
+                    offsetId = it["_id"] as ObjectId
                     offsetCount += 1
+                    while (messages.size > maxMessageSize) {
+                        log.warn("Message overwhelm! database {}, docs {}, messages {}",
+                            dbName,
+                            offsetCount,
+                            messages.size)
+                        Thread.sleep(500)
+                    }
+                } catch (e: Exception) {
+                    log.error("Querying error: {}", e.message)
                 }
-                while (messages.size > maxMessageSize) {
-                    log.warn("Message overwhelm! database {}, docs {}, messages {}",
-                        dbName,
-                        offsetCount,
-                        messages.size)
-                    Thread.sleep(500)
-                }
-            } catch (e: Exception) {
-                log.error("Querying error: {}", e.message)
             }
-        } while (iterator.count() > 0)
         try {
             mongoClient.close()
         } catch (e: Exception) {
@@ -225,12 +226,18 @@ class ScheduleJob : Job {
         val uri = context.mergedJobDataMap[MongoSourceConfig.MONGO_URI_CONFIG] as String
         val dbs = context.mergedJobDataMap[MongoSourceConfig.DATABASES_CONFIG] as String
         val topicPrefix = context.mergedJobDataMap[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String
-        ImportJob(uri, dbs, topicPrefix, props).start()
+        ImportJob(
+            uri = uri,
+            dbs = dbs,
+            topicPrefix = topicPrefix,
+            props = props
+        ).start()
     }
 }
 
 object JobConfig {
     val SCHEDULE = "schedule"
+    val filter = "filter"
 }
 
 object ImportData {
@@ -250,14 +257,17 @@ object ImportData {
         if (missingKey != null) throw Exception("Missing config property: $missingKey")
 
         val schedule = props[JobConfig.SCHEDULE] as String?
+        val filter = (props[JobConfig.filter] as String?)?.let { JSON.parse(it) as BasicDBObject }
+
         if (schedule.isNullOrEmpty()) {
             log.info("Execute in single use mode")
             // Execute once
             ImportJob(
-                props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
-                props[MongoSourceConfig.DATABASES_CONFIG] as String,
-                props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
-                props)
+                uri = props[MongoSourceConfig.MONGO_URI_CONFIG] as String,
+                dbs = props[MongoSourceConfig.DATABASES_CONFIG] as String,
+                topicPrefix = props[MongoSourceConfig.TOPIC_PREFIX_CONFIG] as String,
+                filter = filter,
+                props = props)
                 .start()
         } else {
             log.info("Execute in cron mode with schedule of {}", schedule)

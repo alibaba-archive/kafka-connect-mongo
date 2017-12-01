@@ -46,7 +46,11 @@ class ImportDataTest {
         val messages = ConcurrentLinkedQueue<MessageData>()
         val bulkSize = 10
 
-        val importDb = ImportDB("mongodb://localhost:12345", "$dbName.$collectionName", "import_test", messages, bulkSize)
+        val importDb = ImportDB(
+            uri = "mongodb://localhost:12345",
+            dbName = "$dbName.$collectionName",
+            topicPrefix = "import_test",
+            messages = messages)
         importDb.run()
 
         assertThat(messages.count()).isEqualTo(count)
