@@ -2,14 +2,13 @@
 version: '2'
 services:
   kafka-connect-mongo:
-    image: quay.io/sailxjx/kafka-connect-mongo
+    image: docker-registry.teambition.net/library/kafka-connect-mongo
     ports:
       - "38083:38083"
     environment:
       CONNECT_REST_PORT: 38083
       CONNECT_BOOTSTRAP_SERVERS: kafka:29092,kafka:39092,kafka:49092
-      JMX_PORT: 9997
-      CONNECT_LOG4J_ROOT_LOGLEVEL: TRACE
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
       CONNECT_GROUP_ID: connect-mongo-cluster
       CONNECT_OFFSET_STORAGE_TOPIC: connect-mongo-offsets
       CONNECT_CONFIG_STORAGE_TOPIC: connect-mongo-configs
@@ -23,4 +22,5 @@ services:
       CONNECT_INTERNAL_KEY_CONVERTER_SCHEMAS_ENABLE: "true"
       CONNECT_INTERNAL_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
-      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_REST_ADVERTISED_HOST_NAME: 127.0.0.1
+      CONNECT_PLUGIN_PATH: /usr/share/java
