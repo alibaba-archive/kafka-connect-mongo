@@ -1,8 +1,6 @@
 package org.apache.kafka.connect.mongo
 
 import com.mongodb.MongoClient
-import com.mongodb.MongoClientOptions
-import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
 import com.mongodb.util.JSON
@@ -99,9 +97,7 @@ class MongoSinkTask : SinkTask() {
         for ((i, topic) in topics.withIndex()) {
             topicMapToDb[topic] = databases[i]
         }
-        val clientOptions = MongoClientOptions.builder()
-            .connectTimeout(1000 * 300)
-        mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
+        mongoClient = MongoClientLoader.getClient(uri)
     }
 
     override fun stop() {

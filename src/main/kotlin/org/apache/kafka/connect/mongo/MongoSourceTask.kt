@@ -17,17 +17,6 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         databases.forEach { startReader(it, 0) }
     }
 
-    /**
-     * Disconnect mongo client and cleanup messages
-     */
-    override fun stop() {
-        log.info("Graceful stop mongo source task")
-        databaseReaders.forEach { _, reader ->
-            reader.stop()
-        }
-        messages.clear()
-    }
-
     private fun loadReader(db: String): DatabaseReader {
         val partition = getPartition(db)
         val timeOffset = context.offsetStorageReader().offset(partition)
@@ -51,7 +40,6 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         val t = Thread(reader)
         val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, throwable ->
             throwable.printStackTrace()
-            reader.stop()
             log.error("Error when read data from db: {}", db)
             var _errCount = errCount + 1
             // Reset error count if the task executed more than 5 minutes

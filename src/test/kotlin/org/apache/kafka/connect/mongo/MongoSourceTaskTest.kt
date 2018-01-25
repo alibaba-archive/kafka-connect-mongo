@@ -56,6 +56,8 @@ class MongoSourceTaskTest {
         sourceProperties.put("schema.name", "schema")
         sourceProperties.put("topic.prefix", "prefix")
         sourceProperties.put("databases", "mydb.test1,mydb.test2,mydb.test3")
+
+        MongoClientLoader.getClient("mongodb://localhost:12345", reconnect = true)
     }
 
     @After

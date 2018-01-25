@@ -101,6 +101,9 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         return records
     }
 
+    override fun stop() {
+    }
+
     /**
      * @param db database with collection like 'mydb.test'
      */

@@ -82,7 +82,7 @@ class ImportJob(val uri: String,
     /**
      * Flush messages into kafka
      */
-    fun flush() {
+    private fun flush() {
         while (!messages.isEmpty()) {
             val message = messages.poll()
             log.trace("Poll document {}", message)

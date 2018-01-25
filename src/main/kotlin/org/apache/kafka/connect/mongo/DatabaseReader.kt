@@ -2,8 +2,6 @@ package org.apache.kafka.connect.mongo
 
 import com.mongodb.CursorType
 import com.mongodb.MongoClient
-import com.mongodb.MongoClientOptions
-import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
@@ -15,8 +13,6 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
-
-enum class State { READY, CLOSED }
 
 /**
  * Connect and tail wait oplog
@@ -35,21 +31,16 @@ class DatabaseReader(val uri: String,
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }
 
-    private val BATCH_SIZE = 100
-
+    private val batchSize = 100
     private val oplog: MongoCollection<Document>
-    private val mongoClient: MongoClient
+    private val mongoClient: MongoClient = MongoClientLoader.getClient(uri)
     private val mongoDatabase: MongoDatabase
     private var query: Bson? = null
-    private var state = State.READY
     // Do not write documents until messages are produced into kafka
     // Reduce memory usage
     private val maxMessageSize = 2000
 
     init {
-        val clientOptions = MongoClientOptions.builder()
-            .connectTimeout(1000 * 300)
-        mongoClient = MongoClient(MongoClientURI(uri, clientOptions))
         mongoDatabase = mongoClient.getDatabase("local")
         oplog = mongoDatabase.getCollection("oplog.rs")
 
@@ -74,7 +65,7 @@ class DatabaseReader(val uri: String,
             .sort(Document("\$natural", 1))
             .projection(Projections.include("ts", "op", "ns", "o", "o2"))
             .cursorType(CursorType.TailableAwait)
-            .batchSize(BATCH_SIZE)
+            .batchSize(batchSize)
             .maxTime(600, TimeUnit.SECONDS)
             .maxAwaitTime(600, TimeUnit.SECONDS)
             .oplogReplay(true)
@@ -104,19 +95,7 @@ class DatabaseReader(val uri: String,
             }
         } catch (e: Exception) {
             log.error("Connection closed: {}", e.message)
-            if (state != State.CLOSED) {
-                throw e
-            }
-        }
-    }
-
-    fun stop() {
-        if (state == State.CLOSED) return
-        state = State.CLOSED
-        try {
-            mongoClient.close()
-        } catch (e: Exception) {
-            log.error("Close db client error: {}", e.message)
+            throw e
         }
     }
 
@@ -127,7 +106,7 @@ class DatabaseReader(val uri: String,
         log.info("Bulk import at $db from _objectId {}, count {}", offsetId, offsetCount)
         mongoCollection
             .find()
-            .batchSize(BATCH_SIZE)
+            .batchSize(batchSize)
             .filter(Filters.gt("_id", offsetId))
             .sort(Document("_id", 1))
             .asSequence()
