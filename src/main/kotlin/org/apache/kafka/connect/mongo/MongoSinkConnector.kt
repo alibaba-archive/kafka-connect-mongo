@@ -40,7 +40,7 @@ class MongoSinkConnector : SinkConnector() {
         val topicsGrouped = ConnectorUtils.groupPartitions(topics, numGroups)
         val dbsGrouped = ConnectorUtils.groupPartitions(databases, numGroups)
 
-        for (i in 0..numGroups - 1) {
+        for (i in 0 until numGroups) {
             val config = mutableMapOf<String, String>()
             config.put(MONGO_URI_CONFIG, uri)
             config.put(SOURCE_TOPICS_CONFIG, topicsGrouped[i].joinToString(","))

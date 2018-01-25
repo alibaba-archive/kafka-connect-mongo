@@ -40,6 +40,8 @@ class MongoSinkTaskTest {
         task!!.initialize(taskContext)
 
         mongod.start()
+
+        MongoClientLoader.getClient("mongodb://localhost:12345", reconnect = true)
     }
 
     @After

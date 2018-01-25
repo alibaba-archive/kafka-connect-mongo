@@ -27,7 +27,7 @@ class Mongod {
         val collections = arrayOf("test1", "test2", "test3")
     }
 
-    private val REPLICATION_PATH = "tmp"
+    private val replicaPath = "tmp"
 
     private var mongodExecutable: MongodExecutable? = null
     private var mongodProcess: MongodProcess? = null
@@ -39,7 +39,7 @@ class Mongod {
         mongodStarter = MongodStarter.getDefaultInstance()
         mongodConfig = MongodConfigBuilder()
             .version(Version.Main.V3_3)
-            .replication(Storage(REPLICATION_PATH, "rs0", 1024))
+            .replication(Storage(replicaPath, "rs0", 1024))
             .net(Net(12345, Network.localhostIsIPv6()))
             .build()
         mongodExecutable = mongodStarter!!.prepare(mongodConfig)
@@ -65,7 +65,7 @@ class Mongod {
     fun stop(): Mongod {
         mongodProcess!!.stop()
         mongodExecutable!!.stop()
-        FileUtils.deleteDirectory(File(REPLICATION_PATH))
+        FileUtils.deleteDirectory(File(replicaPath))
         return this
     }
 

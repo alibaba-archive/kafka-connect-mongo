@@ -1,7 +1,5 @@
 package org.apache.kafka.connect.mongo
 
-import com.mongodb.MongoClient
-import com.mongodb.MongoClientURI
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
@@ -30,9 +28,9 @@ class CollectionExporter : Job {
         run(context)
     }
 
-    fun run(context: JobExecutionContext) {
+    private fun run(context: JobExecutionContext) {
         jobDataMap = context.mergedJobDataMap["data"] as CronJobDataMap
-        val mongoClient = MongoClient(MongoClientURI(jobDataMap.uri))
+        val mongoClient = MongoClientLoader.getClient(jobDataMap.uri)
         runBlocking {
             jobDataMap.databases.map { ns ->
                 async(CommonPool) {
@@ -56,12 +54,7 @@ class CollectionExporter : Job {
                 }
             }.forEach { it.await() }
         }
-        try {
-            mongoClient.close()
-            log.info("Export finish")
-        } catch (e: Exception) {
-            log.error("Close db client error: {}", e.message)
-        }
+        log.info("Export finish")
     }
 
     private fun getPayload(ns: String, doc: Document): Document {
