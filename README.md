@@ -25,7 +25,7 @@
 3. Upgrade your kafka-connect-mongo cluster to 1.6.0.
 4. Recreate your connectors (with the saved curl scripts).
 
-Mongo connector (source)
+# Mongo connector (source)
 
 ## What's a kafka connector?
 
