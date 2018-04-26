@@ -14,7 +14,7 @@ Mongo connector (source)
 
 ```properties
 name=mongo-source-connector
-connector.class=org.apache.kafka.connect.mongo.MongoSourceConnector
+connector.class=com.teambition.kafka.connect.mongo.MongoSourceConnector
 tasks.max=1
 mongo.uri=mongodb://127.0.0.1:27017
 batch.size=100
@@ -32,7 +32,7 @@ this connector will export all the data from your collection to kafka through th
 
 ```properties
 name=mongo-cron-source-connector
-connector.class=org.apache.kafka.connect.mongo.MongoCronSourceConnector
+connector.class=com.teambition.kafka.connect.mongo.MongoCronSourceConnector
 tasks.max=1
 mongo.uri=mongodb://127.0.0.1:27017
 batch.size=100
@@ -74,7 +74,7 @@ so all your messages should have an auto increment field called `_id`.
 
 ```properties
 name=mongo-sink-connector
-connector.class=org.apache.kafka.connect.mongo.MongoSinkConnector
+connector.class=com.teambition.kafka.connect.mongo.MongoSinkConnector
 tasks.max=1
 mongo.uri=mongodb://root:root@127.0.0.1:27017/?authSource=admin
 topics=topic1,topic2

@@ -1,13 +1,14 @@
-group 'org.apache.kafka'
+group 'com.teambition'
 version '1.5.1'
 
 buildscript {
-    ext.kotlin_version = '1.2.21'
+    ext.kotlin_version = '1.2.40'
     // confluent 3.0 -> 0.10.0.0
     // confluent 3.1 -> 0.10.1.0
     // confluent 3.2 -> 0.10.2.0
     // confluent 4.0 -> 1.0.0
-    ext.kafka_version = '1.0.0'
+    // confluent 4.1 -> 1.1.0
+    ext.kafka_version = '1.1.0'
 
     repositories {
         mavenCentral()
@@ -24,7 +25,7 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
-mainClassName = "org.apache.kafka.connect.mongo.ApplicationKt"
+mainClassName = "com.teambition.kafka.connect.mongo.ApplicationKt"
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
@@ -81,7 +82,7 @@ distributions {
 
 task runImport(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'org.apache.kafka.connect.mongo.tools.ImportDataKt'
+    main = 'com.teambition.kafka.connect.mongo.tools.ImportDataKt'
     args 'importdata', 'etc/producer.properties'
 }
 
