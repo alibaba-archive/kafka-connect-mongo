@@ -3,6 +3,28 @@
 [![Build Status][travis-image]][travis-url]
 [![Docker Repository on Quay](https://quay.io/repository/sailxjx/kafka-connect-mongo/status "Docker Repository on Quay")](https://quay.io/repository/sailxjx/kafka-connect-mongo)
 
+# WARNING: when upgrade from 1.5.x to 1.6.0, please read the messages below!
+
+1.6.0 changed the package name from org.apache.kafka to com.teambition, so when you upgrade from 1.5.x, you may find your connectors breaked. So please: 
+
+1. Save your connectors's configs to local file, you may save those configs to a local curl script like so:
+  ```
+  curl -X PUT -H "Content-Type: application/json" http://192.168.0.22:38083/connectors/mongo_source_test/config -d '{
+    "connector.class": "MongoSourceConnector",
+    "databases": "teambition.tasks",
+    "initial.import": "true",
+    "topic.prefix": "mongo_test",
+    "tasks.max": "8",
+    "batch.size": "100",
+    "schema.name": "mongo_test_schema",
+    "name": "mongo_source_test",
+    "mongo.uri": "mongodb://root:root@192.168.0.21:27017/?authSource=admin"
+  }'
+  ```
+2. Delete your connectors via `curl -XDELETE http://192.168.0.22:38083/connectors/your_connector_name`, this will not delete your offsets, so you will not worry about lost of your offsets.
+3. Upgrade your kafka-connect-mongo cluster to 1.6.0.
+4. Recreate your connectors (with the saved curl scripts).
+
 Mongo connector (source)
 
 ## What's a kafka connector?
