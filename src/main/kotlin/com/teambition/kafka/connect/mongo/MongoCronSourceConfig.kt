@@ -21,8 +21,8 @@ import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREF
  */
 class MongoCronSourceConfig(props: Map<String, String>) : AbstractConfig(MongoCronSourceConfig.config, props) {
     companion object {
-        val SCHEDULE_CONFIG = "schedule"
-        val SCHEDULE_CONFIG_DOC = "Schedule job in quartz cron pattern"
+        const val SCHEDULE_CONFIG = "schedule"
+        private const val SCHEDULE_CONFIG_DOC = "Schedule job in quartz cron pattern"
 
         val config: ConfigDef = ConfigDef()
             .define(MONGO_URI_CONFIG,

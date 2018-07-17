@@ -20,7 +20,7 @@ import java.util.*
  * Connect mongodb with configs
  */
 open class MongoSourceConnector : SourceConnector() {
-    open protected val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)!!
+    protected open val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)!!
     private var databases: String = ""
     private var uri: String = ""
     private var batchSize: String = ""
@@ -51,14 +51,14 @@ open class MongoSourceConnector : SourceConnector() {
         val numGroups = Math.min(dbs.size, maxTasks)
         val dbsGrouped = ConnectorUtils.groupPartitions(dbs, numGroups)
 
-        for (i in 0..numGroups - 1) {
+        for (i in 0 until numGroups) {
             val config = HashMap<String, String>()
-            config.put(MONGO_URI_CONFIG, uri)
-            config.put(DATABASES_CONFIG, StringUtils.join(dbsGrouped[i], ","))
-            config.put(INITIAL_IMPORT_CONFIG, initialImport)
-            config.put(BATCH_SIZE_CONFIG, batchSize)
-            config.put(TOPIC_PREFIX_CONFIG, topicPrefix)
-            config.put(SCHEMA_NAME_CONFIG, schemaName)
+            config[MONGO_URI_CONFIG] = uri
+            config[DATABASES_CONFIG] = StringUtils.join(dbsGrouped[i], ",")
+            config[INITIAL_IMPORT_CONFIG] = initialImport
+            config[BATCH_SIZE_CONFIG] = batchSize
+            config[TOPIC_PREFIX_CONFIG] = topicPrefix
+            config[SCHEMA_NAME_CONFIG] = schemaName
             configs.add(config)
         }
         return configs

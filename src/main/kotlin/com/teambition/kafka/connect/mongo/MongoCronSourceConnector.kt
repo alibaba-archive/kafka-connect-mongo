@@ -14,7 +14,7 @@ class MongoCronSourceConnector : MongoSourceConnector() {
     override fun taskConfigs(maxTasks: Int): MutableList<MutableMap<String, String>> {
         val configs = super.taskConfigs(maxTasks)
         configs.forEach {
-            it.put(SCHEDULE_CONFIG, schedule)
+            it[SCHEDULE_CONFIG] = schedule
         }
         return configs
     }

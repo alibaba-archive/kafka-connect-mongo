@@ -26,7 +26,7 @@ class DatabaseReader(val uri: String,
                      val db: String,
                      val start: MongoSourceOffset,
                      val messages: ConcurrentLinkedQueue<Document>,
-                     val initialImport: Boolean) : Runnable {
+                     private val initialImport: Boolean) : Runnable {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
     }

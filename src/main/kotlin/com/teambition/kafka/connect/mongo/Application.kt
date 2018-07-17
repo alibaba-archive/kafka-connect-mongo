@@ -9,7 +9,7 @@ import org.json.JSONObject
  * @author Xu Jingxin
  */
 object Application {
-    val help = """
+    private const val help = """
     usage:
         kafka-connect-mongo <command> [options]
 

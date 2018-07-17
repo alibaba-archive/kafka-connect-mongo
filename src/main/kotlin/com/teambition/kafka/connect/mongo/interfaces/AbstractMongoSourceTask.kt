@@ -27,13 +27,13 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     abstract val log: Logger
     // Configs
     protected var uri = ""
-    protected var schemaName = ""
-    protected var batchSize = 100
+    private var schemaName = ""
+    private var batchSize = 100
     protected var initialImport = false
-    protected var topicPrefix = ""
+    private var topicPrefix = ""
     // Database and collection joined with dot [mydb.a,mydb.b]
     protected var databases = listOf<String>()
-    protected var schemas = mutableMapOf<String, Schema>()
+    private var schemas = mutableMapOf<String, Schema>()
     // Message queue
     protected val messages = ConcurrentLinkedQueue<Document>()
     // Runtime states
@@ -61,13 +61,13 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         log.trace("Init schema")
         databases.map { it.replace(".", "_") }
             .forEach {
-                schemas.put(it, SchemaBuilder.struct().name(schemaName + "_" + it)
+                schemas[it] = SchemaBuilder.struct().name(schemaName + "_" + it)
                     .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
                     .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
                     .field("id", Schema.OPTIONAL_STRING_SCHEMA)
                     .field("database", Schema.OPTIONAL_STRING_SCHEMA)
                     .field("op", Schema.OPTIONAL_STRING_SCHEMA)
-                    .field("object", Schema.OPTIONAL_STRING_SCHEMA).build())
+                    .field("object", Schema.OPTIONAL_STRING_SCHEMA).build()
             }
     }
 

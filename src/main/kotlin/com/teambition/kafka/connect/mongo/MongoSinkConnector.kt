@@ -42,9 +42,9 @@ class MongoSinkConnector : SinkConnector() {
 
         for (i in 0 until numGroups) {
             val config = mutableMapOf<String, String>()
-            config.put(MONGO_URI_CONFIG, uri)
-            config.put(SOURCE_TOPICS_CONFIG, topicsGrouped[i].joinToString(","))
-            config.put(DATABASES_CONFIG, dbsGrouped[i].joinToString(","))
+            config[MONGO_URI_CONFIG] = uri
+            config[SOURCE_TOPICS_CONFIG] = topicsGrouped[i].joinToString(",")
+            config[DATABASES_CONFIG] = dbsGrouped[i].joinToString(",")
             configs.add(config)
         }
 

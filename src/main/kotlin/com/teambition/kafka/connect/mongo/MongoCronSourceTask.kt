@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory
  */
 class MongoCronSourceTask : AbstractMongoSourceTask() {
     override val log = LoggerFactory.getLogger(MongoCronSourceTask::class.java)!!
-    lateinit var schedule: String
-    lateinit var job: JobDetail
+    private lateinit var schedule: String
+    private lateinit var job: JobDetail
     private val scheduler = StdSchedulerFactory.getDefaultScheduler()!!
 
     override fun start(props: Map<String, String>) {
