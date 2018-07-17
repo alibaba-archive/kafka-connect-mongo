@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.sink
 
 import org.apache.kafka.connect.connector.ConnectorContext
 import org.junit.Assert.assertEquals

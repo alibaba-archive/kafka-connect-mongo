@@ -2,9 +2,9 @@ package com.teambition.kafka.connect.mongo.tools
 
 import com.google.common.truth.Truth.assertThat
 import com.mongodb.client.MongoDatabase
+import com.teambition.kafka.connect.mongo.utils.Mongod
 import info.batey.kafka.unit.KafkaUnit
 import org.apache.commons.lang.RandomStringUtils
-import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.bson.Document
 import org.json.JSONObject
 import org.junit.After

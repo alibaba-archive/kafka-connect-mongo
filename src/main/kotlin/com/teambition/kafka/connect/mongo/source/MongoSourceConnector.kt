@@ -1,16 +1,16 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
 import org.apache.commons.lang.StringUtils
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.utils.AppInfoParser
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MONGO_URI_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.source.SourceConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory

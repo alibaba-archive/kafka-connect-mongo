@@ -1,7 +1,7 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
+import com.teambition.kafka.connect.mongo.source.MongoCronSourceConfig.Companion.SCHEDULE_CONFIG
 import org.apache.kafka.common.config.ConfigDef
-import com.teambition.kafka.connect.mongo.MongoCronSourceConfig.Companion.SCHEDULE_CONFIG
 import org.slf4j.LoggerFactory
 
 /**

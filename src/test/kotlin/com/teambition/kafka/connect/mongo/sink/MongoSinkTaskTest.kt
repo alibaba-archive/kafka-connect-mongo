@@ -1,6 +1,7 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.sink
 
 import com.google.common.truth.Truth.assertThat
+import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder

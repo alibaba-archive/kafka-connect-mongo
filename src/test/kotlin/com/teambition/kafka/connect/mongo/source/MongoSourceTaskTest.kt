@@ -1,8 +1,9 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
 import com.mongodb.BasicDBObject
 import com.mongodb.client.model.Filters
 import com.mongodb.util.JSON
+import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Struct
 import com.teambition.kafka.connect.mongo.utils.Mongod
@@ -31,7 +32,7 @@ class MongoSourceTaskTest {
     companion object {
         private val log = LoggerFactory.getLogger(MongoSourceTaskTest::class.java)
         private val collections = Mongod.collections
-        private val mydb = "mydb"
+        private const val mydb = "mydb"
     }
 
     private var task: MongoSourceTask? = null
@@ -50,12 +51,12 @@ class MongoSourceTaskTest {
         sourceTaskContext = PowerMock.createMock(SourceTaskContext::class.java)
         task!!.initialize(sourceTaskContext)
 
-        sourceProperties.put("mongo.uri", "mongodb://localhost:12345")
-        sourceProperties.put("initial.import", "true")
-        sourceProperties.put("batch.size", "20")
-        sourceProperties.put("schema.name", "schema")
-        sourceProperties.put("topic.prefix", "prefix")
-        sourceProperties.put("databases", "mydb.test1,mydb.test2,mydb.test3")
+        sourceProperties["mongo.uri"] = "mongodb://localhost:12345"
+        sourceProperties["initial.import"] = "true"
+        sourceProperties["batch.size"] = "20"
+        sourceProperties["schema.name"] = "schema"
+        sourceProperties["topic.prefix"] = "prefix"
+        sourceProperties["databases"] = "mydb.test1,mydb.test2,mydb.test3"
 
         MongoClientLoader.getClient("mongodb://localhost:12345", reconnect = true)
     }
@@ -98,8 +99,8 @@ class MongoSourceTaskTest {
         expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader).anyTimes()
         for (collection in collections) {
             val timestamp = BsonTimestamp(Math.floor((System.currentTimeMillis() / 1000).toDouble()).toInt(), 0)
-            expect(offsetStorageReader!!.offset(Collections.singletonMap("mongo", "mydb." + collection)))
-                .andReturn(Collections.singletonMap<String, Any>("mydb." + collection, timestamp.time.toString() + ",0"))
+            expect(offsetStorageReader!!.offset(Collections.singletonMap("mongo", "mydb.$collection")))
+                .andReturn(Collections.singletonMap<String, Any>("mydb.$collection", timestamp.time.toString() + ",0"))
                 .anyTimes()
         }
     }
@@ -109,7 +110,7 @@ class MongoSourceTaskTest {
      */
     private fun bulkInsert(totalNumber: Int) {
         val db = mongod.getDatabase(mydb)
-        for (i in 0..totalNumber - 1) {
+        for (i in 0 until totalNumber) {
             val newDocument = Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
             db.getCollection(collections[Random().nextInt(3)]).insertOne(newDocument)
         }

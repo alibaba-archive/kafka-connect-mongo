@@ -1,16 +1,14 @@
-package com.teambition.kafka.connect.mongo.interfaces
+package com.teambition.kafka.connect.mongo.source
 
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MONGO_URI_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConnector
-import com.teambition.kafka.connect.mongo.MongoSourceOffset
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTask
 import org.bson.BsonTimestamp

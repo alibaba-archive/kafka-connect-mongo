@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
 import com.google.common.truth.Truth.assertThat
 import org.apache.kafka.connect.data.Struct

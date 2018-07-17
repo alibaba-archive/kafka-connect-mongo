@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
 import org.apache.kafka.common.config.AbstractConfig
 import org.apache.kafka.common.config.ConfigDef
@@ -8,25 +8,25 @@ import org.apache.kafka.common.config.ConfigDef.Type
 /**
  * @author Xu Jingxin
  */
-class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(MongoSourceConfig.config, props) {
+class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, props) {
     companion object {
-        val MONGO_URI_CONFIG = "mongo.uri"
-        val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
+        const val MONGO_URI_CONFIG = "mongo.uri"
+        const val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
 
-        val BATCH_SIZE_CONFIG = "batch.size"
-        val BATCH_SIZE_CONFIG_DOC = "Count of messages in each polling"
+        const val BATCH_SIZE_CONFIG = "batch.size"
+        const val BATCH_SIZE_CONFIG_DOC = "Count of messages in each polling"
 
-        val INITIAL_IMPORT_CONFIG = "initial.import"
-        private val INITIAL_IMPORT_CONFIG_DOC = "Start import all collection before tailing"
+        const val INITIAL_IMPORT_CONFIG = "initial.import"
+        private const val INITIAL_IMPORT_CONFIG_DOC = "Start import all collection before tailing"
 
-        val SCHEMA_NAME_CONFIG = "schema.name"
-        val SCHEMA_NAME_CONFIG_DOC = "Schema name"
+        const val SCHEMA_NAME_CONFIG = "schema.name"
+        const val SCHEMA_NAME_CONFIG_DOC = "Schema name"
 
-        val TOPIC_PREFIX_CONFIG = "topic.prefix"
-        val TOPIC_PREFIX_CONFIG_DOC = "Prefix of each topic, final topic will be prefix_db_collection"
+        const val TOPIC_PREFIX_CONFIG = "topic.prefix"
+        const val TOPIC_PREFIX_CONFIG_DOC = "Prefix of each topic, final topic will be prefix_db_collection"
 
-        val DATABASES_CONFIG = "databases"
-        val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
+        const val DATABASES_CONFIG = "databases"
+        const val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
         var config: ConfigDef = ConfigDef()
             .define(MONGO_URI_CONFIG,

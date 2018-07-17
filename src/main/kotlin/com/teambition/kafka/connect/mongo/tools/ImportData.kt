@@ -8,7 +8,7 @@ import com.mongodb.client.MongoDatabase
 import com.mongodb.util.JSON
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import com.teambition.kafka.connect.mongo.MongoSourceConfig
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.json.JSONObject
@@ -161,7 +161,7 @@ class ImportDB(val uri: String,
             offsetCount)
     }
 
-    fun getResult(document: Document): MessageData {
+    private fun getResult(document: Document): MessageData {
         val id = document["_id"] as ObjectId
         val key = JSONObject(mapOf(
             "schema" to mapOf(
@@ -236,8 +236,8 @@ class ScheduleJob : Job {
 }
 
 object JobConfig {
-    val SCHEDULE = "schedule"
-    val filter = "filter"
+    const val SCHEDULE = "schedule"
+    const val filter = "filter"
 }
 
 object ImportData {

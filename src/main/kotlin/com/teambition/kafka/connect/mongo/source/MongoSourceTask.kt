@@ -1,6 +1,6 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
-import com.teambition.kafka.connect.mongo.interfaces.AbstractMongoSourceTask
+import com.teambition.kafka.connect.mongo.database.DatabaseReader
 import org.slf4j.LoggerFactory
 
 /**
