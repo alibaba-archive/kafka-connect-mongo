@@ -1,5 +1,6 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.tools
 
+import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay

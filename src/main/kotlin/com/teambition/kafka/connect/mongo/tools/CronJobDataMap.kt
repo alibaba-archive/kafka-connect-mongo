@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.tools
 
 import org.bson.Document
 import java.util.concurrent.ConcurrentLinkedQueue

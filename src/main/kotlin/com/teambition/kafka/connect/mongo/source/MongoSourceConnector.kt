@@ -1,16 +1,17 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ANALYZE_SCHEMA_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MONGO_URI_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.commons.lang.StringUtils
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.utils.AppInfoParser
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.DATABASES_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.MONGO_URI_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.kafka.connect.source.SourceConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
@@ -20,13 +21,14 @@ import java.util.*
  * Connect mongodb with configs
  */
 open class MongoSourceConnector : SourceConnector() {
-    open protected val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)!!
+    protected open val log = LoggerFactory.getLogger(MongoSourceConnector::class.java)!!
     private var databases: String = ""
     private var uri: String = ""
     private var batchSize: String = ""
     private var initialImport: String = ""
     private var topicPrefix: String = ""
     private var schemaName: String = ""
+    private var analyzeSchema: String = ""
 
     override fun version(): String = AppInfoParser.getVersion()
 
@@ -40,6 +42,7 @@ open class MongoSourceConnector : SourceConnector() {
         uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
+        analyzeSchema = props[ANALYZE_SCHEMA_CONFIG] ?: "false"
     }
 
     /**
@@ -51,14 +54,15 @@ open class MongoSourceConnector : SourceConnector() {
         val numGroups = Math.min(dbs.size, maxTasks)
         val dbsGrouped = ConnectorUtils.groupPartitions(dbs, numGroups)
 
-        for (i in 0..numGroups - 1) {
+        for (i in 0 until numGroups) {
             val config = HashMap<String, String>()
-            config.put(MONGO_URI_CONFIG, uri)
-            config.put(DATABASES_CONFIG, StringUtils.join(dbsGrouped[i], ","))
-            config.put(INITIAL_IMPORT_CONFIG, initialImport)
-            config.put(BATCH_SIZE_CONFIG, batchSize)
-            config.put(TOPIC_PREFIX_CONFIG, topicPrefix)
-            config.put(SCHEMA_NAME_CONFIG, schemaName)
+            config[MONGO_URI_CONFIG] = uri
+            config[DATABASES_CONFIG] = StringUtils.join(dbsGrouped[i], ",")
+            config[INITIAL_IMPORT_CONFIG] = initialImport
+            config[BATCH_SIZE_CONFIG] = batchSize
+            config[TOPIC_PREFIX_CONFIG] = topicPrefix
+            config[SCHEMA_NAME_CONFIG] = schemaName
+            config[ANALYZE_SCHEMA_CONFIG] = analyzeSchema
             configs.add(config)
         }
         return configs

@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
 import org.apache.kafka.connect.connector.ConnectorContext
 import org.junit.Assert.assertEquals
@@ -21,12 +21,12 @@ class MongoSourceConnectorTest {
         connector!!.initialize(context)
 
         val props = HashMap<String, String>()
-        props.put("mongo.uri", "mongodb://localhost:12345")
-        props.put("initial.import", "true")
-        props.put("batch.size", "100")
-        props.put("schema.name", "schema")
-        props.put("topic.prefix", "prefix")
-        props.put("databases", "mydb.test1,mydb.test2,mydb.test3")
+        props["mongo.uri"] = "mongodb://localhost:12345"
+        props["initial.import"] = "true"
+        props["batch.size"] = "100"
+        props["schema.name"] = "schema"
+        props["topic.prefix"] = "prefix"
+        props["databases"] = "mydb.test1,mydb.test2,mydb.test3"
 
         connector!!.start(props)
     }

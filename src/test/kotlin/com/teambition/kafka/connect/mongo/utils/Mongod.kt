@@ -51,11 +51,11 @@ class Mongod {
         val replicaSetSetting = BasicDBObject()
         val members = BasicDBList()
         val host = BasicDBObject()
-        replicaSetSetting.put("_id", "rs0")
-        host.put("_id", 0)
-        host.put("host", "127.0.0.1:12345")
+        replicaSetSetting["_id"] = "rs0"
+        host["_id"] = 0
+        host["host"] = "127.0.0.1:12345"
         members.add(host)
-        replicaSetSetting.put("members", members)
+        replicaSetSetting["members"] = members
         adminDatabase.runCommand(BasicDBObject("isMaster", 1))
         adminDatabase.runCommand(BasicDBObject("replSetInitiate", replicaSetSetting))
 

@@ -1,6 +1,6 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
-import com.teambition.kafka.connect.mongo.interfaces.AbstractMongoSourceTask
+import com.teambition.kafka.connect.mongo.database.DatabaseReader
 import org.slf4j.LoggerFactory
 
 /**
@@ -41,12 +41,12 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, throwable ->
             throwable.printStackTrace()
             log.error("Error when read data from db: {}", db)
-            var _errCount = errCount + 1
+            var errCnt = errCount + 1
             // Reset error count if the task executed more than 5 minutes
             if ((System.currentTimeMillis() - startTime) > 600000) {
-                _errCount = 0
+                errCnt = 0
             }
-            startReader(db, _errCount)
+            startReader(db, errCnt)
         }
         t.uncaughtExceptionHandler = uncaughtExceptionHandler
         t.start()

@@ -1,7 +1,6 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.tools
 
 import com.github.kittinunf.fuel.Fuel
-import com.teambition.kafka.connect.mongo.tools.ImportData
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -9,7 +8,7 @@ import org.json.JSONObject
  * @author Xu Jingxin
  */
 object Application {
-    val help = """
+    private const val help = """
     usage:
         kafka-connect-mongo <command> [options]
 

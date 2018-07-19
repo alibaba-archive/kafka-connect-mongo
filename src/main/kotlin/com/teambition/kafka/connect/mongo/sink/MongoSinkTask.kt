@@ -1,15 +1,16 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.sink
 
 import com.mongodb.MongoClient
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
 import com.mongodb.util.JSON
+import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.connect.data.Struct
-import com.teambition.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.DATABASES_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.MONGO_URI_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.sink.SinkTask
 import org.bson.Document

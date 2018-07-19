@@ -2,9 +2,9 @@ package com.teambition.kafka.connect.mongo.tools
 
 import com.google.common.truth.Truth.assertThat
 import com.mongodb.client.MongoDatabase
+import com.teambition.kafka.connect.mongo.utils.Mongod
 import info.batey.kafka.unit.KafkaUnit
 import org.apache.commons.lang.RandomStringUtils
-import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.bson.Document
 import org.json.JSONObject
 import org.junit.After
@@ -112,12 +112,12 @@ class ImportDataTest {
      * @param count Count of messages
      * @param collectionName Name of collection
      */
-    fun bulkInsert(count: Int, collectionName: String) {
+    private fun bulkInsert(count: Int, collectionName: String) {
         val documents = mutableListOf<Document>()
         val db = db!!
         db.createCollection(collectionName)
         val collection = db.getCollection(collectionName)!!
-        for (i in 0..count - 1) {
+        for (i in 0 until count) {
             documents.add(Document().append(
                 RandomStringUtils.random(Random().nextInt(100), true, false),
                 Random().nextInt()

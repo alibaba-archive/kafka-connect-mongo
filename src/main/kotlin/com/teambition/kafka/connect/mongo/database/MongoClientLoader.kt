@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.database
 
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientOptions

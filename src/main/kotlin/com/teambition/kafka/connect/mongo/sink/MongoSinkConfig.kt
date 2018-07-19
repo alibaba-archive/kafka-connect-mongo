@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.sink
 
 import org.apache.kafka.common.config.AbstractConfig
 import org.apache.kafka.common.config.ConfigDef
@@ -8,16 +8,16 @@ import org.apache.kafka.common.config.ConfigDef.Type
 /**
  * @author Xu Jingxin
  */
-class MongoSinkConfig(props: Map<String, String>) : AbstractConfig(MongoSinkConfig.config, props) {
+class MongoSinkConfig(props: Map<String, String>) : AbstractConfig(config, props) {
     companion object {
-        val MONGO_URI_CONFIG = "mongo.uri"
-        private val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
+        const val MONGO_URI_CONFIG = "mongo.uri"
+        private const val MONGO_URI_CONFIG_DOC = "Connect uri of mongodb"
 
-        val SOURCE_TOPICS_CONFIG = "topics"
-        private val SOURCE_TOPICS_CONFIG_DOC = "Topics"
+        const val SOURCE_TOPICS_CONFIG = "topics"
+        private const val SOURCE_TOPICS_CONFIG_DOC = "Topics"
 
-        val DATABASES_CONFIG = "databases"
-        private val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
+        const val DATABASES_CONFIG = "databases"
+        private const val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
         var config = ConfigDef()
             .define(MONGO_URI_CONFIG,

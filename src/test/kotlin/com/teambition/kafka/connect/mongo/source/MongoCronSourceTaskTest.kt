@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.source
 
 import com.google.common.truth.Truth.assertThat
 import org.apache.kafka.connect.data.Struct
@@ -75,7 +75,7 @@ class MongoCronSourceTaskTest {
     private fun mockData() {
         val db = mongod.getDatabase("mydb")
         val docs = mutableMapOf<String, List<Document>>()
-        (0..100 - 1).forEach {
+        (0 until 100).forEach {
             val doc = Document().append("n", it)
             val collectionName = collections[Random().nextInt(2)]
             if (docs[collectionName] == null) {

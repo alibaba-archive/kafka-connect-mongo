@@ -1,4 +1,4 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.sink
 
 import org.apache.kafka.connect.connector.ConnectorContext
 import org.junit.Assert.assertEquals
@@ -16,9 +16,9 @@ class MongoSinkConnectorTest {
         connector.initialize(context)
 
         val props = mutableMapOf<String, String>()
-        props.put("mongo.uri", "mongodb://localhost:12345")
-        props.put("topics", "a,b,c")
-        props.put("databases", "t.a,t.b,t.c")
+        props["mongo.uri"] = "mongodb://localhost:12345"
+        props["topics"] = "a,b,c"
+        props["databases"] = "t.a,t.b,t.c"
         connector.start(props)
 
         PowerMock.replayAll()

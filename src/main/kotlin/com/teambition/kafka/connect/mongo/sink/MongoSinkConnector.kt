@@ -1,12 +1,12 @@
-package com.teambition.kafka.connect.mongo
+package com.teambition.kafka.connect.mongo.sink
 
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.utils.AppInfoParser
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
-import com.teambition.kafka.connect.mongo.MongoSinkConfig.Companion.DATABASES_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSinkConfig.Companion.MONGO_URI_CONFIG
-import com.teambition.kafka.connect.mongo.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.DATABASES_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.MONGO_URI_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.apache.kafka.connect.sink.SinkConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
@@ -42,9 +42,9 @@ class MongoSinkConnector : SinkConnector() {
 
         for (i in 0 until numGroups) {
             val config = mutableMapOf<String, String>()
-            config.put(MONGO_URI_CONFIG, uri)
-            config.put(SOURCE_TOPICS_CONFIG, topicsGrouped[i].joinToString(","))
-            config.put(DATABASES_CONFIG, dbsGrouped[i].joinToString(","))
+            config[MONGO_URI_CONFIG] = uri
+            config[SOURCE_TOPICS_CONFIG] = topicsGrouped[i].joinToString(",")
+            config[DATABASES_CONFIG] = dbsGrouped[i].joinToString(",")
             configs.add(config)
         }
 

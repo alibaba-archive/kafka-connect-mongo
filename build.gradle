@@ -1,8 +1,8 @@
 group 'com.teambition'
-version '1.6.0'
+version '1.7.0-snapshot'
 
 buildscript {
-    ext.kotlin_version = '1.2.40'
+    ext.kotlin_version = '1.2.41'
     // confluent 3.0 -> 0.10.0.0
     // confluent 3.1 -> 0.10.1.0
     // confluent 3.2 -> 0.10.2.0
@@ -25,7 +25,7 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
-mainClassName = "com.teambition.kafka.connect.mongo.ApplicationKt"
+mainClassName = "com.teambition.kafka.connect.mongo.tools.ApplicationKt"
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
