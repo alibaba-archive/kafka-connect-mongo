@@ -28,6 +28,9 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, pro
         const val DATABASES_CONFIG = "databases"
         const val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
 
+        const val ANALYZE_SCHEMA_CONFIG = "analyze.schema"
+        private const val ANALYZE_SCHEMA_DOC = "Analyze schemas of data from mongodb, save into schema registry through avro"
+
         var config: ConfigDef = ConfigDef()
             .define(MONGO_URI_CONFIG,
                 Type.STRING,
@@ -54,5 +57,10 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, pro
                 Type.STRING,
                 Importance.HIGH,
                 DATABASES_CONFIG_DOC)
+            .define(ANALYZE_SCHEMA_CONFIG,
+                Type.STRING,
+                "false",
+                Importance.LOW,
+                ANALYZE_SCHEMA_DOC)
     }
 }

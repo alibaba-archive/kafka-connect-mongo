@@ -1,12 +1,13 @@
 package com.teambition.kafka.connect.mongo.source
 
+import com.google.common.truth.Truth.assertThat
 import com.mongodb.BasicDBObject
 import com.mongodb.client.model.Filters
 import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
+import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Struct
-import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
@@ -86,6 +87,35 @@ class MongoSourceTaskTest {
         testInitialWhenStart()
         testBulkInsert()
         testSubtleInsert()
+
+        PowerMock.verifyAll()
+    }
+
+    @Test
+    fun testAnalyzedStruct() {
+        expectOffsetLookupReturnOffset()
+        PowerMock.replayAll()
+
+        subtleInsert()
+        val properties = sourceProperties.toMutableMap()
+        properties["analyze.schema"] = "true"
+        properties["initial.import"] = "false"
+        task!!.start(properties)
+        Thread.sleep(2000)
+
+        val records = ArrayList<SourceRecord>()
+        var pollRecords: List<SourceRecord>
+
+        do {
+            pollRecords = task!!.poll()
+            records.addAll(pollRecords)
+        } while (!pollRecords.isEmpty())
+
+        assertThat(records).hasSize(4)
+        records.forEach {
+            assertThat(it.key().toString()).hasLength(24)
+            assertThat(it.valueSchema().fields().map { it.name() }).contains("__pkey")
+        }
 
         PowerMock.verifyAll()
     }

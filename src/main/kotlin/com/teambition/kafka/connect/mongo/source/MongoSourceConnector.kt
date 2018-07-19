@@ -1,16 +1,17 @@
 package com.teambition.kafka.connect.mongo.source
 
-import org.apache.commons.lang.StringUtils
-import org.apache.kafka.common.config.ConfigDef
-import org.apache.kafka.common.utils.AppInfoParser
-import org.apache.kafka.connect.connector.Task
-import org.apache.kafka.connect.errors.ConnectException
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ANALYZE_SCHEMA_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
+import org.apache.commons.lang.StringUtils
+import org.apache.kafka.common.config.ConfigDef
+import org.apache.kafka.common.utils.AppInfoParser
+import org.apache.kafka.connect.connector.Task
+import org.apache.kafka.connect.errors.ConnectException
 import org.apache.kafka.connect.source.SourceConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
@@ -27,6 +28,7 @@ open class MongoSourceConnector : SourceConnector() {
     private var initialImport: String = ""
     private var topicPrefix: String = ""
     private var schemaName: String = ""
+    private var analyzeSchema: String = ""
 
     override fun version(): String = AppInfoParser.getVersion()
 
@@ -40,6 +42,7 @@ open class MongoSourceConnector : SourceConnector() {
         uri = getRequiredProp(props, MONGO_URI_CONFIG)
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
+        analyzeSchema = props[ANALYZE_SCHEMA_CONFIG] ?: "false"
     }
 
     /**
@@ -59,6 +62,7 @@ open class MongoSourceConnector : SourceConnector() {
             config[BATCH_SIZE_CONFIG] = batchSize
             config[TOPIC_PREFIX_CONFIG] = topicPrefix
             config[SCHEMA_NAME_CONFIG] = schemaName
+            config[ANALYZE_SCHEMA_CONFIG] = analyzeSchema
             configs.add(config)
         }
         return configs

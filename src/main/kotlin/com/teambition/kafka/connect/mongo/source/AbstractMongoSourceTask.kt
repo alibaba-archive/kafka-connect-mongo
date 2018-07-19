@@ -1,5 +1,6 @@
 package com.teambition.kafka.connect.mongo.source
 
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ANALYZE_SCHEMA_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
@@ -39,6 +40,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     // But will not larger than maxSleepTime
     private var sleepTime = 50L
     private var maxSleepTime = 10000L
+    private var analyzeSchema = false
 
     override fun version(): String = MongoSourceConnector().version()
     protected var unrecoverable: Throwable? = null
@@ -55,6 +57,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         topicPrefix = props[TOPIC_PREFIX_CONFIG] ?: throw Exception("Invalid config $TOPIC_PREFIX_CONFIG")
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")
         databases = props[DATABASES_CONFIG]!!.split(",").map(String::trim).dropLastWhile(String::isEmpty)
+        analyzeSchema = (props[ANALYZE_SCHEMA_CONFIG] == "true")
 
         log.trace("Init schema")
         databases.map { it.replace(".", "_") }
@@ -75,14 +78,17 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         val records = mutableListOf<SourceRecord>()
         while (!messages.isEmpty() && records.size < batchSize) {
             val message = messages.poll()
+            val id = (message["o"] as Document)
+                .let { it["_id"] as ObjectId }
+                .toString()
             try {
                 val struct = getStruct(message)
                 records.add(SourceRecord(
-                    getPartition(getDB(message)),
+                    getPartition(StructUtil.getDB(message)),
                     getOffset(message),
-                    getTopic(message),
+                    StructUtil.getTopic(message, topicPrefix),
                     Schema.OPTIONAL_STRING_SCHEMA,
-                    struct.get("id"),
+                    id,
                     struct.schema(),
                     struct))
             } catch (e: Exception) {
@@ -114,28 +120,32 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         val objectId = (message["o"] as Document)["_id"] as ObjectId
         val finishedImport = message["initialImport"] == null
         val offsetVal = MongoSourceOffset.toOffsetString(timestamp, objectId, finishedImport)
-        return Collections.singletonMap(getDB(message), offsetVal)
+        return Collections.singletonMap(StructUtil.getDB(message), offsetVal)
     }
 
-    private fun getDB(message: Document): String {
-        return message["ns"] as String
-    }
-
-    private fun getTopic(message: Document): String {
-        val db = getDB(message).replace(".", "_")
-        return topicPrefix + "_" + db
-    }
-
+    /**
+     * Build struct from document, whether in basic schema or analyzed schema
+     * @param message Document from mongodb
+     * @return Struct
+     */
     private fun getStruct(message: Document): Struct {
-        val db = getDB(message).replace(".", "_")
+        return if (analyzeSchema) {
+            SchemaMapper.getAnalyzedStruct(message, schemaName)
+        } else {
+            getBasicStruct(message)
+        }
+    }
+
+    private fun getBasicStruct(message: Document): Struct {
+        val db = StructUtil.getDB(message).replace(".", "_")
         val schema = schemas[db] ?: throw Exception("Can not find the schema of database $db")
         val struct = Struct(schema)
         val bsonTimestamp = message["ts"] as BsonTimestamp
         val body = message["o"] as Document
-        val _id = (body["_id"] as ObjectId).toString()
+        val id = (body["_id"] as ObjectId).toString()
         struct.put("ts", bsonTimestamp.time)
         struct.put("inc", bsonTimestamp.inc)
-        struct.put("id", _id)
+        struct.put("id", id)
         struct.put("database", db)
         struct.put("op", message["op"])
         if (message["op"].toString() == "d") {
