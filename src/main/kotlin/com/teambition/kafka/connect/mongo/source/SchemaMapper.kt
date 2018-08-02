@@ -22,6 +22,9 @@ object SchemaMapper {
 
     fun getAnalyzedStruct(message: Document, schemaPrefix: String): Struct {
         val ns = message["ns"] as String
+        val body = (message["o"] as Document).map {
+            Pair(it.key.toLowerCase(), it.value)
+        }.toMap()
         val schemaName = ns
             .replace(".", "_")
             .let { schemaPrefix + it }
@@ -31,9 +34,9 @@ object SchemaMapper {
             .name(schemaName)
             .let { addMetaFields(it) }
             .parameter("table", getTable(ns))
-            .let { analyze(it, message["o"] as Document) }
+            .let { analyze(it, body) }
             .let { maybeUpdateSchema(oldSchema, it) }
-        return Struct(builder.build()).let { fillinFields(it, message) }
+        return Struct(builder.build()).let { fillinFields(it, message, body) }
     }
 
     /**
@@ -57,14 +60,14 @@ object SchemaMapper {
     /**
      * Fill fields in the document
      */
-    private fun fillinFields(struct: Struct, message: Document): Struct {
-        val body = message["o"] as Document
-        body["__op"] = message["op"]
-        body["__pkey"] = body["_id"]
-        body["__ts"] = ((message["ts"] as BsonTimestamp).time * 1000L).let { DateUtil.getISODate(it) }
+    private fun fillinFields(struct: Struct, message: Document, body: Map<String, Any?>): Struct {
+        val doc = body.toMutableMap()
+        doc["__op"] = message["op"]
+        doc["__pkey"] = body["_id"]
+        doc["__ts"] = ((message["ts"] as BsonTimestamp).time * 1000L).let { DateUtil.getISODate(it) }
 
         struct.schema().fields().forEach { field ->
-            transformValue(body[field.name()], field.schema().type())
+            transformValue(doc[field.name()], field.schema().type())
                 ?.let { struct.put(field.name(), it) }
         }
         return struct
@@ -73,7 +76,7 @@ object SchemaMapper {
     /**
      * Generate schema from body of document
      */
-    private fun analyze(builder: SchemaBuilder, body: Document): SchemaBuilder {
+    private fun analyze(builder: SchemaBuilder, body: Map<String, Any?>): SchemaBuilder {
         body.toSortedMap().forEach { key, value ->
             value
                 .let { transformValue(it) }

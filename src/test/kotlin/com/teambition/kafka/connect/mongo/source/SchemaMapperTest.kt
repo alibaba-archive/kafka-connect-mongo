@@ -14,7 +14,7 @@ import java.util.*
 class SchemaMapperTest {
 
     @Test
-    fun aalyzeStruct() {
+    fun analyzeStruct() {
         val doc = Document(mapOf(
             "_id" to ObjectId("5b5005ceb9e80fb20d106896"),
             "string" to "string",
@@ -27,7 +27,8 @@ class SchemaMapperTest {
             "vacuum" to null,
             "map" to mapOf("k" to "v"),
             "doc" to Document(mapOf("key" to "value")),
-            "undefined" to BsonUndefined()
+            "undefined" to BsonUndefined(),
+            "camelCase" to "lowercased"
         ))
         val bson = Document(mapOf(
             "ts" to BsonTimestamp(1531970947, 1),
@@ -57,6 +58,7 @@ class SchemaMapperTest {
                 assertThat(it["map"]).isEqualTo("""{"k":"v"}""")
                 assertThat(it["doc"]).isEqualTo("""{ "key" : "value" }""")
                 assertThat(it.schema().fields()).doesNotContain("undefined")
+                assertThat(it["camelcase"]).isEqualTo("lowercased")
             }
     }
 
