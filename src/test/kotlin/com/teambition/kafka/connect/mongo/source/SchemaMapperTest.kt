@@ -39,7 +39,7 @@ class SchemaMapperTest {
         ))
         // Test types mapping
         SchemaMapper
-            .getAnalyzedStruct(bson, "schema_")
+            .getAnalyzedStruct(bson, "schema")
             .let { struct ->
                 assertThat(struct.schema().name()).isEqualTo("schema_d_c")
                 assertThat(struct.schema().parameters()["table"]).isEqualTo("base_d_c")
