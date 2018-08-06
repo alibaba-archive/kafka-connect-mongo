@@ -41,9 +41,14 @@ object SchemaMapper {
      * Transform the object in document into map with lower cased keys and pure values
      */
     private fun transformBody(body: Map<*, *>): Map<String, *> =
-        body.map {
-            Pair((it.key as String).toLowerCase(), transformValue(it.value))
-        }.toMap()
+        body.map { entry ->
+            val key = entry.key as String
+            if (key.matches(Regex("^[a-z_][a-z0-9_]*$", RegexOption.IGNORE_CASE))) {
+                Pair(key.toLowerCase(), transformValue(entry.value))
+            } else {
+                null
+            }
+        }.filterNotNull().toMap()
 
     /**
      * Add meta fields on schema
