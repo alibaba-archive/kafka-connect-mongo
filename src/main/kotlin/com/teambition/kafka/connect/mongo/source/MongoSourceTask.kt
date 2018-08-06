@@ -2,6 +2,8 @@ package com.teambition.kafka.connect.mongo.source
 
 import com.teambition.kafka.connect.mongo.database.DatabaseReader
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * @author Xu Jingxin
@@ -14,10 +16,13 @@ class MongoSourceTask : AbstractMongoSourceTask() {
 
     override fun start(props: Map<String, String>) {
         super.start(props)
-        databases.forEach { startReader(it, 0) }
+        val executor = Executors.newFixedThreadPool(3)
+        databases.forEach { startReader(it, executor, 0) }
+        Thread.sleep(5000)
+        executor.shutdown()
     }
 
-    private fun loadReader(db: String): DatabaseReader {
+    private fun loadReader(db: String, executor: ExecutorService): DatabaseReader {
         val partition = getPartition(db)
         val timeOffset = context.offsetStorageReader().offset(partition)
         val start = if (!(timeOffset == null || timeOffset.isEmpty())) timeOffset[db] as String else null
@@ -25,17 +30,17 @@ class MongoSourceTask : AbstractMongoSourceTask() {
         log.info("Start database reader for db: {}, start from: {}",
             db,
             startOffset.toString())
-        return DatabaseReader(uri, db, startOffset, messages, initialImport)
+        return DatabaseReader(uri, db, startOffset, messages, executor, initialImport)
     }
 
     // Create a new DatabaseReader thread for
-    private fun startReader(db: String, errCount: Int = 0) {
+    private fun startReader(db: String, executor: ExecutorService, errCount: Int = 0) {
         if (errCount > maxErrCount) {
             unrecoverable = Exception("Can not execute database reader!")
             return
         }
         val startTime = System.currentTimeMillis()
-        val reader = loadReader(db)
+        val reader = loadReader(db, executor)
         databaseReaders[db] = reader
         val t = Thread(reader)
         val uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, throwable ->
@@ -46,7 +51,10 @@ class MongoSourceTask : AbstractMongoSourceTask() {
             if ((System.currentTimeMillis() - startTime) > 600000) {
                 errCnt = 0
             }
-            startReader(db, errCnt)
+            val singleExecutor = Executors.newSingleThreadExecutor()
+            startReader(db, singleExecutor, errCnt)
+            Thread.sleep(5000)
+            singleExecutor.shutdown()
         }
         t.uncaughtExceptionHandler = uncaughtExceptionHandler
         t.start()

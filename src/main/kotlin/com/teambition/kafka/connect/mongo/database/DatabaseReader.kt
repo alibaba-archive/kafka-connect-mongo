@@ -13,6 +13,7 @@ import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
@@ -22,11 +23,13 @@ import java.util.concurrent.TimeUnit
  * @param db mydb.test
  * @param start
  * @param messages
+ * @param executor Executor service for importing data
  */
 class DatabaseReader(val uri: String,
                      val db: String,
                      val start: MongoSourceOffset,
                      val messages: ConcurrentLinkedQueue<Document>,
+                     private val executor: ExecutorService,
                      private val initialImport: Boolean) : Runnable {
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseReader::class.java)
@@ -58,9 +61,10 @@ class DatabaseReader(val uri: String,
      */
     override fun run() {
         if (!start.finishedImport && initialImport) {
-            importCollection(db, start.objectId)
+            executor.execute { importCollection(db, start.objectId) }
+            executor.awaitTermination(1, TimeUnit.DAYS)
         }
-        log.trace("Querying oplog...")
+        log.info("Querying oplog on $db from ${start.ts}")
         val documents = oplog
             .find(query)
             .sort(Document("\$natural", 1))
@@ -84,7 +88,7 @@ class DatabaseReader(val uri: String,
                         db,
                         count,
                         messages.size)
-                    Thread.sleep(500)
+                    Thread.sleep(1000)
                 }
                 if (count % 1000 == 0) {
                     log.info("Read database {}, docs {}, messages {}, memory usage {}",
