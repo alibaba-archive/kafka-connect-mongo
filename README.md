@@ -44,6 +44,8 @@ schema.name=mongo_local_schema
 topic.prefix=mongo_local
 databases=test.users
 # If this option is set to true, source connector will analyze the schema from real document type and mapping them to the top level schema types
+# WARNING: mongo connector interprets the schema from the structure of document, so it can not ensure the schema always stay consist. 
+# If you met an `Schema being registered is incompatible with an earlier schema` error given by schema registry, please set the `avro.compatibility.level` option of schema registry to `none` 
 analyze.schema=false
 # If use ssl, add configs on jvm by set environment variables `-Djavax.net.ssl.trustStore=/secrets/truststore.jks -Djavax.net.ssl.trustStorePassword=123456 -Djavax.net.ssl.keyStore=/secrets/keystore.jks -Djavax.net.ssl.keyStorePassword=123456`
 #mongo.uri=mongodb://user:pwd@128.0.0.1:27017/?ssl=true&authSource=admin&replicaSet=rs0&sslInvalidHostNameAllowed=true

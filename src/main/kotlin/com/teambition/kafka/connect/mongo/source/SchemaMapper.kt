@@ -25,7 +25,7 @@ object SchemaMapper {
         val body = transformBody(message["o"] as Document)
         val schemaName = ns
             .replace(".", "_")
-            .let { schemaPrefix + it }
+            .let { schemaPrefix + "_" + it }
         val oldSchema = getSchema(schemaName)
         val builder = SchemaBuilder
             .struct()
