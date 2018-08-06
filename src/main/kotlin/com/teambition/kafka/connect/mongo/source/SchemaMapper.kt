@@ -22,9 +22,7 @@ object SchemaMapper {
 
     fun getAnalyzedStruct(message: Document, schemaPrefix: String): Struct {
         val ns = message["ns"] as String
-        val body = (message["o"] as Document).map {
-            Pair(it.key.toLowerCase(), it.value)
-        }.toMap()
+        val body = transformBody(message["o"] as Document)
         val schemaName = ns
             .replace(".", "_")
             .let { schemaPrefix + it }
@@ -38,6 +36,14 @@ object SchemaMapper {
             .let { maybeUpdateSchema(oldSchema, it) }
         return Struct(builder.build()).let { fillinFields(it, message, body) }
     }
+
+    /**
+     * Transform the object in document into map with lower cased keys and pure values
+     */
+    private fun transformBody(body: Map<*, *>): Map<String, *> =
+        body.map {
+            Pair((it.key as String).toLowerCase(), transformValue(it.value))
+        }.toMap()
 
     /**
      * Add meta fields on schema
@@ -79,7 +85,6 @@ object SchemaMapper {
     private fun analyze(builder: SchemaBuilder, body: Map<String, Any?>): SchemaBuilder {
         body.toSortedMap().forEach { key, value ->
             value
-                .let { transformValue(it) }
                 ?.let { buildSchema(it).parameter("sqlType", sqlType(it)) }
                 ?.let { builder.field(key, it.build()) }
         }
@@ -99,21 +104,23 @@ object SchemaMapper {
 
     /**
      * Transform value into sql supported type
-     * The only returned type will be in set of string, date, number, boolean and null
+     * The only returned type will be in set of string, date, number, boolean, map, collection and null
      */
     private fun transformValue(value: Any?): Any? =
         when (value) {
             is ObjectId -> value.toString()
             is Date, is Boolean -> value
             is Number -> value.toDouble()
-            is Document -> value.toJson()
-            is Map<*, *> -> JSONObject(value).toString()
-            is Collection<*> -> JSONArray(value).toString()
+            is Document -> transformBody(value)
+            is Map<*, *> -> transformBody(value)
+            is Collection<*> -> value.map { transformValue(it) }
+            is Array<*> -> value.map { transformValue(it) }
             is BsonUndefined -> null
             else -> value?.toString()
         }
 
     /**
+     * Transform value into schema registry supported type
      * Get transformed value by schema type
      */
     private fun transformValue(value: Any?, type: Type): Any? =
@@ -122,6 +129,8 @@ object SchemaMapper {
                 when (type) {
                     Type.STRING -> when (v) {
                         is Date -> DateUtil.getISODate(v.time)
+                        is Map<*, *> -> JSONObject(v).toString()
+                        is Collection<*> -> JSONArray(v).toString()
                         else -> v?.toString()
                     }
                     Type.FLOAT64 -> v as? Double
@@ -252,4 +261,3 @@ object SchemaMapper {
         }
     }
 }
-

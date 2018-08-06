@@ -26,9 +26,10 @@ class SchemaMapperTest {
             "array" to listOf("A", "B"),
             "vacuum" to null,
             "map" to mapOf("k" to "v"),
-            "doc" to Document(mapOf("key" to "value")),
             "undefined" to BsonUndefined(),
-            "camelCase" to "lowercased"
+            "camelCase" to "lowercased",
+            "doc" to Document(mapOf("objectId" to ObjectId("5b5005ceb9e80fb20d106896"))),
+            "docarray" to arrayOf(Document(mapOf("objectId" to ObjectId("5b5005ceb9e80fb20d106896"))))
         ))
         val bson = Document(mapOf(
             "ts" to BsonTimestamp(1531970947, 1),
@@ -39,26 +40,29 @@ class SchemaMapperTest {
         // Test types mapping
         SchemaMapper
             .getAnalyzedStruct(bson, "schema_")
-            .let {
-                assertThat(it.schema().name()).isEqualTo("schema_d_c")
-                assertThat(it.schema().parameters()["table"]).isEqualTo("base_d_c")
-                assertThat(it["__op"]).isEqualTo("i")
-                assertThat(it["__pkey"]).isEqualTo("5b5005ceb9e80fb20d106896")
-                assertThat(it["__sql"]).isNull()
-                assertThat(it["__ts"]).isEqualTo("2018-07-19T03:29:07.000Z")
-                assertThat(it["_id"]).isEqualTo("5b5005ceb9e80fb20d106896")
-                assertThat(it["string"]).isEqualTo("string")
-                assertThat(it["text"]).isEqualTo("text")
-                assertThat(it["int"]).isEqualTo(10.0)
-                assertThat(it["bool"]).isEqualTo(false)
-                assertThat(it["double"]).isEqualTo(1.1)
-                assertThat(it["date"]).isEqualTo("2018-07-19T03:29:07.888Z")
-                assertThat(it["array"]).isEqualTo("""["A","B"]""")
-                assertThat(it.schema().fields()).doesNotContain("vacuum")
-                assertThat(it["map"]).isEqualTo("""{"k":"v"}""")
-                assertThat(it["doc"]).isEqualTo("""{ "key" : "value" }""")
-                assertThat(it.schema().fields()).doesNotContain("undefined")
-                assertThat(it["camelcase"]).isEqualTo("lowercased")
+            .let { struct ->
+                assertThat(struct.schema().name()).isEqualTo("schema_d_c")
+                assertThat(struct.schema().parameters()["table"]).isEqualTo("base_d_c")
+                assertThat(struct["__op"]).isEqualTo("i")
+                assertThat(struct["__pkey"]).isEqualTo("5b5005ceb9e80fb20d106896")
+                assertThat(struct["__sql"]).isNull()
+                assertThat(struct["__ts"]).isEqualTo("2018-07-19T03:29:07.000Z")
+                assertThat(struct["_id"]).isEqualTo("5b5005ceb9e80fb20d106896")
+                assertThat(struct["string"]).isEqualTo("string")
+                assertThat(struct["text"]).isEqualTo("text")
+                assertThat(struct["int"]).isEqualTo(10.0)
+                assertThat(struct["bool"]).isEqualTo(false)
+                assertThat(struct["double"]).isEqualTo(1.1)
+                assertThat(struct["date"]).isEqualTo("2018-07-19T03:29:07.888Z")
+                assertThat(struct["array"]).isEqualTo("""["A","B"]""")
+                assertThat(struct.schema().fields()).doesNotContain("vacuum")
+                assertThat(struct["map"]).isEqualTo("""{"k":"v"}""")
+                assertThat(struct.schema().fields()).doesNotContain("undefined")
+                assertThat(struct["camelcase"]).isEqualTo("lowercased")
+                assertThat(struct["doc"]).isEqualTo("""{"objectid":"5b5005ceb9e80fb20d106896"}""")
+                assertThat(struct["docarray"]).isEqualTo("""[{"objectid":"5b5005ceb9e80fb20d106896"}]""")
+                assertThat(struct.schema().field("docarray").schema().type().toString()).isEqualTo("STRING")
+                assertThat(struct.schema().field("docarray").schema().parameters()["sqlType"]).isEqualTo("VARCHAR")
             }
     }
 

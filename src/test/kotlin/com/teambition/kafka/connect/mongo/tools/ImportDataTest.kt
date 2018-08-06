@@ -44,7 +44,6 @@ class ImportDataTest {
         val collectionName = "users"
         bulkInsert(count, collectionName)
         val messages = ConcurrentLinkedQueue<MessageData>()
-        val bulkSize = 10
 
         val importDb = ImportDB(
             uri = "mongodb://localhost:12345",
@@ -79,19 +78,19 @@ class ImportDataTest {
         kafkaUnit.readMessages("import_test_${dbName}_dogs", 20)
         val cats = kafkaUnit.readKeyedMessages("import_test_${dbName}_cats", 10)
 
-        cats.forEach {
-            log.debug("Cat record: {}", it)
-            val key = JSONObject(it.key()).toMap()
-            val message = JSONObject(it.message()).toMap()
+        cats.forEach { cat ->
+            log.debug("Cat record: {}", cat)
+            val key = JSONObject(cat.key()).toMap()
+            val message = JSONObject(cat.message()).toMap()
             val keySchema = key["schema"] as Map<*, *>
             val keyPayload = key["payload"] as String
             val messageSchema = message["schema"] as Map<*, *>
             val messagePayload = message["payload"] as Map<*, *>
-            val fields = (messageSchema["fields"] as List<Map<*, *>>).map {
-                it["field"]
-            }
+            val fields = (messageSchema["fields"] as List<*>)
+                .map { it as Map<*, *> }
+                .map { it["field"] }
 
-            assertThat(it.topic()).isEqualTo("import_test_${dbName}_cats")
+            assertThat(cat.topic()).isEqualTo("import_test_${dbName}_cats")
             assertThat(keySchema).isEqualTo(mapOf(
                 "type" to "string",
                 "optional" to true
