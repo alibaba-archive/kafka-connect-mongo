@@ -166,9 +166,9 @@ class DatabaseReader(val uri: String,
     private fun findOneById(doc: Document): Document? {
         try {
             val nsCollection = getNSCollection(doc["ns"].toString())
-            val _id = (doc["o2"] as Document)["_id"] as ObjectId
+            val id = (doc["o2"] as Document)["_id"] as ObjectId
 
-            val docs = nsCollection.find(Filters.eq("_id", _id)).into(ArrayList<Document>())
+            val docs = nsCollection.find(Filters.eq("_id", id)).into(ArrayList<Document>())
 
             return if (docs.size > 0) docs[0] else null
         } catch (e: Exception) {

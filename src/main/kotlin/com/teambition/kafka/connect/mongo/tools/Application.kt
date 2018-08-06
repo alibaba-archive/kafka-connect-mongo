@@ -35,7 +35,7 @@ object Application {
             return println("connector is empty.")
         }
 
-        connectors.forEach {
+        connectors.forEach { it ->
             println("check connector $it")
 
             Fuel.get("$url/$it/status")

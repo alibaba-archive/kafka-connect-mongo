@@ -112,7 +112,7 @@ class MongoSourceTaskTest {
         } while (!pollRecords.isEmpty())
 
         assertThat(records).hasSize(4)
-        records.forEach {
+        records.forEach { it ->
             assertThat(it.key().toString()).hasLength(24)
             assertThat(it.valueSchema().fields().map { it.name() }).contains("__pkey")
         }

@@ -127,13 +127,13 @@ class MongoSinkTaskTest {
      * Mock new record
      */
     private fun createRecord(topic: String, op: String): SinkRecord {
-        val _id = ObjectId()
+        val id = ObjectId()
         val doc = Document()
-            .append("_id", _id)
+            .append("_id", id)
             .append("state", Random().nextInt())
         val message = Struct(valueSchema)
-            .put("id", _id.toHexString())
-            .put("ts", _id.timestamp)
+            .put("id", id.toHexString())
+            .put("ts", id.timestamp)
             .put("inc", 0)
             .put("op", op)
             .put("database", "t_$topic")
