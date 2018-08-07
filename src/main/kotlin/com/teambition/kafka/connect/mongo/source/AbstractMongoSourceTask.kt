@@ -6,7 +6,9 @@ import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DAT
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_REGISTRY_URL_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
+import io.confluent.kafka.schemaregistry.client.rest.RestService
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
@@ -58,18 +60,35 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")
         databases = props[DATABASES_CONFIG]!!.split(",").map(String::trim).dropLastWhile(String::isEmpty)
         analyzeSchema = (props[ANALYZE_SCHEMA_CONFIG] == "true")
-
-        log.trace("Init schema")
-        databases.map { it.replace(".", "_") }
-            .forEach {
-                schemas[it] = SchemaBuilder.struct().name(schemaName + "_" + it)
-                    .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
-                    .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
-                    .field("id", Schema.OPTIONAL_STRING_SCHEMA)
-                    .field("database", Schema.OPTIONAL_STRING_SCHEMA)
-                    .field("op", Schema.OPTIONAL_STRING_SCHEMA)
-                    .field("object", Schema.OPTIONAL_STRING_SCHEMA).build()
-            }
+        if (analyzeSchema) {
+            val schemaRegistryUrl = props[SCHEMA_REGISTRY_URL_CONFIG]
+                ?: throw Exception("Invalid config $SCHEMA_REGISTRY_URL_CONFIG")
+            val schemaRegistryClient = RestService(schemaRegistryUrl)
+            log.info("Init avro schemas")
+            databases.map { it.replace(".", "_") }
+                .forEach {
+                    try {
+                        val restSchema = schemaRegistryClient.getLatestVersion("${schemaName}_$it-value")
+                        val schema = SchemaParser.parse(restSchema)
+                        CachedSchema.set(schema)
+                    } catch (e: Exception) {
+                        log.warn("Init schema for $it error, schema not exist or contains invalid structure!")
+                        e.printStackTrace()
+                    }
+                }
+        } else {
+            log.info("Init json schema")
+            databases.map { it.replace(".", "_") }
+                .forEach {
+                    schemas[it] = SchemaBuilder.struct().name(schemaName + "_" + it)
+                        .field("ts", Schema.OPTIONAL_INT32_SCHEMA)
+                        .field("inc", Schema.OPTIONAL_INT32_SCHEMA)
+                        .field("id", Schema.OPTIONAL_STRING_SCHEMA)
+                        .field("database", Schema.OPTIONAL_STRING_SCHEMA)
+                        .field("op", Schema.OPTIONAL_STRING_SCHEMA)
+                        .field("object", Schema.OPTIONAL_STRING_SCHEMA).build()
+                }
+        }
     }
 
     override fun poll(): List<SourceRecord> {

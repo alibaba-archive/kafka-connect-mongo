@@ -6,6 +6,7 @@ import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DAT
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.INITIAL_IMPORT_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MONGO_URI_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_REGISTRY_URL_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
 import org.apache.commons.lang.StringUtils
 import org.apache.kafka.common.config.ConfigDef
@@ -29,6 +30,7 @@ open class MongoSourceConnector : SourceConnector() {
     private var topicPrefix: String = ""
     private var schemaName: String = ""
     private var analyzeSchema: String = ""
+    private var schemaRegistryUrl: String = ""
 
     override fun version(): String = AppInfoParser.getVersion()
 
@@ -43,6 +45,9 @@ open class MongoSourceConnector : SourceConnector() {
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
         analyzeSchema = props[ANALYZE_SCHEMA_CONFIG] ?: "false"
+        if (analyzeSchema == "true") {
+            schemaRegistryUrl = getRequiredProp(props, SCHEMA_REGISTRY_URL_CONFIG)
+        }
     }
 
     /**
@@ -63,6 +68,7 @@ open class MongoSourceConnector : SourceConnector() {
             config[TOPIC_PREFIX_CONFIG] = topicPrefix
             config[SCHEMA_NAME_CONFIG] = schemaName
             config[ANALYZE_SCHEMA_CONFIG] = analyzeSchema
+            config[SCHEMA_REGISTRY_URL_CONFIG] = schemaRegistryUrl
             configs.add(config)
         }
         return configs

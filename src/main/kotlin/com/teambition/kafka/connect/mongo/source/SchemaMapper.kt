@@ -12,13 +12,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author Xu Jingxin
  */
 object SchemaMapper {
-    private val schemas = ConcurrentHashMap<String, Schema>()
     private val log = LoggerFactory.getLogger(SchemaMapper::class.java)
 
     fun getAnalyzedStruct(message: Document, schemaPrefix: String): Struct {
@@ -27,7 +25,7 @@ object SchemaMapper {
         val schemaName = ns
             .replace(".", "_")
             .let { schemaPrefix + "_" + it }
-        val oldSchema = getSchema(schemaName)
+        val oldSchema = CachedSchema.get(schemaName)
         val schema = SchemaBuilder
             .struct()
             .name(schemaName)
@@ -186,7 +184,7 @@ object SchemaMapper {
      */
     private fun maybeUpdateSchema(oldSchema: Schema?, newSchema: SchemaBuilder): Schema {
         if (oldSchema == null) return getSortedSchema(newSchema).let {
-            setSchema(it)
+            CachedSchema.set(it)
         }
 
         // Contains in new schema but not in old schema
@@ -235,13 +233,13 @@ object SchemaMapper {
         newSchema.parameters().forEach {
             builder.parameter(it.key, it.value)
         }
-        return getSortedSchema(builder).let { setSchema(it) }
+        return getSortedSchema(builder).let { CachedSchema.set(it) }
     }
 
     /**
      * Resort schema by field name
      */
-    private fun getSortedSchema(schema: SchemaBuilder): SchemaBuilder {
+    private fun getSortedSchema(schema: SchemaBuilder): Schema {
         val builder = SchemaBuilder.struct().name(schema.name())
         val fieldNames = schema.fields().map { it.name() }.sorted()
         fieldNames.forEach {
@@ -250,25 +248,6 @@ object SchemaMapper {
         schema.parameters().forEach {
             builder.parameter(it.key, it.value)
         }
-        return builder
-    }
-
-    /**
-     * Get saved schema from local map variable
-     */
-    private fun getSchema(name: String): Schema? {
-        return synchronized(schemas) {
-            schemas[name]
-        }
-    }
-
-    /**
-     * Set new schema into local map variable
-     */
-    private fun setSchema(schema: SchemaBuilder): Schema {
-        return synchronized(schemas) {
-            schemas[schema.name()] = schema.build()
-            schema
-        }
+        return builder.build()
     }
 }

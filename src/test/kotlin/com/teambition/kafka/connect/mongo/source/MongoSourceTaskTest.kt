@@ -6,6 +6,7 @@ import com.mongodb.client.model.Filters
 import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.utils.Mongod
+import io.confluent.kafka.schemaregistry.client.rest.RestService
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.source.SourceRecord
@@ -99,6 +100,7 @@ class MongoSourceTaskTest {
         subtleInsert()
         val properties = sourceProperties.toMutableMap()
         properties["analyze.schema"] = "true"
+        properties["schema.registry.url"] = "http://127.0.0.1/notfound"
         properties["initial.import"] = "false"
         task!!.start(properties)
         Thread.sleep(2000)
