@@ -1,5 +1,6 @@
 package com.teambition.kafka.connect.mongo.source
 
+import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.Schema.Type
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @author Xu Jingxin
  */
 object SchemaMapper {
-    private val schemas = ConcurrentHashMap<String, SchemaBuilder>()
+    private val schemas = ConcurrentHashMap<String, Schema>()
     private val log = LoggerFactory.getLogger(SchemaMapper::class.java)
 
     fun getAnalyzedStruct(message: Document, schemaPrefix: String): Struct {
@@ -27,14 +28,14 @@ object SchemaMapper {
             .replace(".", "_")
             .let { schemaPrefix + "_" + it }
         val oldSchema = getSchema(schemaName)
-        val builder = SchemaBuilder
+        val schema = SchemaBuilder
             .struct()
             .name(schemaName)
             .let { addMetaFields(it) }
             .parameter("table", getTable(ns))
             .let { analyze(it, body) }
             .let { maybeUpdateSchema(oldSchema, it) }
-        return Struct(builder.build()).let { fillinFields(it, message, body) }
+        return Struct(schema).let { fillinFields(it, message, body) }
     }
 
     /**
@@ -91,7 +92,7 @@ object SchemaMapper {
         body.toSortedMap().forEach { key, value ->
             value
                 ?.let { buildSchema(it).parameter("sqlType", sqlType(it)) }
-                ?.let { builder.field(key, it.build()) }
+                ?.let { builder.field(key, it) }
         }
         return builder
     }
@@ -183,53 +184,58 @@ object SchemaMapper {
      * or merge two schemas into a new one
      * and save it in the schemas map
      */
-    private fun maybeUpdateSchema(oldSchema: SchemaBuilder?, newSchema: SchemaBuilder): SchemaBuilder {
+    private fun maybeUpdateSchema(oldSchema: Schema?, newSchema: SchemaBuilder): Schema {
         if (oldSchema == null) return getSortedSchema(newSchema).let {
             setSchema(it)
         }
-        var updated = false
-        val conflictFields = mutableListOf<String>()
+
+        // Contains in new schema but not in old schema
+        val extraKeys = mutableListOf<String>()
+        // Both contains in two schemas, but with different types
+        val conflictKeys = mutableListOf<String>()
 
         newSchema.fields().forEach { field ->
             if (oldSchema.field(field.name()) == null) {
-                // Meet new field
-                oldSchema.field(field.name(), field.schema())
-                updated = true
+                extraKeys.add(field.name())
             } else if (oldSchema.field(field.name()) != null &&
                 oldSchema.schema().field(field.name()).schema().type() != field.schema().type()) {
                 // Schema conflict
                 log.warn("Field `${field.name()}` of schema ${oldSchema.name()} is type conflicted")
-                conflictFields.add(field.name())
-                updated = true
+                conflictKeys.add(field.name())
             }
         }
 
-        return when {
-            conflictFields.isNotEmpty() -> getNonConflictSchema(oldSchema, conflictFields)
-                .let { getSortedSchema(it) }
-                .let { setSchema(it) }
-            updated -> getSortedSchema(oldSchema)
-                .let { setSchema(it) }
-            else -> oldSchema
-        }
+        return mergeSchema(oldSchema, newSchema, extraKeys, conflictKeys)
     }
 
-    /**
-     * Get a new schema builder, which set all conflict fields to string
-     */
-    private fun getNonConflictSchema(schema: SchemaBuilder, conflictFields: List<String>): SchemaBuilder {
-        val builder = SchemaBuilder.struct().name(schema.name())
-        schema.fields().forEach {
-            if (it.name() in conflictFields) {
-                builder.field(it.name(), SchemaBuilder.string().optional())
+    private fun mergeSchema(oldSchema: Schema, newSchema: SchemaBuilder, extraKeys: List<String>, conflictKeys: List<String>): Schema {
+        if (extraKeys.isEmpty() && conflictKeys.isEmpty()) {
+            return oldSchema
+        }
+        val builder = SchemaBuilder.struct().name(newSchema.name())
+        // Handle conflict keys
+        oldSchema.fields().forEach {
+            if (it.name() in conflictKeys) {
+                builder.field(
+                    it.name(),
+                    SchemaBuilder
+                        .string()
+                        .optional()
+                        .parameter("sqlType", sqlType("VARCHAR"))
+                )
             } else {
                 builder.field(it.name(), it.schema())
             }
         }
-        schema.parameters().forEach {
+        // Handle extra keys
+        extraKeys.forEach { key ->
+            builder.field(key, newSchema.field(key).schema())
+        }
+
+        newSchema.parameters().forEach {
             builder.parameter(it.key, it.value)
         }
-        return builder
+        return getSortedSchema(builder).let { setSchema(it) }
     }
 
     /**
@@ -250,7 +256,7 @@ object SchemaMapper {
     /**
      * Get saved schema from local map variable
      */
-    private fun getSchema(name: String): SchemaBuilder? {
+    private fun getSchema(name: String): Schema? {
         return synchronized(schemas) {
             schemas[name]
         }
@@ -259,9 +265,9 @@ object SchemaMapper {
     /**
      * Set new schema into local map variable
      */
-    private fun setSchema(schema: SchemaBuilder): SchemaBuilder {
+    private fun setSchema(schema: SchemaBuilder): Schema {
         return synchronized(schemas) {
-            schemas[schema.name()] = schema
+            schemas[schema.name()] = schema.build()
             schema
         }
     }
