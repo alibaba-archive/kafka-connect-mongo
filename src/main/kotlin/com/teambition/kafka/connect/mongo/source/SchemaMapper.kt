@@ -196,7 +196,8 @@ object SchemaMapper {
             if (oldSchema.field(field.name()) == null) {
                 extraKeys.add(field.name())
             } else if (oldSchema.field(field.name()) != null &&
-                oldSchema.schema().field(field.name()).schema().type() != field.schema().type()) {
+                oldSchema.field(field.name()).schema().type() != Schema.Type.STRING &&
+                oldSchema.field(field.name()).schema().type() != field.schema().type()) {
                 // Schema conflict
                 log.warn("Field `${field.name()}` of schema ${oldSchema.name()} is type conflicted")
                 conflictKeys.add(field.name())
