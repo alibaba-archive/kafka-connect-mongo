@@ -19,7 +19,6 @@ class SchemaParserTest {
             .let { SchemaParser.parse(it) }
             .let { schema ->
                 assertThat(schema.name()).isEqualTo("mongo_schema_teambition_users")
-                assertThat(schema.version()).isEqualTo(1)
                 assertThat(schema.parameters()["table"]).isEqualTo("base_users")
                 assertThat(schema.field("__op").schema().type().name).isEqualTo("STRING")
                 assertThat(schema.field("__pkey").schema().type().name).isEqualTo("STRING")
