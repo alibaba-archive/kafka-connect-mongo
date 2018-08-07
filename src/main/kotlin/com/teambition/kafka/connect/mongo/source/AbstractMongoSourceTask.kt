@@ -68,7 +68,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
             databases.map { it.replace(".", "_") }
                 .forEach {
                     try {
-                        val restSchema = schemaRegistryClient.getLatestVersion("${schemaName}_$it-value")
+                        val restSchema = schemaRegistryClient.getLatestVersion("${topicPrefix}_$it-value")
                         val schema = SchemaParser.parse(restSchema)
                         CachedSchema.set(schema)
                     } catch (e: Exception) {

@@ -15,7 +15,6 @@ object SchemaParser {
     fun parse(schema: io.confluent.kafka.schemaregistry.client.rest.entities.Schema): Schema {
         val struct = JSONObject(schema.schema)
         val builder = SchemaBuilder.struct()
-            .version(schema.version)
             .name(struct["name"] as String)
         // Set parameters
         setParameters(builder, struct)
