@@ -6,7 +6,6 @@ import com.mongodb.client.model.Filters
 import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.utils.Mongod
-import io.confluent.kafka.schemaregistry.client.rest.RestService
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.source.SourceRecord

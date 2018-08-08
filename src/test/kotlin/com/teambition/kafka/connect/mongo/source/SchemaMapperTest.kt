@@ -1,6 +1,7 @@
 package com.teambition.kafka.connect.mongo.source
 
 import com.google.common.truth.Truth.assertThat
+import org.apache.kafka.connect.data.Schema
 import org.bson.BsonTimestamp
 import org.bson.BsonUndefined
 import org.bson.Document
@@ -91,35 +92,53 @@ class SchemaMapperTest {
             ))
         )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
             .let {
+                assertThat(it["_id"]).isEqualTo("5b5005ceb9e80fb20d106896")
                 assertThat(it["name"]).isEqualTo("name")
             }
     }
 
     @Test
     fun conflictStruct() {
-        // Schema type is double
+        // Field name is double, double sqlType
+        // Field date is string, TIMESTAMP sqlType
         Document(mapOf(
             "ts" to BsonTimestamp(1531970947, 1),
             "ns" to "d.conflict",
             "op" to "d",
             "o" to Document(mapOf(
-                "name" to 10
+                "name" to 10,
+                "date" to BsonTimestamp(1531970947, 1)
             ))
         )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
-            .let { assertThat(it["name"]).isEqualTo(10.0) }
+            .let {
+                assertThat(it["name"]).isEqualTo(10.0)
+                assertThat(it.schema().field("name").schema().type()).isEqualTo(Schema.Type.FLOAT64)
+                assertThat(it.schema().field("name").schema().parameters()["sqlType"]).isEqualTo("DOUBLE")
+                assertThat(it["date"] as String).matches("""\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z""")
+                assertThat(it.schema().field("date").schema().type()).isEqualTo(Schema.Type.STRING)
+                assertThat(it.schema().field("date").schema().parameters()["sqlType"]).isEqualTo("TIMESTAMP")
+            }
 
-        // Schema type is boolean, will convert into string
+        // Discard conflict field, but keep the schema to the old ones
         Document(mapOf(
             "ts" to BsonTimestamp(1531970947, 1),
             "ns" to "d.conflict",
             "op" to "i",
             "o" to Document(mapOf(
-                "name" to false
+                "name" to false,
+                "date" to "Tue Jan 02 2018 14:58:24 GMT+0800 (CST)"
             ))
         )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
-            .let { assertThat(it["name"]).isEqualTo("false") }
+            .let {
+                assertThat(it["name"]).isNull()
+                assertThat(it.schema().field("name").schema().type()).isEqualTo(Schema.Type.FLOAT64)
+                assertThat(it.schema().field("name").schema().parameters()["sqlType"]).isEqualTo("DOUBLE")
+                assertThat(it["date"]).isNull()
+                assertThat(it.schema().field("date").schema().type()).isEqualTo(Schema.Type.STRING)
+                assertThat(it.schema().field("date").schema().parameters()["sqlType"]).isEqualTo("TIMESTAMP")
+            }
 
-        // New coming schema type of double will still use string
+        // New coming schema type of double will still use double
         Document(mapOf(
             "ts" to BsonTimestamp(1531970947, 1),
             "ns" to "d.conflict",
@@ -128,6 +147,7 @@ class SchemaMapperTest {
                 "name" to 20
             ))
         )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
-            .let { assertThat(it["name"]).isEqualTo("20.0") }
+            .let { assertThat(it["name"]).isEqualTo(20.0) }
     }
 }
+

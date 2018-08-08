@@ -16,6 +16,8 @@ object DateUtil {
 
     fun getISODate(ts: Long): String = isoDF.format(ts)
 
+    fun format(text: String): String = getISODate(parse(text).time)
+
     fun parse(text: String): Date = isoDF.parse(text)
 }
 

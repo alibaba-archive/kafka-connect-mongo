@@ -1,7 +1,6 @@
 package com.teambition.kafka.connect.mongo.source
 
 import org.apache.kafka.connect.data.Schema
-import org.apache.kafka.connect.data.Schema.Type
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
 import org.bson.BsonTimestamp
@@ -77,7 +76,7 @@ object SchemaMapper {
         doc["__ts"] = ((message["ts"] as BsonTimestamp).time * 1000L).let { DateUtil.getISODate(it) }
 
         struct.schema().fields().forEach { field ->
-            transformValue(doc[field.name()], field.schema().type())
+            transformValue(doc[field.name()], field.schema().parameters()["sqlType"] as String)
                 ?.let { struct.put(field.name(), it) }
         }
         return struct
@@ -114,6 +113,7 @@ object SchemaMapper {
         when (value) {
             is ObjectId -> value.toString()
             is Date, is Boolean -> value
+            is BsonTimestamp -> Date(value.time.toLong() * 1000)
             is Number -> value.toDouble()
             is Document -> transformBody(value)
             is Map<*, *> -> transformBody(value)
@@ -124,21 +124,26 @@ object SchemaMapper {
         }
 
     /**
-     * Transform value into schema registry supported type
-     * Get transformed value by schema type
+     * Transform value with sql type
      */
-    private fun transformValue(value: Any?, type: Type): Any? =
+    private fun transformValue(value: Any?, type: String): Any? =
         try {
-            transformValue(value).let { v ->
+            value.let { v ->
                 when (type) {
-                    Type.STRING -> when (v) {
+                    "TIMESTAMP" -> when (v) {
+                        is Date -> DateUtil.getISODate(v.time)
+                        is BsonTimestamp -> DateUtil.getISODate(v.time.toLong() * 1000)
+                        is String -> DateUtil.format(v)
+                        else -> null
+                    }
+                    "DOUBLE" -> v as? Double
+                    "BOOLEAN" -> v as? Boolean
+                    "VARCHAR" -> when (v) {
                         is Date -> DateUtil.getISODate(v.time)
                         is Map<*, *> -> JSONObject(v).toString()
                         is Collection<*> -> JSONArray(v).toString()
                         else -> v?.toString()
                     }
-                    Type.FLOAT64 -> v as? Double
-                    Type.BOOLEAN -> v as? Boolean
                     else -> v?.toString()
                 }
             }
@@ -189,43 +194,26 @@ object SchemaMapper {
 
         // Contains in new schema but not in old schema
         val extraKeys = mutableListOf<String>()
-        // Both contains in two schemas, but with different types
-        val conflictKeys = mutableListOf<String>()
 
         newSchema.fields().forEach { field ->
             if (oldSchema.field(field.name()) == null) {
                 extraKeys.add(field.name())
-            } else if (oldSchema.field(field.name()) != null &&
-                oldSchema.field(field.name()).schema().type() != Schema.Type.STRING &&
-                oldSchema.field(field.name()).schema().type() != field.schema().type()) {
-                // Schema conflict
-                log.warn("Field `${field.name()}` of schema ${oldSchema.name()} is type conflicted")
-                conflictKeys.add(field.name())
             }
         }
 
-        return mergeSchema(oldSchema, newSchema, extraKeys, conflictKeys)
+        return mergeSchema(oldSchema, newSchema, extraKeys)
     }
 
-    private fun mergeSchema(oldSchema: Schema, newSchema: SchemaBuilder, extraKeys: List<String>, conflictKeys: List<String>): Schema {
-        if (extraKeys.isEmpty() && conflictKeys.isEmpty()) {
+    private fun mergeSchema(oldSchema: Schema, newSchema: SchemaBuilder, extraKeys: List<String>): Schema {
+        if (extraKeys.isEmpty()) {
             return oldSchema
         }
         val builder = SchemaBuilder.struct().name(newSchema.name())
-        // Handle conflict keys
+
         oldSchema.fields().forEach {
-            if (it.name() in conflictKeys) {
-                builder.field(
-                    it.name(),
-                    SchemaBuilder
-                        .string()
-                        .optional()
-                        .parameter("sqlType", sqlType("VARCHAR"))
-                )
-            } else {
-                builder.field(it.name(), it.schema())
-            }
+            builder.field(it.name(), it.schema())
         }
+
         // Handle extra keys
         extraKeys.forEach { key ->
             builder.field(key, newSchema.field(key).schema())
