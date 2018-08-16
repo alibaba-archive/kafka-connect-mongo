@@ -7,12 +7,11 @@ import java.util.*
  * @author Xu Jingxin
  */
 object DateUtil {
-    private val isoDF: SimpleDateFormat
-        get() {
-            val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-            df.timeZone = TimeZone.getTimeZone("UTC")
-            return df
-        }
+    private val isoDF: SimpleDateFormat = let {
+        val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+        df.timeZone = TimeZone.getTimeZone("UTC")
+        df
+    }
 
     fun getISODate(ts: Long): String = isoDF.format(ts)
 
