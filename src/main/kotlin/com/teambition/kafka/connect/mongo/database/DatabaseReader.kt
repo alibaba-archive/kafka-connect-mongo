@@ -61,7 +61,7 @@ class DatabaseReader(val uri: String,
      */
     override fun run() {
         if (!start.finishedImport && initialImport) {
-            executor.execute { importCollection(db, start.objectId) }
+            executor.execute { importCollection(db, start.objectId.toString()) }
             executor.awaitTermination(1, TimeUnit.DAYS)
         }
         log.info("Querying oplog on $db from ${start.ts}")
@@ -104,7 +104,7 @@ class DatabaseReader(val uri: String,
         }
     }
 
-    private fun importCollection(db: String, objectId: ObjectId) {
+    private fun importCollection(db: String, objectId: String) {
         var offsetCount = 0L
         var offsetId = objectId
         val mongoCollection = getNSCollection(db)
@@ -117,7 +117,7 @@ class DatabaseReader(val uri: String,
             .asSequence()
             .forEach { document ->
                 messages.add(formatAsOpLog(document))
-                offsetId = document["_id"] as ObjectId
+                offsetId = document["_id"] as String
                 offsetCount += 1
                 while (messages.size > maxMessageSize) {
                     log.warn("Message overwhelm! database {}, docs {}, messages {}",
@@ -166,7 +166,7 @@ class DatabaseReader(val uri: String,
     private fun findOneById(doc: Document): Document? {
         try {
             val nsCollection = getNSCollection(doc["ns"].toString())
-            val id = (doc["o2"] as Document)["_id"] as ObjectId
+            val id = (doc["o2"] as Document)["_id"] as String
 
             val docs = nsCollection.find(Filters.eq("_id", id)).into(ArrayList<Document>())
 

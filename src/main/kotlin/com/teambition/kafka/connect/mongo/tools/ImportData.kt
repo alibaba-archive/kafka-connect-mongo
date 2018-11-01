@@ -112,7 +112,7 @@ class ImportDB(val uri: String,
     private val mongoClient: MongoClient = MongoClient(MongoClientURI(uri))
     private val mongoDatabase: MongoDatabase
     private val mongoCollection: MongoCollection<Document>
-    private var offsetId: ObjectId? = null
+    private var offsetId: String? = null
     private val snakeDb: String = dbName.replace("\\.".toRegex(), "_")
     private var offsetCount = 0
     private val maxMessageSize = 3000
@@ -138,7 +138,7 @@ class ImportDB(val uri: String,
             .forEach {
                 try {
                     messages.add(getResult(it))
-                    offsetId = it["_id"] as ObjectId
+                    offsetId = it["_id"] as String
                     offsetCount += 1
                     while (messages.size > maxMessageSize) {
                         log.warn("Message overwhelm! database {}, docs {}, messages {}",
@@ -162,12 +162,12 @@ class ImportDB(val uri: String,
     }
 
     private fun getResult(document: Document): MessageData {
-        val id = document["_id"] as ObjectId
+        val id = document["_id"] as String
         val key = JSONObject(mapOf(
             "schema" to mapOf(
                 "type" to "string",
                 "optional" to true
-            ), "payload" to id.toHexString()
+            ), "payload" to id
         ))
         val topic = "${topicPrefix}_$snakeDb"
         val message = JSONObject(mapOf(
@@ -209,8 +209,8 @@ class ImportDB(val uri: String,
                 "name" to topic
             ),
             "payload" to mapOf(
-                "id" to id.toHexString(),
-                "ts" to id.timestamp,
+                "id" to id,
+                "ts" to document["createdAt"],
                 "inc" to 0,
                 "database" to snakeDb,
                 "op" to "i",

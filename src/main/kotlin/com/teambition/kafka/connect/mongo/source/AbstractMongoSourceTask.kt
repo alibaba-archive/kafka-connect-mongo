@@ -98,7 +98,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         while (!messages.isEmpty() && records.size < batchSize) {
             val message = messages.poll()
             val id = (message["o"] as Document)
-                .let { it["_id"] as ObjectId }
+                .let { it["_id"] as String }
                 .toString()
             try {
                 val struct = getStruct(message)
@@ -136,7 +136,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
 
     private fun getOffset(message: Document): Map<String, String> {
         val timestamp = message["ts"] as BsonTimestamp
-        val objectId = (message["o"] as Document)["_id"] as ObjectId
+        val objectId = (message["o"] as Document)["_id"] as String
         val finishedImport = message["initialImport"] == null
         val offsetVal = MongoSourceOffset.toOffsetString(timestamp, objectId, finishedImport)
         return Collections.singletonMap(StructUtil.getDB(message), offsetVal)
@@ -161,7 +161,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         val struct = Struct(schema)
         val bsonTimestamp = message["ts"] as BsonTimestamp
         val body = message["o"] as Document
-        val id = (body["_id"] as ObjectId).toString()
+        val id = body["_id"] as String
         struct.put("ts", bsonTimestamp.time)
         struct.put("inc", bsonTimestamp.inc)
         struct.put("id", id)
