@@ -34,6 +34,6 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
-      - run: gradle jar
+      - run: gradle distTar
       - store_artifacts:
-          path: ~/repo/build/libs
+          path: ~/repo/build/distributions
