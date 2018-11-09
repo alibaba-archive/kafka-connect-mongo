@@ -12,6 +12,6 @@ object StructUtil {
 
     fun getTopic(message: Document, topicPrefix: String): String {
         val db = getDB(message).replace(".", "_")
-        return topicPrefix + "_" + db.toLowerCase()
+        return topicPrefix + "_" + db
     }
 }

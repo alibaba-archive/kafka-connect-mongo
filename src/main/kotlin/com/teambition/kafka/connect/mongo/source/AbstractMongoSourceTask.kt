@@ -65,7 +65,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
                 ?: throw Exception("Invalid config $SCHEMA_REGISTRY_URL_CONFIG")
             val schemaRegistryClient = RestService(schemaRegistryUrl)
             log.info("Init avro schemas")
-            databases.map { it.replace(".", "_").toLowerCase() }
+            databases.map { it.replace(".", "_") }
                 .forEach {
                     try {
                         val restSchema = schemaRegistryClient.getLatestVersion("${topicPrefix}_$it-value")

@@ -169,7 +169,7 @@ class ImportDB(val uri: String,
                 "optional" to true
             ), "payload" to id
         ))
-        val topic = "${topicPrefix}_$snakeDb".toLowerCase()
+        val topic = "${topicPrefix}_$snakeDb"
         val message = JSONObject(mapOf(
             "schema" to mapOf(
                 "type" to "struct",
