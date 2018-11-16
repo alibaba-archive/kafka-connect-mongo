@@ -1,4 +1,6 @@
-version: 2
+version: 2.1
+orbs:
+  aws-s3: circleci/aws-s3@volatile
 jobs:
   build:
     docker:
@@ -23,14 +25,7 @@ jobs:
       - run:
           name: Build Distribution
           command: gradle distTar
-      - run:
-          name: Install S3 Uploader
-          command: |
-            url='https://github.com/matthew-andrews/s3up/releases/download/v1.0.5/s3up_linux_amd64'
-            curl --silent --location --fail "${url}" > /tmp/s3up
-            chmod 755 /tmp/s3up
-      - run:
-          name: Upload to S3
-          command: |
-            cd build/distributions
-            /tmp/s3up --bucket artifacts.reactioncommerce.com --destination /kafka-connect-mongo kafka-connect-mongo-*.tgz
+      - aws-s3/copy:
+          from: build/distributions/kafka-connect-mongo-*.tgz
+          to: 's3://artifacts.reactioncommerce.com/kafka-connect-mongo'
+          arguments: "--acl public-read"
