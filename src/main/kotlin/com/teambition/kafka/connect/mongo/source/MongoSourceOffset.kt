@@ -17,11 +17,11 @@ class MongoSourceOffset(offsetStr: String?) {
     val ts = BsonTimestamp(timestamp, inc)
 
     // To be compatible with old format
-    val objectId: String = if (pieces != null && pieces.size > 2) pieces[2] else "000000000000000000000000"
+    val sortField: String = if (pieces != null && pieces.size > 2) pieces[2] else ""
     val finishedImport: Boolean = if (pieces != null && pieces.size > 3) parseInt(pieces[3]) > 0 else pieces != null
 
     override fun toString(): String {
-        return toOffsetString(ts, objectId, finishedImport)
+        return toOffsetString(ts, sortField, finishedImport)
     }
 
     companion object {
@@ -29,11 +29,11 @@ class MongoSourceOffset(offsetStr: String?) {
 
         /**
          * Start from current time will skip a lot of redundant scan on oplog
-         * Format: LATEST_TIMESTAMP,INC,OBJECT_ID,FINISH_IMPORT
+         * Format: LATEST_TIMESTAMP,INC,SORT_FIELD,FINISH_IMPORT
          */
-        fun toOffsetString(ts: BsonTimestamp, objectId: String, finishedImport: Boolean): String {
+        fun toOffsetString(ts: BsonTimestamp, sortField: String, finishedImport: Boolean): String {
             val finishedFlag = if (finishedImport) 1 else -1
-            return "${ts.time}$SPLITOR${ts.inc}$SPLITOR$objectId$SPLITOR$finishedFlag"
+            return "${ts.time}$SPLITOR${ts.inc}$SPLITOR$sortField$SPLITOR$finishedFlag"
         }
     }
 }
