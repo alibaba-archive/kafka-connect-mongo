@@ -2,38 +2,35 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
     working_directory: ~/repo
-
     environment:
-      # Customize the JVM maximum heap limit
       JVM_OPTS: -Xmx3200m
       TERM: dumb
-
     steps:
       - checkout
-
       # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "build.gradle" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
       - run: gradle dependencies
-
       - save_cache:
           paths:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      - run: gradle distTar
-      - store_artifacts:
-          path: ~/repo/build/distributions
+      - run:
+          name: Build Distribution
+          command: gradle distTar
+      - run:
+          name: Install S3 Uploader
+          command: |
+            url='https://github.com/matthew-andrews/s3up/releases/download/v1.0.5/s3up_linux_amd64'
+            curl --silent --location --fail "${url}" > /tmp/s3up
+            chmod 755 /tmp/s3up
+      - run:
+          name: Upload to S3
+          command: |
+            cd build/distributions
+            /tmp/s3up --bucket artifacts.reactioncommerce.com --destination /kafka-connect-mongo kafka-connect-mongo-*.tgz
