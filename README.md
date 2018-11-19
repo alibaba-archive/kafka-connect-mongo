@@ -5,7 +5,7 @@
 
 # WARNING: when upgrade from 1.5.x to 1.6.0, please read the messages below!
 
-1.6.0 changed the package name from org.apache.kafka to com.teambition, so when you upgrade from 1.5.x, you may find your connectors breaked. So please: 
+1.6.0 changed the package name from org.apache.kafka to com.teambition, so when you upgrade from 1.5.x, you may find your connectors breaked. So please:
 
 1. Save your connectors's configs to local file, you may save those configs to a local curl script like so:
   ```
@@ -44,18 +44,36 @@ schema.name=mongo_local_schema
 topic.prefix=mongo_local
 databases=test.users
 # If this option is set to true, source connector will analyze the schema from real document type and mapping them to the top level schema types
-# WARNING: mongo connector interprets the schema from the structure of document, so it can not ensure the schema always stay consist. 
-# If you met an `Schema being registered is incompatible with an earlier schema` error given by schema registry, please set the `avro.compatibility.level` option of schema registry to `none` 
+# WARNING: mongo connector interprets the schema from the structure of document, so it can not ensure the schema always stay consist.
+# If you met an `Schema being registered is incompatible with an earlier schema` error given by schema registry, please set the `avro.compatibility.level` option of schema registry to `none`
 analyze.schema=false
 schema.registry.url=http://127.0.0.1:8080
 # If use ssl, add configs on jvm by set environment variables `-Djavax.net.ssl.trustStore=/secrets/truststore.jks -Djavax.net.ssl.trustStorePassword=123456 -Djavax.net.ssl.keyStore=/secrets/keystore.jks -Djavax.net.ssl.keyStorePassword=123456`
 #mongo.uri=mongodb://user:pwd@128.0.0.1:27017/?ssl=true&authSource=admin&replicaSet=rs0&sslInvalidHostNameAllowed=true
 ```
+## How the Mongo Source Connector Works
+
+- At startup, load and parse configuration settings
+  - determine list of enabled databases
+- If analyze.schema is enabled
+  - check schema registry for a schema mapped to each enabled database
+- If analyze.schema is disabled, prepare a generic oplog schema
+- For each enabled database
+  - read the stored offset from kafka
+  - if initial import is enabled and not complete, do import
+    - use offset to page through the collection and queue each document for the next KC `poll()` call
+  - query oplog for changes
+    - As query results stream in, format them according to the operation
+      - insert: publish the oplog to kafka as is
+      - delete: publish the oplog to kafka as is
+      - update: load the full document from mongo then publish that
+    - add them to an in-memory queue waiting for a KC `poll()`
+  - each invocation of `poll()` by the kafka-connect framework, flush the in-memory queue to kafka connect, which handles offset tracking
 
 ## Schedule export data from mongodb
 
 Simply change the connector class to MongoCronSourceConnector and add a schedule parameter in the source config,
-this connector will export all the data from your collection to kafka through the same way of mongo source connect. 
+this connector will export all the data from your collection to kafka through the same way of mongo source connect.
 
 ```properties
 name=mongo-cron-source-connector
@@ -81,7 +99,7 @@ schedule=0 0 * * * ?  # Execute every hour, in quartz cron pattern
     compression.type=none
     key.serializer=org.apache.kafka.common.serialization.StringSerializer
     value.serializer=org.apache.kafka.common.serialization.StringSerializer
-    
+
     # Mongodb properties
     mongo.uri=mongodb://127.0.0.1:27017
     topic.prefix=mongo_local
@@ -89,7 +107,7 @@ schedule=0 0 * * * ?  # Execute every hour, in quartz cron pattern
     ```
 5. Execute the script `./bin/connect-mongo producer.properties`
 
-Tips: the script will use `_id` as the offset for each bulk read, 
+Tips: the script will use `_id` as the offset for each bulk read,
 so all your messages should have an auto increment field called `_id`.
 
 ## Execute import job by gradle (Development only)
@@ -108,9 +126,9 @@ topics=topic1,topic2
 databases=mydb.topic1,mydb.topic2
 ```
 
-Now you can only use mongo sink connector as your restore tool, 
+Now you can only use mongo sink connector as your restore tool,
 you can restore data from kafka which given by mongo source connector.
- 
+
 The messages should contain `object` and `id` fields
 
 ## LICENSE
