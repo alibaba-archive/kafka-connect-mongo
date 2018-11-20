@@ -136,7 +136,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
 
     private fun getOffset(message: Document): Map<String, String> {
         val timestamp = message["ts"] as BsonTimestamp
-        val sortField = (message["o"] as Document)["updatedAt"] as String
+        val sortField = (message["o"] as Document)["updatedAt"].toString()
         val finishedImport = message["initialImport"] == null
         val offsetVal = MongoSourceOffset.toOffsetString(timestamp, sortField, finishedImport)
         return Collections.singletonMap(StructUtil.getDB(message), offsetVal)

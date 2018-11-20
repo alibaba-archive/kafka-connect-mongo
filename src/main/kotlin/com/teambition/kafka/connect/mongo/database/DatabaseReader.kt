@@ -11,6 +11,8 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
+import java.time.format.DateTimeParseException;
+import java.time.Instant;
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
@@ -106,18 +108,23 @@ class DatabaseReader(val uri: String,
 
     private fun importCollection(db: String, sortField: String) {
         var offsetCount = 0L
-        var position = sortField
+        var updatedAt = Date(0L) // default to epoch
+        try {
+            updatedAt =  Date(Instant.parse(sortField).toEpochMilli())
+        } catch (dtpex: DateTimeParseException) {
+            // OK to leave default value
+        }
         val mongoCollection = getNSCollection(db)
-        log.info("Bulk import at $db from position {}, count {}", position, offsetCount)
+        log.info("Bulk import at $db from position {}", updatedAt)
         mongoCollection
             .find()
             .batchSize(batchSize)
-            .filter(Filters.gt("updatedAt", position))
+            .filter(Filters.gt("updatedAt", updatedAt))
             .sort(Document("updatedAt", 1))
             .asSequence()
             .forEach { document ->
                 messages.add(formatAsOpLog(document))
-                position = document["updatedAt"] as String
+                updatedAt = document["updatedAt"] as Date
                 offsetCount += 1
                 while (messages.size > maxMessageSize) {
                     log.warn("Message overwhelm! database {}, docs {}, messages {}",
