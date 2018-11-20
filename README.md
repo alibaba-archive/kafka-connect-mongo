@@ -51,23 +51,42 @@ schema.registry.url=http://127.0.0.1:8080
 # If use ssl, add configs on jvm by set environment variables `-Djavax.net.ssl.trustStore=/secrets/truststore.jks -Djavax.net.ssl.trustStorePassword=123456 -Djavax.net.ssl.keyStore=/secrets/keystore.jks -Djavax.net.ssl.keyStorePassword=123456`
 #mongo.uri=mongodb://user:pwd@128.0.0.1:27017/?ssl=true&authSource=admin&replicaSet=rs0&sslInvalidHostNameAllowed=true
 ```
-## How the Mongo Source Connector Works
 
-- At startup, load and parse configuration settings
-  - determine list of enabled databases
-- If analyze.schema is enabled
-  - check schema registry for a schema mapped to each enabled database
-- If analyze.schema is disabled, prepare a generic oplog schema
-- For each enabled database
-  - read the stored offset from kafka
+## How the Mongo Source Connector Works (Implementation Notes)
+
+- Initial entrypoint from the kafka connect framework is `AbstractMongoSourceTask.start()`
+- load connector configuration settings
+- load list of enabled collections
+- if analyze.schema is enabled, load schema for each collection from schema registry
+  - if not, use generic JSON schema
+- `MongoSourceTask.start()`
+- For each enabled collection, start a `DatabaseReader`
+  - `MongoSourceTask.startReader()`
+  - `MongoSourceTask.loadReader()`
+  - get "start time" offset for this "partition"
+    - Here a "partition" is really a data subset, which means a mongodb collection
+    - this is NOT a kafka topic partition
+    - Note that the same timestamp is used to start the bulk import AND the oplog tailing, which in theory should catch all writes that happen during the import without dropping any or out-of-order application
+    - This should also in theory account for documents changed during periods of downtime for the source connector
+    - main caveat is time to complete import must not exceed oplog expiry window
+  - `DatabaseReader()`
+  - start thread for each database reader (in `MongoSourceTask.startReader()`)
+  - `DatabaseReader.run()`
   - if initial import is enabled and not complete, do import
     - use offset to page through the collection and queue each document for the next KC `poll()` call
-  - query oplog for changes
-    - As query results stream in, format them according to the operation
-      - insert: publish the oplog to kafka as is
-      - delete: publish the oplog to kafka as is
-      - update: load the full document from mongo then publish that
-    - add them to an in-memory queue waiting for a KC `poll()`
+  - `DatabaseReader.importCollection()`
+- Find all documents updatedAt > "start time", sort by updatedAt, queue for kafka
+  - Each existing document is formatted as if it was an oplog "insert"
+  - Added to a queue which is read by the KC `poll()` function, which happens independently and asynchronously
+- wait for import to complete (`DatabaseReader.run()`)
+- start oplog query ts > position
+  - this should handle any writes that happened during the import
+  - Note again this is the same timestamp we used to start the document import
+- As query results stream in, format them according to the operation
+    - insert: publish the oplog to kafka as is
+    - delete: publish the oplog to kafka as is
+    - update: load the full document from mongo then publish that
+  - add them to an in-memory queue waiting for a KC `poll()`
   - each invocation of `poll()` by the kafka-connect framework, flush the in-memory queue to kafka connect, which handles offset tracking
 
 ## Schedule export data from mongodb
