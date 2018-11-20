@@ -210,7 +210,7 @@ class ImportDB(val uri: String,
             ),
             "payload" to mapOf(
                 "id" to id,
-                "ts" to document["createdAt"],
+                "ts" to document["updatedAt"],
                 "inc" to 0,
                 "database" to snakeDb,
                 "op" to "i",

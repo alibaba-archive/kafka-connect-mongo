@@ -1,5 +1,5 @@
 group 'com.reaction'
-version '1.8.0'
+version '1.9.0'
 
 buildscript {
     ext.kotlin_version = '1.2.60'

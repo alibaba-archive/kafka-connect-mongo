@@ -55,13 +55,13 @@ class DatabaseReader(val uri: String,
 
     /**
      * If start in the old format 'latest_timestamp,inc', use oplog tailing by default
-     * If start in the new format 'latest_timestamp,inc,object_id,finished_import':
+     * If start in the new format 'latest_timestamp,inc,sort_field,finished_import':
      *    if finished_import is true, use oplog tailing and update latest_timestamp
-     *    else start mongo collection import from the object_id first then tailing
+     *    else start mongo collection import from the sort_field first then tailing
      */
     override fun run() {
         if (!start.finishedImport && initialImport) {
-            executor.execute { importCollection(db, start.objectId.toString()) }
+            executor.execute { importCollection(db, start.sortField.toString()) }
             executor.awaitTermination(1, TimeUnit.DAYS)
         }
         log.info("Querying oplog on $db from ${start.ts}")
@@ -104,20 +104,20 @@ class DatabaseReader(val uri: String,
         }
     }
 
-    private fun importCollection(db: String, objectId: String) {
+    private fun importCollection(db: String, sortField: String) {
         var offsetCount = 0L
-        var offsetId = objectId
+        var position = sortField
         val mongoCollection = getNSCollection(db)
-        log.info("Bulk import at $db from _objectId {}, count {}", offsetId, offsetCount)
+        log.info("Bulk import at $db from position {}, count {}", position, offsetCount)
         mongoCollection
             .find()
             .batchSize(batchSize)
-            .filter(Filters.gt("_id", offsetId))
-            .sort(Document("_id", 1))
+            .filter(Filters.gt("updatedAt", position))
+            .sort(Document("updatedAt", 1))
             .asSequence()
             .forEach { document ->
                 messages.add(formatAsOpLog(document))
-                offsetId = document["_id"] as String
+                position = document["updatedAt"] as String
                 offsetCount += 1
                 while (messages.size > maxMessageSize) {
                     log.warn("Message overwhelm! database {}, docs {}, messages {}",
