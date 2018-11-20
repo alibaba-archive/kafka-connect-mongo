@@ -27,5 +27,5 @@ jobs:
           command: gradle distTar
       - aws-s3/copy:
           from: build/distributions/kafka-connect-mongo-*.tgz
-          to: 's3://artifacts.reactioncommerce.com/kafka-connect-mongo'
+          to: 's3://artifacts.reactioncommerce.com/kafka-connect-mongo/'
           arguments: "--acl public-read"
