@@ -116,6 +116,7 @@ class ImportDB(val uri: String,
     private val snakeDb: String = dbName.replace("\\.".toRegex(), "_")
     private var offsetCount = 0
     private val maxMessageSize = 3000
+    private val ejsonDateAsLong: Regex = Regex("\\{ \"\\\$date\" : (\\d+) }")
 
     companion object {
         private val log = LoggerFactory.getLogger(ImportDB::class.java)
@@ -214,7 +215,7 @@ class ImportDB(val uri: String,
                 "inc" to 0,
                 "database" to snakeDb,
                 "op" to "i",
-                "object" to document.toJson()
+                "object" to ejsonDateAsLong.replace(document.toJson(), "\$1")
             )))
         return MessageData(topic, key, message)
     }
