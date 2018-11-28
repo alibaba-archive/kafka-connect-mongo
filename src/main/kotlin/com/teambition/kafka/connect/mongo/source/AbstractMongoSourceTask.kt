@@ -43,7 +43,6 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     private var sleepTime = 50L
     private var maxSleepTime = 10000L
     private var analyzeSchema = false
-    private val ejsonDateAsLong: Regex = Regex("\\{ \"\\\$date\" : (\\d+) }")
 
     override fun version(): String = MongoSourceConnector().version()
     protected var unrecoverable: Throwable? = null
@@ -171,8 +170,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         if (message["op"].toString() == "d") {
             struct.put("object", null)
         } else {
-            val json = ejsonDateAsLong.replace((message["o"] as Document).toJson(), "\$1")
-            struct.put("object", json)
+            struct.put("object", StructUtil.dateTimeAsMillis((message["o"] as Document).toJson()))
         }
         return struct
     }
