@@ -97,19 +97,22 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         val records = mutableListOf<SourceRecord>()
         while (!messages.isEmpty() && records.size < batchSize) {
             val message = messages.poll()
-            val id = (message["o"] as Document)
-                .let { it["_id"] as ObjectId }
-                .toString()
             try {
+                val id = (message["o"] as Document)
+                    .let { it["_id"] as ObjectId }
+                    .toString()
                 val struct = getStruct(message)
-                records.add(SourceRecord(
-                    getPartition(StructUtil.getDB(message)),
-                    getOffset(message),
-                    StructUtil.getTopic(message, topicPrefix),
-                    Schema.OPTIONAL_STRING_SCHEMA,
-                    id,
-                    struct.schema(),
-                    struct))
+                records.add(
+                    SourceRecord(
+                        getPartition(StructUtil.getDB(message)),
+                        getOffset(message),
+                        StructUtil.getTopic(message, topicPrefix),
+                        Schema.OPTIONAL_STRING_SCHEMA,
+                        id,
+                        struct.schema(),
+                        struct
+                    )
+                )
             } catch (e: Exception) {
                 log.error(e.message)
             }
