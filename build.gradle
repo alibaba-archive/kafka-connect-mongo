@@ -1,5 +1,5 @@
 group 'com.teambition'
-version '1.7.10'
+version '1.7.11-dev'
 
 buildscript {
     ext.kotlin_version = '1.2.60'

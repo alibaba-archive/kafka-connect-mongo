@@ -58,7 +58,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         schemaName = props[SCHEMA_NAME_CONFIG] ?: throw Exception("Invalid config $SCHEMA_NAME_CONFIG")
         topicPrefix = props[TOPIC_PREFIX_CONFIG] ?: throw Exception("Invalid config $TOPIC_PREFIX_CONFIG")
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")
-        databases = props[DATABASES_CONFIG]!!.split(",").map(String::trim).dropLastWhile(String::isEmpty)
+        databases = props.getValue(DATABASES_CONFIG).split(",").map(String::trim).dropLastWhile(String::isEmpty)
         analyzeSchema = (props[ANALYZE_SCHEMA_CONFIG] == "true")
         if (analyzeSchema) {
             val schemaRegistryUrl = props[SCHEMA_REGISTRY_URL_CONFIG]

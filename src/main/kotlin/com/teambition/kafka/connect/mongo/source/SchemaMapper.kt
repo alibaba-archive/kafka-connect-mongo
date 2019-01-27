@@ -148,7 +148,8 @@ object SchemaMapper {
                 }
             }
         } catch (e: Exception) {
-            log.warn("Convert value `$value` to type `$type` error")
+            log.warn("Convert value `$value` from type {} to type `$type` error", value?.let { it::class.java })
+            e.printStackTrace()
             null
         }
 
