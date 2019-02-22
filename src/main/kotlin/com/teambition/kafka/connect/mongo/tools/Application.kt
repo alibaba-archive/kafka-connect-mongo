@@ -58,7 +58,6 @@ object Application {
 
 fun main(args: Array<String>) {
     when (args.firstOrNull()) {
-        "importdata" -> ImportData.run(args.slice(1 until args.size).toTypedArray())
         "healthcheck" -> Application.healthcheck()
         else -> Application.help()
     }
