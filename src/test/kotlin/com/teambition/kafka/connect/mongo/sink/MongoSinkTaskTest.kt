@@ -2,11 +2,11 @@ package com.teambition.kafka.connect.mongo.sink
 
 import com.google.common.truth.Truth.assertThat
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
+import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
-import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.sink.SinkTaskContext
 import org.bson.Document

@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit
  * @param db mydb.test
  * @param start
  * @param messages
- * @param executor Executor service for importing data
  */
 class OplogReader(
     val uri: String,
@@ -48,7 +47,6 @@ class OplogReader(
         oplog = mongoDatabase.getCollection("oplog.rs")
         query = buildQuery()
     }
-
 
     fun run() {
         log.info("Start oplog reader for db: {}, start from: {}", db, start)

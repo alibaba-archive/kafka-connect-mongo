@@ -16,29 +16,33 @@ class SchemaMapperTest {
 
     @Test
     fun analyzeStruct() {
-        val doc = Document(mapOf(
-            "_id" to ObjectId("5b5005ceb9e80fb20d106896"),
-            "string" to "string",
-            "text" to "text",
-            "int" to 10,
-            "bool" to false,
-            "double" to 1.1,
-            "date" to Date(1531970947888), // 2018-07-19T03:29:07.888Z
-            "array" to listOf("A", "B"),
-            "vacuum" to null,
-            "map" to mapOf("k" to "v"),
-            "undefined" to BsonUndefined(),
-            "camelCase" to "lowercased",
-            "doc" to Document(mapOf("objectId" to ObjectId("5b5005ceb9e80fb20d106896"))),
-            "docarray" to arrayOf(Document(mapOf("objectId" to ObjectId("5b5005ceb9e80fb20d106896")))),
-            "invalidName[1]" to "invalidName"
-        ))
-        val bson = Document(mapOf(
-            "ts" to BsonTimestamp(1531970947, 1),
-            "ns" to "d.c",
-            "op" to "i",
-            "o" to doc
-        ))
+        val doc = Document(
+            mapOf(
+                "_id" to ObjectId("5b5005ceb9e80fb20d106896"),
+                "string" to "string",
+                "text" to "text",
+                "int" to 10,
+                "bool" to false,
+                "double" to 1.1,
+                "date" to Date(1531970947888), // 2018-07-19T03:29:07.888Z
+                "array" to listOf("A", "B"),
+                "vacuum" to null,
+                "map" to mapOf("k" to "v"),
+                "undefined" to BsonUndefined(),
+                "camelCase" to "lowercased",
+                "doc" to Document(mapOf("objectId" to ObjectId("5b5005ceb9e80fb20d106896"))),
+                "docarray" to arrayOf(Document(mapOf("objectId" to ObjectId("5b5005ceb9e80fb20d106896")))),
+                "invalidName[1]" to "invalidName"
+            )
+        )
+        val bson = Document(
+            mapOf(
+                "ts" to BsonTimestamp(1531970947, 1),
+                "ns" to "d.c",
+                "op" to "i",
+                "o" to doc
+            )
+        )
         // Test types mapping
         SchemaMapper
             .getAnalyzedStruct(bson, "schema")
@@ -72,25 +76,33 @@ class SchemaMapperTest {
     @Test
     fun updateStruct() {
         // Add delete record
-        Document(mapOf(
-            "ts" to BsonTimestamp(1531970947, 1),
-            "ns" to "d.update",
-            "op" to "d",
-            "o" to Document(mapOf(
-                "_id" to ObjectId("5b5005ceb9e80fb20d106896")
-            ))
-        )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
+        Document(
+            mapOf(
+                "ts" to BsonTimestamp(1531970947, 1),
+                "ns" to "d.update",
+                "op" to "d",
+                "o" to Document(
+                    mapOf(
+                        "_id" to ObjectId("5b5005ceb9e80fb20d106896")
+                    )
+                )
+            )
+        ).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
 
         // Add insert record
-        Document(mapOf(
-            "ts" to BsonTimestamp(1531970947, 1),
-            "ns" to "d.update",
-            "op" to "i",
-            "o" to Document(mapOf(
-                "_id" to ObjectId("5b5005ceb9e80fb20d106896"),
-                "name" to "name"
-            ))
-        )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
+        Document(
+            mapOf(
+                "ts" to BsonTimestamp(1531970947, 1),
+                "ns" to "d.update",
+                "op" to "i",
+                "o" to Document(
+                    mapOf(
+                        "_id" to ObjectId("5b5005ceb9e80fb20d106896"),
+                        "name" to "name"
+                    )
+                )
+            )
+        ).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
             .let {
                 assertThat(it["_id"]).isEqualTo("5b5005ceb9e80fb20d106896")
                 assertThat(it["name"]).isEqualTo("name")
@@ -101,15 +113,19 @@ class SchemaMapperTest {
     fun conflictStruct() {
         // Field name is double, double sqlType
         // Field date is string, TIMESTAMP sqlType
-        Document(mapOf(
-            "ts" to BsonTimestamp(1531970947, 1),
-            "ns" to "d.conflict",
-            "op" to "d",
-            "o" to Document(mapOf(
-                "name" to 10,
-                "date" to BsonTimestamp(1531970947, 1)
-            ))
-        )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
+        Document(
+            mapOf(
+                "ts" to BsonTimestamp(1531970947, 1),
+                "ns" to "d.conflict",
+                "op" to "d",
+                "o" to Document(
+                    mapOf(
+                        "name" to 10,
+                        "date" to BsonTimestamp(1531970947, 1)
+                    )
+                )
+            )
+        ).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
             .let {
                 assertThat(it["name"]).isEqualTo(10.0)
                 assertThat(it.schema().field("name").schema().type()).isEqualTo(Schema.Type.FLOAT64)
@@ -120,15 +136,19 @@ class SchemaMapperTest {
             }
 
         // Discard conflict field, but keep the schema to the old ones
-        Document(mapOf(
-            "ts" to BsonTimestamp(1531970947, 1),
-            "ns" to "d.conflict",
-            "op" to "i",
-            "o" to Document(mapOf(
-                "name" to false,
-                "date" to "Tue Jan 02 2018 14:58:24 GMT+0800 (CST)"
-            ))
-        )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
+        Document(
+            mapOf(
+                "ts" to BsonTimestamp(1531970947, 1),
+                "ns" to "d.conflict",
+                "op" to "i",
+                "o" to Document(
+                    mapOf(
+                        "name" to false,
+                        "date" to "Tue Jan 02 2018 14:58:24 GMT+0800 (CST)"
+                    )
+                )
+            )
+        ).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
             .let {
                 assertThat(it["name"]).isNull()
                 assertThat(it.schema().field("name").schema().type()).isEqualTo(Schema.Type.FLOAT64)
@@ -139,14 +159,18 @@ class SchemaMapperTest {
             }
 
         // New coming schema type of double will still use double
-        Document(mapOf(
-            "ts" to BsonTimestamp(1531970947, 1),
-            "ns" to "d.conflict",
-            "op" to "i",
-            "o" to Document(mapOf(
-                "name" to 20
-            ))
-        )).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
+        Document(
+            mapOf(
+                "ts" to BsonTimestamp(1531970947, 1),
+                "ns" to "d.conflict",
+                "op" to "i",
+                "o" to Document(
+                    mapOf(
+                        "name" to 20
+                    )
+                )
+            )
+        ).let { SchemaMapper.getAnalyzedStruct(it, "schema_") }
             .let { assertThat(it["name"]).isEqualTo(20.0) }
     }
 }

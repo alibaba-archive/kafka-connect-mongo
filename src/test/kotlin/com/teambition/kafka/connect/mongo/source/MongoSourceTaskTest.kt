@@ -113,7 +113,7 @@ class MongoSourceTaskTest {
         } while (!pollRecords.isEmpty())
 
         assertThat(records).hasSize(4)
-        records.forEach { it ->
+        records.forEach {
             assertThat(it.key().toString()).hasLength(24)
             assertThat(it.valueSchema().fields().map { it.name() }).contains("__pkey")
         }
@@ -123,7 +123,8 @@ class MongoSourceTaskTest {
 
     private fun expectOffsetLookupReturnNull() {
         expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader).anyTimes()
-        expect(offsetStorageReader!!.offset(EasyMock.anyObject<Map<String, String>>())).andReturn(HashMap<String, Any>()).anyTimes()
+        expect(offsetStorageReader!!.offset(EasyMock.anyObject<Map<String, String>>())).andReturn(HashMap<String, Any>())
+            .anyTimes()
     }
 
     private fun expectOffsetLookupReturnOffset() {
@@ -142,7 +143,8 @@ class MongoSourceTaskTest {
     private fun bulkInsert(totalNumber: Int) {
         val db = mongod.getDatabase(mydb)
         for (i in 0 until totalNumber) {
-            val newDocument = Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
+            val newDocument =
+                Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
             db.getCollection(collections[Random().nextInt(3)]).insertOne(newDocument)
         }
         // Ensure messages are inserted
@@ -163,8 +165,10 @@ class MongoSourceTaskTest {
         val test1 = db.getCollection(collections[0])
         test1.insertOne(doc1)
         test1.insertOne(doc2)
-        test1.updateOne(Filters.eq("text", "doc1"),
-            Document("\$set", Document("name", "Stephen")))
+        test1.updateOne(
+            Filters.eq("text", "doc1"),
+            Document("\$set", Document("name", "Stephen"))
+        )
         test1.deleteOne(Filters.eq("text", "doc2"))
         // Ensure messages are inserted
         Thread.sleep(1000)

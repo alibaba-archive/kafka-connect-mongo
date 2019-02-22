@@ -17,20 +17,27 @@ class MongoSinkConfig(props: Map<String, String>) : AbstractConfig(config, props
         private const val SOURCE_TOPICS_CONFIG_DOC = "Topics"
 
         const val DATABASES_CONFIG = "databases"
-        private const val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
+        private const val DATABASES_CONFIG_DOC =
+            "Databases, join database and collection with dot, split different databases with comma"
 
         var config = ConfigDef()
-            .define(MONGO_URI_CONFIG,
+            .define(
+                MONGO_URI_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                MONGO_URI_CONFIG_DOC)
-            .define(DATABASES_CONFIG,
+                MONGO_URI_CONFIG_DOC
+            )
+            .define(
+                DATABASES_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                DATABASES_CONFIG_DOC)
-            .define(SOURCE_TOPICS_CONFIG,
+                DATABASES_CONFIG_DOC
+            )
+            .define(
+                SOURCE_TOPICS_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                SOURCE_TOPICS_CONFIG_DOC)!!
+                SOURCE_TOPICS_CONFIG_DOC
+            )!!
     }
 }

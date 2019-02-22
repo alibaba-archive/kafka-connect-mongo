@@ -53,18 +53,26 @@ object SchemaMapper {
      */
     private fun addMetaFields(schema: SchemaBuilder): SchemaBuilder =
         schema
-            .field("__op",
+            .field(
+                "__op",
                 SchemaBuilder.string().optional()
-                    .parameter("sqlType", "VARCHAR(5)"))
-            .field("__pkey",
+                    .parameter("sqlType", "VARCHAR(5)")
+            )
+            .field(
+                "__pkey",
                 SchemaBuilder.string().optional()
-                    .parameter("sqlType", "VARCHAR(100)"))
-            .field("__sql",
+                    .parameter("sqlType", "VARCHAR(100)")
+            )
+            .field(
+                "__sql",
                 SchemaBuilder.string().optional()
-                    .parameter("sqlType", "VARCHAR(999)"))
-            .field("__ts",
+                    .parameter("sqlType", "VARCHAR(999)")
+            )
+            .field(
+                "__ts",
                 SchemaBuilder.string().optional()
-                    .parameter("sqlType", "TIMESTAMP"))
+                    .parameter("sqlType", "TIMESTAMP")
+            )
 
     /**
      * Fill fields in the document

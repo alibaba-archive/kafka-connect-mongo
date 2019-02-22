@@ -15,5 +15,5 @@ object DateUtil {
 
     fun format(text: String): String = getISODate(parse(text).time)
 
-    fun parse(text: String): Date = isoDF.parse(text)
+    private fun parse(text: String): Date = isoDF.parse(text)
 }

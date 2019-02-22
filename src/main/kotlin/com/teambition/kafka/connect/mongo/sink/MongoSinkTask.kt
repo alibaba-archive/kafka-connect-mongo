@@ -5,12 +5,12 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
 import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
-import org.apache.kafka.clients.consumer.OffsetAndMetadata
-import org.apache.kafka.common.TopicPartition
-import org.apache.kafka.connect.data.Struct
 import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.DATABASES_CONFIG
 import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.MONGO_URI_CONFIG
 import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.common.TopicPartition
+import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.sink.SinkTask
 import org.bson.Document
@@ -50,9 +50,11 @@ class MongoSinkTask : SinkTask() {
 
             // Delete object by id if object is empty
             if (struct["object"] == null) {
-                bulks[ns]!!.add(DeleteOneModel<Document>(
-                    Filters.eq("_id", ObjectId(id))
-                ))
+                bulks[ns]!!.add(
+                    DeleteOneModel<Document>(
+                        Filters.eq("_id", ObjectId(id))
+                    )
+                )
                 log.trace("Adding delete model to bulk: {}", id)
                 continue
             }
@@ -68,11 +70,13 @@ class MongoSinkTask : SinkTask() {
             }
             val doc = Document(flatObj)
             log.trace("Adding update model to bulk: {}", doc.toString())
-            bulks[ns]!!.add(UpdateOneModel<Document>(
-                Filters.eq("_id", ObjectId(id)),
-                Document("\$set", doc),
-                UpdateOptions().upsert(true)
-            ))
+            bulks[ns]!!.add(
+                UpdateOneModel<Document>(
+                    Filters.eq("_id", ObjectId(id)),
+                    Document("\$set", doc),
+                    UpdateOptions().upsert(true)
+                )
+            )
         }
         for ((ns, docs) in bulks) {
             try {
@@ -92,9 +96,9 @@ class MongoSinkTask : SinkTask() {
 
     override fun start(props: Map<String, String>) {
         log.trace("Parsing configuration: {}", props)
-        uri = props[MONGO_URI_CONFIG]!!
-        val topics = props[SOURCE_TOPICS_CONFIG]!!.split(",")
-        val databases = props[DATABASES_CONFIG]!!.split(",")
+        uri = props.getValue(MONGO_URI_CONFIG)
+        val topics = props.getValue(SOURCE_TOPICS_CONFIG).split(",")
+        val databases = props.getValue(DATABASES_CONFIG).split(",")
         for ((i, topic) in topics.withIndex()) {
             topicMapToDb[topic] = databases[i]
         }

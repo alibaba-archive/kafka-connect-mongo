@@ -1,12 +1,12 @@
 package com.teambition.kafka.connect.mongo.sink
 
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.DATABASES_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.MONGO_URI_CONFIG
+import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.apache.kafka.common.config.ConfigDef
 import org.apache.kafka.common.utils.AppInfoParser
 import org.apache.kafka.connect.connector.Task
 import org.apache.kafka.connect.errors.ConnectException
-import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.DATABASES_CONFIG
-import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.MONGO_URI_CONFIG
-import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.SOURCE_TOPICS_CONFIG
 import org.apache.kafka.connect.sink.SinkConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
