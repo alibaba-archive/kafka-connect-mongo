@@ -35,7 +35,7 @@ object Application {
             return println("connector is empty.")
         }
 
-        connectors.forEach { it ->
+        connectors.forEach {
             println("check connector $it")
 
             Fuel.get("$url/$it/status")
@@ -45,8 +45,8 @@ object Application {
                     if (e != null) throw e
                     JSONObject(str)["tasks"] as JSONArray
                 }
-                .forEach {
-                    val task = (it as JSONObject).toMap()
+                .forEach { t ->
+                    val task = (t as JSONObject).toMap()
                     if (task["state"] == "FAILED" && task["worker_id"] == workerId)
                         throw Exception("task ${task["id"]} failed")
                 }
@@ -58,7 +58,6 @@ object Application {
 
 fun main(args: Array<String>) {
     when (args.firstOrNull()) {
-        "importdata" -> ImportData.run(args.slice(1 until args.size).toTypedArray())
         "healthcheck" -> Application.healthcheck()
         else -> Application.help()
     }

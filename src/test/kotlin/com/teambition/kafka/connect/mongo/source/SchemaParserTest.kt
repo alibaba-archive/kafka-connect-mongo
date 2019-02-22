@@ -15,7 +15,8 @@ class SchemaParserTest {
             "mongo_slave_teambition_users-value",
             1,
             1,
-            UserSchema.record)
+            UserSchema.record
+        )
             .let { SchemaParser.parse(it) }
             .let { schema ->
                 assertThat(schema.name()).isEqualTo("mongo_schema_teambition_users")

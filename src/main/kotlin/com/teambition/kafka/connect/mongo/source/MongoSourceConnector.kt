@@ -1,5 +1,8 @@
 package com.teambition.kafka.connect.mongo.source
 
+import com.mongodb.BasicDBObject
+import com.mongodb.util.JSON
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ADDITIONAL_FILTER
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ANALYZE_SCHEMA_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
@@ -31,6 +34,7 @@ open class MongoSourceConnector : SourceConnector() {
     private var schemaName: String = ""
     private var analyzeSchema: String = ""
     private var schemaRegistryUrl: String = ""
+    private var additionalFilter: String = ""
 
     override fun version(): String = AppInfoParser.getVersion()
 
@@ -45,6 +49,11 @@ open class MongoSourceConnector : SourceConnector() {
         topicPrefix = getRequiredProp(props, TOPIC_PREFIX_CONFIG)
         schemaName = getRequiredProp(props, SCHEMA_NAME_CONFIG)
         analyzeSchema = props[ANALYZE_SCHEMA_CONFIG] ?: "false"
+        additionalFilter = props[ADDITIONAL_FILTER]
+            ?.takeIf { it.isNotEmpty() }
+            ?.also { JSON.parse(it) as BasicDBObject }
+            ?: ""
+
         if (analyzeSchema == "true") {
             schemaRegistryUrl = getRequiredProp(props, SCHEMA_REGISTRY_URL_CONFIG)
         }
@@ -69,6 +78,7 @@ open class MongoSourceConnector : SourceConnector() {
             config[SCHEMA_NAME_CONFIG] = schemaName
             config[ANALYZE_SCHEMA_CONFIG] = analyzeSchema
             config[SCHEMA_REGISTRY_URL_CONFIG] = schemaRegistryUrl
+            config[ADDITIONAL_FILTER] = additionalFilter
             configs.add(config)
         }
         return configs
@@ -78,7 +88,7 @@ open class MongoSourceConnector : SourceConnector() {
 
     override fun config(): ConfigDef = MongoSourceConfig.config
 
-    protected fun getRequiredProp(props: Map<String, String>, key: String): String {
+    private fun getRequiredProp(props: Map<String, String>, key: String): String {
         val value = props[key]
         if (value == null || value.isEmpty()) {
             throw ConnectException("Missing $key config")
