@@ -15,7 +15,7 @@ class MongoSourceTask : AbstractMongoSourceTask() {
     override fun start(props: Map<String, String>) {
         super.start(props)
         databases.forEach { db ->
-            val t = thread {
+            thread {
                 TaskUtil.runTry(db) {
                     val partition = getPartition(db)
                     val recordedOffset = context.offsetStorageReader().offset(partition)
@@ -27,8 +27,9 @@ class MongoSourceTask : AbstractMongoSourceTask() {
                     }
                     OplogReader(uri, db, start, messages).run()
                 }
+            }.also {
+                it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e -> this.unrecoverable = e }
             }
-            t.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e -> this.unrecoverable = e }
         }
     }
 }

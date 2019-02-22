@@ -49,14 +49,9 @@ class OplogReader(
         query = buildQuery()
     }
 
-    /**
-     * If start in the old format 'latest_timestamp,inc', use oplog tailing by default
-     * If start in the new format 'latest_timestamp,inc,object_id,finished_import':
-     *    if finished_import is true, use oplog tailing and update latest_timestamp
-     *    else start mongo collection import from the object_id first then tailing
-     */
+
     fun run() {
-        log.info("Start oplog reader for db: {}, start from: {}", db, start.ts)
+        log.info("Start oplog reader for db: {}, start from: {}", db, start)
         val documents = oplog
             .find(query)
             .sort(Document("\$natural", 1))

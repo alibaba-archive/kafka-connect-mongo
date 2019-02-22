@@ -1,5 +1,6 @@
 package com.teambition.kafka.connect.mongo.database
 
+import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.Filters
 import com.teambition.kafka.connect.mongo.source.MongoSourceOffset
@@ -17,7 +18,8 @@ class ExportReader(
     val uri: String,
     val db: String,
     val start: MongoSourceOffset,
-    private val messages: ConcurrentLinkedQueue<Document>
+    private val messages: ConcurrentLinkedQueue<Document>,
+    private val additionalFilter: BasicDBObject? = null
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(ExportReader::class.java)
@@ -26,16 +28,20 @@ class ExportReader(
     private val batchSize = 100
     private val mongoClient = MongoClientLoader.getClient(uri)
     private val maxMessageSize = 2000
+    var isFinished = false
 
     fun run() {
         var offsetCount = 0L
         var offsetId = start.objectId
         val mongoCollection = getNSCollection(db)
-        log.info("Start export reader for db {}, start from {}", db, offsetId)
+        log.info("Start export reader for db {}, start from {}", db, start)
+        val filter = additionalFilter
+            ?.let { combineFilter(offsetId, it) }
+            ?: Filters.gt("_id", offsetId)
         mongoCollection
             .find()
             .batchSize(batchSize)
-            .filter(Filters.gt("_id", offsetId))
+            .filter(filter)
             .sort(Document("_id", 1))
             .asSequence()
             .forEach { document ->
@@ -53,6 +59,7 @@ class ExportReader(
                 }
             }
         log.info("Export finished for db {}, count {}", db, offsetCount)
+        isFinished = true
     }
 
     private fun getNSCollection(ns: String): MongoCollection<Document> {
@@ -70,4 +77,18 @@ class ExportReader(
         opDoc["o"] = doc
         return opDoc
     }
+
+    private fun combineFilter(idOffset: ObjectId, additionalFilter: BasicDBObject) =
+        BasicDBObject(
+            mapOf(
+                "\$and" to listOf(
+                    mapOf(
+                        "_id" to mapOf(
+                            "\$gt" to idOffset
+                        )
+                    ),
+                    additionalFilter
+                )
+            )
+        )
 }

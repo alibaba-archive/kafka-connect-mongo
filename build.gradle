@@ -82,10 +82,4 @@ distributions {
     }
 }
 
-task runImport(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    main = 'com.teambition.kafka.connect.mongo.tools.ImportDataKt'
-    args 'importdata', 'etc/producer.properties'
-}
-
 kotlin { experimental { coroutines 'enable' } }

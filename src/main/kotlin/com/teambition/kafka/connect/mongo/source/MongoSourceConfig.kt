@@ -26,49 +26,77 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, pro
         const val TOPIC_PREFIX_CONFIG_DOC = "Prefix of each topic, final topic will be prefix_db_collection"
 
         const val DATABASES_CONFIG = "databases"
-        const val DATABASES_CONFIG_DOC = "Databases, join database and collection with dot, split different databases with comma"
+        const val DATABASES_CONFIG_DOC =
+            "Databases, join database and collection with dot, split different databases with comma"
 
         const val ANALYZE_SCHEMA_CONFIG = "analyze.schema"
-        private const val ANALYZE_SCHEMA_DOC = "Analyze schemas of data from mongodb, save into schema registry through avro"
+        private const val ANALYZE_SCHEMA_DOC =
+            "Analyze schemas of data from mongodb, save into schema registry through avro"
 
         const val SCHEMA_REGISTRY_URL_CONFIG = "schema.registry.url"
-        private const val SCHEMA_REGISTRY_URL_DOC = "When analyze.schema is set to true, make sure this config is filled with corrent schema registry url"
+        private const val SCHEMA_REGISTRY_URL_DOC =
+            "When analyze.schema is set to true, make sure this config is filled with corrent schema registry url"
+
+        const val ADDITIONAL_FILTER = "additional.filter"
+        private const val ADDITIONAL_FILTER_DOC = "Add filters when exporting data from mongodb"
 
         var config: ConfigDef = ConfigDef()
-            .define(MONGO_URI_CONFIG,
+            .define(
+                MONGO_URI_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                MONGO_URI_CONFIG_DOC)
-            .define(BATCH_SIZE_CONFIG,
+                MONGO_URI_CONFIG_DOC
+            )
+            .define(
+                BATCH_SIZE_CONFIG,
                 Type.INT,
                 Importance.HIGH,
-                BATCH_SIZE_CONFIG_DOC)
-            .define(INITIAL_IMPORT_CONFIG,
+                BATCH_SIZE_CONFIG_DOC
+            )
+            .define(
+                INITIAL_IMPORT_CONFIG,
                 Type.STRING,
                 "false",
                 Importance.LOW,
-                INITIAL_IMPORT_CONFIG_DOC)
-            .define(SCHEMA_NAME_CONFIG,
+                INITIAL_IMPORT_CONFIG_DOC
+            )
+            .define(
+                SCHEMA_NAME_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                SCHEMA_NAME_CONFIG_DOC)
-            .define(TOPIC_PREFIX_CONFIG,
+                SCHEMA_NAME_CONFIG_DOC
+            )
+            .define(
+                TOPIC_PREFIX_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                TOPIC_PREFIX_CONFIG_DOC)
-            .define(DATABASES_CONFIG,
+                TOPIC_PREFIX_CONFIG_DOC
+            )
+            .define(
+                DATABASES_CONFIG,
                 Type.STRING,
                 Importance.HIGH,
-                DATABASES_CONFIG_DOC)
-            .define(ANALYZE_SCHEMA_CONFIG,
+                DATABASES_CONFIG_DOC
+            )
+            .define(
+                ANALYZE_SCHEMA_CONFIG,
                 Type.STRING,
                 "false",
                 Importance.LOW,
-                ANALYZE_SCHEMA_DOC)
-            .define(SCHEMA_REGISTRY_URL_CONFIG,
+                ANALYZE_SCHEMA_DOC
+            )
+            .define(
+                SCHEMA_REGISTRY_URL_CONFIG,
                 Type.STRING,
                 "false",
                 Importance.LOW,
-                SCHEMA_REGISTRY_URL_DOC)
+                SCHEMA_REGISTRY_URL_DOC
+            )
+            .define(
+                ADDITIONAL_FILTER,
+                Type.STRING,
+                Importance.LOW,
+                ADDITIONAL_FILTER_DOC
+            )
     }
 }
