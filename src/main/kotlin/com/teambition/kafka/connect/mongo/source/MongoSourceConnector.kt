@@ -78,7 +78,7 @@ open class MongoSourceConnector : SourceConnector() {
 
     override fun config(): ConfigDef = MongoSourceConfig.config
 
-    protected fun getRequiredProp(props: Map<String, String>, key: String): String {
+    private fun getRequiredProp(props: Map<String, String>, key: String): String {
         val value = props[key]
         if (value == null || value.isEmpty()) {
             throw ConnectException("Missing $key config")
