@@ -18,7 +18,8 @@
     "batch.size": "100",
     "schema.name": "mongo_test_schema",
     "name": "mongo_source_test",
-    "mongo.uri": "mongodb://root:root@192.168.0.21:27017/?authSource=admin"
+    "mongo.uri": "mongodb://root:root@192.168.0.21:27017/?authSource=admin",
+    "additional.filter": ""
   }'
   ```
 2. Delete your connectors via `curl -XDELETE http://192.168.0.22:38083/connectors/your_connector_name`, this will not delete your offsets, so you will not worry about lost of your offsets.
@@ -48,6 +49,8 @@ databases=test.users
 # If you met an `Schema being registered is incompatible with an earlier schema` error given by schema registry, please set the `avro.compatibility.level` option of schema registry to `none` 
 analyze.schema=false
 schema.registry.url=http://127.0.0.1:8080
+# This option works in export mode (use MongoExportSourceConnector), which will export the whole database with these filter conditions
+additional.filter=
 # If use ssl, add configs on jvm by set environment variables `-Djavax.net.ssl.trustStore=/secrets/truststore.jks -Djavax.net.ssl.trustStorePassword=123456 -Djavax.net.ssl.keyStore=/secrets/keystore.jks -Djavax.net.ssl.keyStorePassword=123456`
 #mongo.uri=mongodb://user:pwd@128.0.0.1:27017/?ssl=true&authSource=admin&replicaSet=rs0&sslInvalidHostNameAllowed=true
 ```

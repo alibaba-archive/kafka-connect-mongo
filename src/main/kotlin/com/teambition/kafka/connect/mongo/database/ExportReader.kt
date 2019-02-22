@@ -27,7 +27,7 @@ class ExportReader(
 
     private val batchSize = 100
     private val mongoClient = MongoClientLoader.getClient(uri)
-    private val maxMessageSize = 2000
+    private val maxMessageSize = 5000
     var isFinished = false
 
     fun run() {
@@ -49,13 +49,10 @@ class ExportReader(
                 offsetId = document["_id"] as ObjectId
                 offsetCount += 1
                 while (messages.size > maxMessageSize) {
-                    log.warn(
-                        "Message overwhelm! database {}, docs {}, messages {}",
-                        db,
-                        offsetCount,
-                        messages.size
-                    )
-                    Thread.sleep(500)
+                    Thread.sleep(1000)
+                }
+                if (offsetCount % 1000 == 0L) {
+                    log.info("Export processing for db {}, counts {}", db, offsetCount)
                 }
             }
         log.info("Export finished for db {}, count {}", db, offsetCount)

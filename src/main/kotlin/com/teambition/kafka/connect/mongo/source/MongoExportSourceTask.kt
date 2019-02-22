@@ -4,7 +4,6 @@ import com.mongodb.BasicDBObject
 import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.ExportReader
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ADDITIONAL_FILTER
-import com.teambition.kafka.connect.mongo.utils.TaskUtil
 import org.apache.kafka.connect.source.SourceRecord
 import org.slf4j.LoggerFactory
 import kotlin.concurrent.thread
@@ -19,21 +18,21 @@ class MongoExportSourceTask : AbstractMongoSourceTask() {
 
     override fun start(props: Map<String, String>) {
         super.start(props)
-        additionalFilter = props[ADDITIONAL_FILTER]?.let { JSON.parse(it) as BasicDBObject }
+        additionalFilter = props[ADDITIONAL_FILTER]
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { JSON.parse(it) as BasicDBObject }
 
         databases.forEach { db ->
-            thread {
-                TaskUtil.runTry(db) {
-                    val partition = getPartition(db)
-                    val recordedOffset = context.offsetStorageReader().offset(partition)
-                    val startOffset =
-                        if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
+            val partition = getPartition(db)
+            val recordedOffset = context.offsetStorageReader().offset(partition)
+            val startOffset =
+                if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
 
-                    val start = MongoSourceOffset(startOffset)
-                    val reader = ExportReader(uri, db, start, messages, additionalFilter)
-                    exportReaders[db] = reader
-                    reader.run()
-                }
+            val start = MongoSourceOffset(startOffset)
+            val reader = ExportReader(uri, db, start, messages, additionalFilter)
+            exportReaders[db] = reader
+            thread {
+                reader.run()
             }.also {
                 it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e -> this.unrecoverable = e }
             }

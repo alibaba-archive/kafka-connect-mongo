@@ -40,7 +40,7 @@ class OplogReader(
     private var query: Bson
     // Do not write documents until messages are produced into kafka
     // Reduce memory usage
-    private val maxMessageSize = 2000
+    private val maxMessageSize = 5000
 
     init {
         mongoDatabase = mongoClient.getDatabase("local")
@@ -69,12 +69,6 @@ class OplogReader(
                 if (doc != null) messages.add(doc)
                 // Stop pulling data when length of message is too large!
                 while (messages.size > maxMessageSize) {
-                    log.warn(
-                        "Message overwhelm! database {}, docs {}, messages {}",
-                        db,
-                        count,
-                        messages.size
-                    )
                     Thread.sleep(1000)
                 }
                 if (count % 1000 == 0) {
