@@ -1,5 +1,6 @@
 package com.teambition.kafka.connect.mongo.source
 
+import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ANALYZE_SCHEMA_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.DATABASES_CONFIG
@@ -60,6 +61,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")
         databases = props.getValue(DATABASES_CONFIG).split(",").map(String::trim).dropLastWhile(String::isEmpty)
         analyzeSchema = (props[ANALYZE_SCHEMA_CONFIG] == "true")
+        MongoClientLoader.getClient(uri)
         if (analyzeSchema) {
             val schemaRegistryUrl = props[SCHEMA_REGISTRY_URL_CONFIG]
                 ?: throw Exception("Invalid config $SCHEMA_REGISTRY_URL_CONFIG")
@@ -127,8 +129,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         return records
     }
 
-    override fun stop() {
-    }
+    override fun stop() {}
 
     /**
      * @param db database with collection like 'mydb.test'

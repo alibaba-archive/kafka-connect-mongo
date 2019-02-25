@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object MongoClientLoader {
     private val defaultOptions = MongoClientOptions.builder()
-        .connectTimeout(1000 * 300)
+        .connectTimeout(1_000_000)
     private val clients = ConcurrentHashMap<String, MongoClient>()
 
     fun getClient(uri: String, options: MongoClientOptions.Builder = defaultOptions, reconnect: Boolean = false) =
