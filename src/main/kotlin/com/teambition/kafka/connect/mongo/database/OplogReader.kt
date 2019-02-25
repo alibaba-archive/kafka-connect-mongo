@@ -40,7 +40,7 @@ class OplogReader(
     private var query: Bson
     // Do not write documents until messages are produced into kafka
     // Reduce memory usage
-    private val maxMessageSize = 5000
+    private val maxMessageSize = 2000
 
     init {
         mongoDatabase = mongoClient.getDatabase("local")

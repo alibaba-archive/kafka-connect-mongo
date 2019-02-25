@@ -27,7 +27,7 @@ class ExportReader(
 
     private val batchSize = 100
     private val mongoClient = MongoClientLoader.getClient(uri)
-    private val maxMessageSize = 5000
+    private val maxMessageSize = 2000
     var isFinished = false
 
     fun run() {
