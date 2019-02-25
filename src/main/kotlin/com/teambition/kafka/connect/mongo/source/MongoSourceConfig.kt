@@ -75,6 +75,7 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, pro
             .define(
                 ADDITIONAL_FILTER,
                 Type.STRING,
+                "",
                 Importance.LOW,
                 "Add filters when exporting data from mongodb"
             )
