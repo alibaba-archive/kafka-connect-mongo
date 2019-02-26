@@ -15,20 +15,20 @@ class MongoSourceTask : AbstractMongoSourceTask() {
     override fun start(props: Map<String, String>) {
         super.start(props)
         databases.forEach { db ->
-            thread {
-                TaskUtil.runTry(db) {
-                    val partition = getPartition(db)
-                    val recordedOffset = context.offsetStorageReader().offset(partition)
-                    val startOffset =
-                        if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
-                    val start = MongoSourceOffset(startOffset)
+            TaskUtil.runTry(db, 3000) {
+                val partition = getPartition(db)
+                val recordedOffset = context.offsetStorageReader().offset(partition)
+                val startOffset =
+                    if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
+                val start = MongoSourceOffset(startOffset)
+                thread {
                     if (!start.finishedImport && initialImport) {
                         ExportReader(uri, db, start, messages).run()
                     }
                     OplogReader(uri, db, start, messages).run()
+                }.also {
+                    it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e -> this.unrecoverable = e }
                 }
-            }.also {
-                it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e -> this.unrecoverable = e }
             }
         }
     }

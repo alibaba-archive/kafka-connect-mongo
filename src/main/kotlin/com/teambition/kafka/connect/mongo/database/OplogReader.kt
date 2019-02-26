@@ -56,8 +56,8 @@ class OplogReader(
             .projection(Projections.include("ts", "op", "ns", "o", "o2"))
             .cursorType(CursorType.TailableAwait)
             .batchSize(batchSize)
-            .maxTime(600, TimeUnit.SECONDS)
-            .maxAwaitTime(600, TimeUnit.SECONDS)
+            .maxTime(3600, TimeUnit.SECONDS)
+            .maxAwaitTime(3600, TimeUnit.SECONDS)
             .oplogReplay(true)
 
         var count = 0

@@ -16,18 +16,19 @@ object TaskUtil {
     /**
      * Execute a job and rerun it when meet exception for several times
      */
-    fun <R> runTry(name: String, errCount: Int = 0, block: () -> R): R {
+    fun <R> runTry(name: String, intervalMs: Long = 0L, errCount: Int = 0, block: () -> R): R {
         if (errCount > maxErrCount) throw Exception("Task [$name] raised too much errors!")
         val start = Date().time
+        Thread.sleep(intervalMs)
         return try {
             block()
         } catch (e: MongoException) {
             log.error("Task execution error for {} times: {}", errCount + 1, e.toString())
             e.printStackTrace()
             if (Date().time - start > minResetDuration) {
-                runTry(name, 1, block)
+                runTry(name, intervalMs, 1, block)
             } else {
-                runTry(name, errCount + 1, block)
+                runTry(name, intervalMs, errCount + 1, block)
             }
         }
     }
