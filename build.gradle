@@ -43,7 +43,7 @@ dependencies {
     compile 'org.slf4j:slf4j-log4j12:1.7.21'
     compile 'org.json:json:20170516'
     compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
-    compile 'org.mongodb:mongodb-driver:3.3.0'
+    compile 'org.mongodb:mongodb-driver:3.12.0'
     compile 'org.quartz-scheduler:quartz:2.3.0'
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
     compile 'com.github.kittinunf.fuel:fuel:1.12.0'
@@ -61,7 +61,7 @@ dependencies {
         exclude module: 'kafka_2.11'
     }
     testCompile "org.apache.kafka:kafka_2.11:$kafka_version"
-    testCompile 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.5'
+    testCompile 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.2.0'
 }
 
 tasks.withType(Tar) {
@@ -81,5 +81,3 @@ distributions {
         }
     }
 }
-
-kotlin { experimental { coroutines 'enable' } }

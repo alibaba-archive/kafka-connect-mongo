@@ -3,6 +3,7 @@ package com.teambition.kafka.connect.mongo.database
 import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.Filters
+import com.teambition.kafka.connect.mongo.source.Message
 import com.teambition.kafka.connect.mongo.source.MongoSourceOffset
 import org.bson.BsonTimestamp
 import org.bson.Document
@@ -15,12 +16,12 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * @author Xu Jingxin
  */
 class ExportReader(
-    val uri: String,
-    val db: String,
-    val start: MongoSourceOffset,
-    private val messages: ConcurrentLinkedQueue<Document>,
+    uri: String,
+    db: String,
+    start: MongoSourceOffset,
+    messages: ConcurrentLinkedQueue<Message>,
     private val additionalFilter: BasicDBObject? = null
-) {
+) : Reader(uri, db, start, messages) {
     companion object {
         private val log = LoggerFactory.getLogger(ExportReader::class.java)
     }
@@ -45,7 +46,7 @@ class ExportReader(
             .sort(Document("_id", 1))
             .asSequence()
             .forEach { document ->
-                messages.add(formatAsOpLog(document))
+                messages.add(convertToMessage(formatAsOpLog(document)))
                 offsetId = document["_id"] as ObjectId
                 offsetCount += 1
                 while (messages.size > maxMessageSize) {
@@ -74,6 +75,11 @@ class ExportReader(
         opDoc["o"] = doc
         return opDoc
     }
+
+    private fun convertToMessage(oplog: Document) = Message(
+        MongoSourceOffset(oplog),
+        oplog
+    )
 
     private fun combineFilter(idOffset: ObjectId, additionalFilter: BasicDBObject) =
         BasicDBObject(

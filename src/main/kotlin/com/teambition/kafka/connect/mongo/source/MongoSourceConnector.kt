@@ -1,7 +1,6 @@
 package com.teambition.kafka.connect.mongo.source
 
 import com.mongodb.BasicDBObject
-import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ADDITIONAL_FILTER
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ANALYZE_SCHEMA_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.BATCH_SIZE_CONFIG
@@ -51,7 +50,7 @@ open class MongoSourceConnector : SourceConnector() {
         analyzeSchema = props[ANALYZE_SCHEMA_CONFIG] ?: "false"
         additionalFilter = props[ADDITIONAL_FILTER]
             ?.takeIf { it.isNotEmpty() }
-            ?.also { JSON.parse(it) as BasicDBObject }
+            ?.also { BasicDBObject.parse(it) }
             ?: ""
 
         if (analyzeSchema == "true") {

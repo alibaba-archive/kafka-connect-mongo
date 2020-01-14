@@ -3,7 +3,6 @@ package com.teambition.kafka.connect.mongo.source
 import com.google.common.truth.Truth.assertThat
 import com.mongodb.BasicDBObject
 import com.mongodb.client.model.Filters
-import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.apache.commons.lang.RandomStringUtils
@@ -52,7 +51,7 @@ class MongoSourceTaskTest {
         sourceTaskContext = PowerMock.createMock(SourceTaskContext::class.java)
         task!!.initialize(sourceTaskContext)
 
-        sourceProperties["mongo.uri"] = "mongodb://localhost:12345"
+        sourceProperties["mongo.uri"] = mongod.uri
         sourceProperties["initial.import"] = "true"
         sourceProperties["batch.size"] = "20"
         sourceProperties["schema.name"] = "schema"
@@ -252,7 +251,7 @@ class MongoSourceTaskTest {
         assertEquals(values[3].get("op"), "d")
 
         val updatedValue = values[2].get("object") as String
-        val updatedObject = JSON.parse(updatedValue) as BasicDBObject
+        val updatedObject = BasicDBObject.parse(updatedValue)
 
         assertEquals("Stephen", updatedObject.get("name"))
 

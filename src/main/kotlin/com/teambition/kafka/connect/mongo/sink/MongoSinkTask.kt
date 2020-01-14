@@ -1,9 +1,9 @@
 package com.teambition.kafka.connect.mongo.sink
 
+import com.mongodb.BasicDBObject
 import com.mongodb.MongoClient
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
-import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.DATABASES_CONFIG
 import com.teambition.kafka.connect.mongo.sink.MongoSinkConfig.Companion.MONGO_URI_CONFIG
@@ -61,7 +61,7 @@ class MongoSinkTask : SinkTask() {
 
             val flatObj = mutableMapOf<String, Any?>()
             try {
-                (JSON.parse(struct["object"] as String) as Map<*, *>).mapKeysTo(flatObj) {
+                (BasicDBObject.parse(struct["object"] as String) as Map<*, *>).mapKeysTo(flatObj) {
                     it.key.toString()
                 }
             } catch (e: Exception) {
@@ -83,7 +83,6 @@ class MongoSinkTask : SinkTask() {
                 val writeResult = getCollection(ns).bulkWrite(docs)
                 log.trace("Write result: {}", writeResult)
             } catch (e: Exception) {
-                // @todo Retry write messages
                 log.error("Bulk write error {}", e.message)
             }
         }

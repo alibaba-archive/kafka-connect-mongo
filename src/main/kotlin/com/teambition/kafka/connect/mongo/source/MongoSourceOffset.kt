@@ -1,6 +1,7 @@
 package com.teambition.kafka.connect.mongo.source
 
 import org.bson.BsonTimestamp
+import org.bson.Document
 import org.bson.types.ObjectId
 import java.lang.Integer.parseInt
 import java.util.*
@@ -12,32 +13,65 @@ import java.util.*
  *    if finished_import is true, use oplog tailing and update latest_timestamp
  *    else start mongo collection import from the object_id first then tailing
  */
-class MongoSourceOffset(offset: String?) {
+class MongoSourceOffset() {
     companion object {
-        const val SPLITOR = ","
-
-        /**
-         * Start from current time will skip a lot of redundant scan on oplog
-         * Format: LATEST_TIMESTAMP,INC,OBJECT_ID,FINISH_IMPORT
-         */
-        fun toOffsetString(ts: BsonTimestamp, objectId: ObjectId, finishedImport: Boolean): String {
-            val finishedFlag = if (finishedImport) 1 else -1
-            return "${ts.time}$SPLITOR${ts.inc}$SPLITOR$objectId$SPLITOR$finishedFlag"
+        enum class Pattern {
+            OPLOG, CHANGESTREAMS
         }
     }
 
-    private val pieces = offset?.trim()?.split(SPLITOR.toRegex())
+    /**
+     * Offset Pattern
+     * 1578990230,1 (Oldest offset only contains timestamp and inc)
+     * 1578990230,1,5e1d7a96e619dad727219d36,0 (New offset contains timestamp,inc,offsetid,flag of finish initial import)
+     * cs:{"_data":{...}} (New offset read from change streams, start with cs, contains resume id of change streams)
+     */
+    constructor(offsetString: String) : this() {
+        val pieces = offsetString.trim().split(",".toRegex())
 
-    private val timestamp: Int = pieces?.let { parseInt(it[0]) } ?: Math.floor(Date().time.toDouble() / 1000).toInt()
-    private val inc: Int = pieces?.let { if (it.size > 1) parseInt(it[1]) else 0 } ?: 0
-    val ts = BsonTimestamp(timestamp, inc)
+        val timestamp: Int = parseInt(pieces[0])
+        val inc: Int = pieces.let { if (it.size > 1) parseInt(it[1]) else 0 }
+        ts = BsonTimestamp(timestamp, inc)
 
-    // To be compatible with old format
-    val objectId: ObjectId =
-        if (pieces != null && pieces.size > 2) ObjectId(pieces[2]) else ObjectId("000000000000000000000000")
-    val finishedImport: Boolean = if (pieces != null && pieces.size > 3) parseInt(pieces[3]) > 0 else pieces != null
+        objectId = if (pieces.size > 2) ObjectId(pieces[2]) else objectId
+        finishedImport = if (pieces.size > 3) parseInt(pieces[3]) > 0 else finishedImport
+    }
 
+    /**
+     * Must wait for finished initial import then read from oplog
+     */
+    constructor(doc: Document, pattern: Pattern = Pattern.OPLOG) : this() {
+        this.pattern = pattern
+        when (pattern) {
+            Pattern.OPLOG -> {
+                ts = doc["ts"] as BsonTimestamp
+                finishedImport = true
+            }
+            Pattern.CHANGESTREAMS -> {
+                csOffset = doc["_id"] as String
+                finishedImport = true
+            }
+        }
+    }
+
+    var dbColl = ""
+    var pattern: Pattern = Pattern.OPLOG
+    var ts = BsonTimestamp(0, 0)
+    var objectId = ObjectId("000000000000000000000000")
+    var csOffset: String? = null
+    var finishedImport = false
+
+    /**
+     * Start from current time will skip a lot of redundant scan on oplog
+     * Format: LATEST_TIMESTAMP,INC,OBJECT_ID,FINISH_IMPORT
+     */
     override fun toString(): String {
-        return toOffsetString(ts, objectId, finishedImport)
+        val finishedFlag = if (finishedImport) 1 else 0
+        return "${ts.time},${ts.inc},$objectId,$finishedFlag"
+    }
+
+    // To real offset used in kafka
+    fun toOffset(): Map<String, String> {
+        return Collections.singletonMap(dbColl, this.toString())
     }
 }

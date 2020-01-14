@@ -1,12 +1,12 @@
 package com.teambition.kafka.connect.mongo.source
 
 import com.mongodb.BasicDBObject
-import com.mongodb.util.JSON
 import com.teambition.kafka.connect.mongo.database.ExportReader
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.ADDITIONAL_FILTER
 import org.apache.kafka.connect.source.SourceRecord
 import org.slf4j.LoggerFactory
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 /**
  * @author Xu Jingxin
@@ -20,7 +20,7 @@ class MongoExportSourceTask : AbstractMongoSourceTask() {
         super.start(props)
         additionalFilter = props[ADDITIONAL_FILTER]
             ?.takeIf { it.isNotEmpty() }
-            ?.let { JSON.parse(it) as BasicDBObject }
+            ?.let { BasicDBObject.parse(it) }
 
         databases.forEach { db ->
             val partition = getPartition(db)
@@ -28,7 +28,7 @@ class MongoExportSourceTask : AbstractMongoSourceTask() {
             val startOffset =
                 if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
 
-            val start = MongoSourceOffset(startOffset)
+            val start = if (startOffset != null) MongoSourceOffset(startOffset) else MongoSourceOffset()
             val reader = ExportReader(uri, db, start, messages, additionalFilter)
             exportReaders[db] = reader
             thread {
@@ -43,7 +43,7 @@ class MongoExportSourceTask : AbstractMongoSourceTask() {
         if (messages.isEmpty() && allFinished()) {
             log.info("Export finished, exit in 60 seconds.")
             Thread.sleep(60000)
-            System.exit(0)
+            exitProcess(0)
         }
         return super.poll()
     }

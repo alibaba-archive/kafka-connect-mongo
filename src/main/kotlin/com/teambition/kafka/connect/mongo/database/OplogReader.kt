@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
+import com.teambition.kafka.connect.mongo.source.Message
 import com.teambition.kafka.connect.mongo.source.MongoSourceOffset
 import org.bson.Document
 import org.bson.conversions.Bson
@@ -24,11 +25,11 @@ import java.util.concurrent.TimeUnit
  * @param messages
  */
 class OplogReader(
-    val uri: String,
-    val db: String,
-    val start: MongoSourceOffset,
-    private val messages: ConcurrentLinkedQueue<Document>
-) {
+    uri: String,
+    db: String,
+    start: MongoSourceOffset,
+    messages: ConcurrentLinkedQueue<Message>
+) : Reader(uri, db, start, messages) {
     companion object {
         private val log = LoggerFactory.getLogger(OplogReader::class.java)
     }
@@ -63,10 +64,10 @@ class OplogReader(
         var count = 0
         try {
             for (document in documents) {
-                log.trace("Document {}", document!!.toString())
+                log.trace("Document {}", document.toString())
                 val doc = handleOp(document)
                 count += 1
-                if (doc != null) messages.add(doc)
+                if (doc != null) messages.add(convertToMessage(doc))
                 // Stop pulling data when length of message is too large!
                 while (messages.size > maxMessageSize) {
                     Thread.sleep(1000)
@@ -142,4 +143,8 @@ class OplogReader(
             Filters.eq("ns", db)
         )
 
+    private fun convertToMessage(oplog: Document) = Message(
+        MongoSourceOffset(oplog),
+        oplog
+    )
 }

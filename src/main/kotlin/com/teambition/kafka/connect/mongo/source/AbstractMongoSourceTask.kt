@@ -37,7 +37,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     protected var databases = listOf<String>()
     private var schemas = mutableMapOf<String, Schema>()
     // Message queue
-    protected val messages = ConcurrentLinkedQueue<Document>()
+    protected val messages = ConcurrentLinkedQueue<Message>()
     // Runtime states
     // Sleep time will get double of it's self when there was no records return in the poll function
     // But will not larger than maxSleepTime
@@ -100,15 +100,15 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         while (!messages.isEmpty() && records.size < batchSize) {
             val message = messages.poll()
             try {
-                val id = (message["o"] as Document)
+                val id = (message.oplog["o"] as Document)
                     .let { it["_id"] as ObjectId }
                     .toString()
-                val struct = getStruct(message)
+                val struct = getStruct(message.oplog)
                 records.add(
                     SourceRecord(
-                        getPartition(StructUtil.getDB(message)),
-                        getOffset(message),
-                        StructUtil.getTopic(message, topicPrefix),
+                        getPartition(StructUtil.getDB(message.oplog)),
+                        message.offset.toOffset(),
+                        StructUtil.getTopic(message.oplog, topicPrefix),
                         Schema.OPTIONAL_STRING_SCHEMA,
                         id,
                         struct.schema(),
@@ -136,14 +136,6 @@ abstract class AbstractMongoSourceTask : SourceTask() {
      */
     protected fun getPartition(db: String): Map<String, String> {
         return Collections.singletonMap("mongo", db)
-    }
-
-    private fun getOffset(message: Document): Map<String, String> {
-        val timestamp = message["ts"] as BsonTimestamp
-        val objectId = (message["o"] as Document)["_id"] as ObjectId
-        val finishedImport = message["initialImport"] == null
-        val offsetVal = MongoSourceOffset.toOffsetString(timestamp, objectId, finishedImport)
-        return Collections.singletonMap(StructUtil.getDB(message), offsetVal)
     }
 
     /**
