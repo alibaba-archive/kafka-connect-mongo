@@ -22,6 +22,7 @@ import org.bson.types.ObjectId
 import org.slf4j.Logger
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.min
 
 /**
  * @author Xu Jingxin
@@ -123,7 +124,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
             log.trace(message.toString())
         }
         if (records.size == 0) {
-            sleepTime = Math.min(sleepTime * 2, maxSleepTime)
+            sleepTime = min(sleepTime * 2, maxSleepTime)
             Thread.sleep(sleepTime)
         } else {
             sleepTime = 50L

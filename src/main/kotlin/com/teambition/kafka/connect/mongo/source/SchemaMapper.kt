@@ -32,7 +32,7 @@ object SchemaMapper {
             .parameter("table", getTable(ns))
             .let { analyze(it, body) }
             .let { maybeUpdateSchema(oldSchema, it) }
-        return Struct(schema).let { fillinFields(it, oplog, body) }
+        return fillinFields(Struct(schema), oplog, body)
     }
 
     /**
@@ -94,7 +94,7 @@ object SchemaMapper {
      * Generate schema from body of document
      */
     private fun analyze(builder: SchemaBuilder, body: Map<String, Any?>): SchemaBuilder {
-        body.toSortedMap().forEach { key, value ->
+        body.toSortedMap().forEach { (key, value) ->
             value
                 ?.let { buildSchema(it).parameter("sqlType", sqlType(it)) }
                 ?.let { builder.field(key, it) }

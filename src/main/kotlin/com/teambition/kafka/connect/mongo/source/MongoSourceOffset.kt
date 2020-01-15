@@ -4,6 +4,7 @@ import org.bson.BsonDocument
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.Integer.parseInt
 import java.util.*
@@ -17,7 +18,7 @@ import java.util.*
  */
 class MongoSourceOffset() {
     companion object {
-        val log = LoggerFactory.getLogger(MongoSourceOffset::class.java)
+        val log: Logger = LoggerFactory.getLogger(MongoSourceOffset::class.java)
     }
 
     /**

@@ -20,6 +20,7 @@ import org.apache.kafka.connect.source.SourceConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlin.math.min
 
 /**
  * Connect mongodb with configs
@@ -67,7 +68,7 @@ open class MongoSourceConnector : SourceConnector() {
     override fun taskConfigs(maxTasks: Int): MutableList<MutableMap<String, String>> {
         val configs = mutableListOf<MutableMap<String, String>>()
         val dbs = databases.split(",").dropLastWhile(String::isEmpty)
-        val numGroups = Math.min(dbs.size, maxTasks)
+        val numGroups = min(dbs.size, maxTasks)
         val dbsGrouped = ConnectorUtils.groupPartitions(dbs, numGroups)
 
         for (i in 0 until numGroups) {

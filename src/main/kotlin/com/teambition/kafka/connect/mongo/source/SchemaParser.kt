@@ -84,7 +84,7 @@ object SchemaParser {
     private fun setParameters(builder: SchemaBuilder, struct: JSONObject): SchemaBuilder {
         if (struct.has("connect.parameters")) {
             val parameters = struct["connect.parameters"] as JSONObject
-            parameters.toMap().forEach { key, value ->
+            parameters.toMap().forEach { (key, value) ->
                 builder.parameter(key as String, value as String)
             }
         }

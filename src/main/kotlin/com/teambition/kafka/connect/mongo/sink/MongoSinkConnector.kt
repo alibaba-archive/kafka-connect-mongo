@@ -10,6 +10,7 @@ import org.apache.kafka.connect.errors.ConnectException
 import org.apache.kafka.connect.sink.SinkConnector
 import org.apache.kafka.connect.util.ConnectorUtils
 import org.slf4j.LoggerFactory
+import kotlin.math.min
 
 /**
  * @author Xu Jingxin
@@ -36,7 +37,7 @@ class MongoSinkConnector : SinkConnector() {
         val configs = mutableListOf<MutableMap<String, String>>()
         val topics = topics.split(",").dropLastWhile(String::isEmpty)
         val databases = databases.split(",").dropLastWhile(String::isEmpty)
-        val numGroups = Math.min(topics.size, maxTasks)
+        val numGroups = min(topics.size, maxTasks)
         val topicsGrouped = ConnectorUtils.groupPartitions(topics, numGroups)
         val dbsGrouped = ConnectorUtils.groupPartitions(databases, numGroups)
 

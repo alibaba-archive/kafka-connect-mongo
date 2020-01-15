@@ -23,6 +23,8 @@ import org.powermock.api.easymock.PowerMock
 import org.slf4j.LoggerFactory
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.floor
+import kotlin.math.max
 
 /**
  * @author Xu Jingxin
@@ -109,12 +111,12 @@ class MongoSourceTaskTest {
         do {
             pollRecords = task!!.poll()
             records.addAll(pollRecords)
-        } while (!pollRecords.isEmpty())
+        } while (pollRecords.isNotEmpty())
 
         assertThat(records).hasSize(4)
-        records.forEach {
+        records.forEach { it ->
             assertThat(it.key().toString()).hasLength(24)
-            assertThat(it.valueSchema().fields().map { it.name() }).contains("__pkey")
+            assertThat(it.valueSchema().fields().map { field -> field.name() }).contains("__pkey")
         }
 
         PowerMock.verifyAll()
@@ -129,7 +131,7 @@ class MongoSourceTaskTest {
     private fun expectOffsetLookupReturnOffset() {
         expect(sourceTaskContext!!.offsetStorageReader()).andReturn(offsetStorageReader).anyTimes()
         for (collection in collections) {
-            val timestamp = BsonTimestamp(Math.floor((System.currentTimeMillis() / 1000).toDouble()).toInt(), 0)
+            val timestamp = BsonTimestamp(floor((System.currentTimeMillis() / 1000).toDouble()).toInt(), 0)
             expect(offsetStorageReader!!.offset(Collections.singletonMap("mongo", "mydb.$collection")))
                 .andReturn(Collections.singletonMap<String, Any>("mydb.$collection", timestamp.time.toString() + ",0"))
                 .anyTimes()
@@ -176,7 +178,7 @@ class MongoSourceTaskTest {
     private fun testBulkInsert() {
         // Insert an amount of documents
         // Check for the received count
-        val totalCount = Math.max(Random().nextInt(200), 101)
+        val totalCount = max(Random().nextInt(200), 101)
         log.debug("Bulk insert count: {}", totalCount)
         bulkInsert(totalCount)
 
@@ -185,7 +187,7 @@ class MongoSourceTaskTest {
         do {
             pollRecords = task!!.poll()
             records.addAll(pollRecords)
-        } while (!pollRecords.isEmpty())
+        } while (pollRecords.isNotEmpty())
         log.debug("Record size: {}", records.size)
         // records contains all the collection documents and oplog documents
         val disDitinctRecords = records.distinctBy { (it.value() as Struct).get("id") }
@@ -195,7 +197,7 @@ class MongoSourceTaskTest {
     private fun testInitialWhenStart() {
         // Insert an amount of documents
         // Check for the received count
-        val totalCount = Math.max(Random().nextInt(200), 101)
+        val totalCount = max(Random().nextInt(200), 101)
         log.debug("Bulk insert count: {}", totalCount)
         bulkInsert(totalCount)
         task!!.start(sourceProperties)
@@ -206,7 +208,7 @@ class MongoSourceTaskTest {
         do {
             pollRecords = task!!.poll()
             records.addAll(pollRecords)
-        } while (!pollRecords.isEmpty())
+        } while (pollRecords.isNotEmpty())
         log.debug("Record size: {}", records.size)
         // records contains all the collection documents and oplog documents
         val disDitinctRecords = records.distinctBy { (it.value() as Struct).get("id") }
@@ -225,7 +227,7 @@ class MongoSourceTaskTest {
         do {
             pollRecords = task!!.poll()
             records.addAll(pollRecords)
-        } while (!pollRecords.isEmpty())
+        } while (pollRecords.isNotEmpty())
 
         log.debug("Subtle records: {}", records)
 

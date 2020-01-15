@@ -153,15 +153,15 @@ class MongoSinkTaskTest {
      * Mock a update record
      */
     private fun updateRecord(record: SinkRecord): SinkRecord {
-        val _id = ObjectId(record.key() as String)
+        val id = ObjectId(record.key() as String)
         // Modify the state key
         val doc = Document()
-            .append("_id", _id)
+            .append("_id", id)
             .append("state", -1)
             .append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
         val message = Struct(valueSchema)
-            .put("id", _id.toHexString())
-            .put("ts", _id.timestamp)
+            .put("id", id.toHexString())
+            .put("ts", id.timestamp)
             .put("inc", 1)
             .put("op", "u")
             .put("database", "t_${record.topic()}")
