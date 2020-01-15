@@ -6,12 +6,12 @@ import org.bson.Document
  * @author Xu Jingxin
  */
 object StructUtil {
-    fun getDB(message: Document): String {
-        return message["ns"] as String
+    fun getDB(oplog: Document): String {
+        return oplog["ns"] as String
     }
 
-    fun getTopic(message: Document, topicPrefix: String): String {
-        val db = getDB(message).replace(".", "_")
+    fun getTopic(oplog: Document, topicPrefix: String): String {
+        val db = getDB(oplog).replace(".", "_")
         return topicPrefix + "_" + db
     }
 }

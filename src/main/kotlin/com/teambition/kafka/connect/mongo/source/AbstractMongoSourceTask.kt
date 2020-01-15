@@ -9,6 +9,7 @@ import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.MON
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_NAME_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.SCHEMA_REGISTRY_URL_CONFIG
 import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.TOPIC_PREFIX_CONFIG
+import com.teambition.kafka.connect.mongo.source.MongoSourceConfig.Companion.USE_CHANGE_STREAMS
 import io.confluent.kafka.schemaregistry.client.rest.RestService
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
@@ -44,6 +45,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
     private var sleepTime = 50L
     private var maxSleepTime = 10000L
     private var analyzeSchema = false
+    protected var useChangeStreams = false
 
     override fun version(): String = MongoSourceConnector().version()
     protected var unrecoverable: Throwable? = null
@@ -61,6 +63,7 @@ abstract class AbstractMongoSourceTask : SourceTask() {
         uri = props[MONGO_URI_CONFIG] ?: throw Exception("Invalid config $MONGO_URI_CONFIG")
         databases = props.getValue(DATABASES_CONFIG).split(",").map(String::trim).dropLastWhile(String::isEmpty)
         analyzeSchema = (props[ANALYZE_SCHEMA_CONFIG] == "true")
+        useChangeStreams = (props[USE_CHANGE_STREAMS] == "true")
         MongoClientLoader.getClient(uri)
         if (analyzeSchema) {
             val schemaRegistryUrl = props[SCHEMA_REGISTRY_URL_CONFIG]
@@ -95,7 +98,6 @@ abstract class AbstractMongoSourceTask : SourceTask() {
 
     override fun poll(): List<SourceRecord> {
         unrecoverable?.let { throw it }
-        log.trace("Polling records")
         val records = mutableListOf<SourceRecord>()
         while (!messages.isEmpty() && records.size < batchSize) {
             val message = messages.poll()
@@ -140,33 +142,33 @@ abstract class AbstractMongoSourceTask : SourceTask() {
 
     /**
      * Build struct from document, whether in basic schema or analyzed schema
-     * @param message Document from mongodb
+     * @param oplog Document formatted as oplog
      * @return Struct
      */
-    private fun getStruct(message: Document): Struct {
+    private fun getStruct(oplog: Document): Struct {
         return if (analyzeSchema) {
-            SchemaMapper.getAnalyzedStruct(message, schemaName)
+            SchemaMapper.getAnalyzedStruct(oplog, schemaName)
         } else {
-            getBasicStruct(message)
+            getBasicStruct(oplog)
         }
     }
 
-    private fun getBasicStruct(message: Document): Struct {
-        val db = StructUtil.getDB(message).replace(".", "_")
+    private fun getBasicStruct(oplog: Document): Struct {
+        val db = StructUtil.getDB(oplog).replace(".", "_")
         val schema = schemas[db] ?: throw Exception("Can not find the schema of database $db")
         val struct = Struct(schema)
-        val bsonTimestamp = message["ts"] as BsonTimestamp
-        val body = message["o"] as Document
+        val bsonTimestamp = oplog["ts"] as BsonTimestamp
+        val body = oplog["o"] as Document
         val id = (body["_id"] as ObjectId).toString()
         struct.put("ts", bsonTimestamp.time)
         struct.put("inc", bsonTimestamp.inc)
         struct.put("id", id)
         struct.put("database", db)
-        struct.put("op", message["op"])
-        if (message["op"].toString() == "d") {
+        struct.put("op", oplog["op"])
+        if (oplog["op"].toString() == "d") {
             struct.put("object", null)
         } else {
-            struct.put("object", (message["o"] as Document).toJson())
+            struct.put("object", (oplog["o"] as Document).toJson())
         }
         return struct
     }

@@ -18,9 +18,9 @@ import java.util.*
 object SchemaMapper {
     private val log = LoggerFactory.getLogger(SchemaMapper::class.java)
 
-    fun getAnalyzedStruct(message: Document, schemaPrefix: String): Struct {
-        val ns = message["ns"] as String
-        val body = transformBody(message["o"] as Document)
+    fun getAnalyzedStruct(oplog: Document, schemaPrefix: String): Struct {
+        val ns = oplog["ns"] as String
+        val body = transformBody(oplog["o"] as Document)
         val schemaName = ns
             .replace(".", "_")
             .let { schemaPrefix + "_" + it }
@@ -32,7 +32,7 @@ object SchemaMapper {
             .parameter("table", getTable(ns))
             .let { analyze(it, body) }
             .let { maybeUpdateSchema(oldSchema, it) }
-        return Struct(schema).let { fillinFields(it, message, body) }
+        return Struct(schema).let { fillinFields(it, oplog, body) }
     }
 
     /**

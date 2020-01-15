@@ -28,7 +28,7 @@ class MongoExportSourceTask : AbstractMongoSourceTask() {
             val startOffset =
                 if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
 
-            val start = if (startOffset != null) MongoSourceOffset(startOffset) else MongoSourceOffset()
+            val start = if (startOffset != null) MongoSourceOffset(startOffset, db) else MongoSourceOffset()
             val reader = ExportReader(uri, db, start, messages, additionalFilter)
             exportReaders[db] = reader
             thread {

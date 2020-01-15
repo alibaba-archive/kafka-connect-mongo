@@ -19,6 +19,7 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, pro
         const val ANALYZE_SCHEMA_CONFIG = "analyze.schema"
         const val SCHEMA_REGISTRY_URL_CONFIG = "schema.registry.url"
         const val ADDITIONAL_FILTER = "additional.filter"
+        const val USE_CHANGE_STREAMS = "use.change.streams"
 
         var config: ConfigDef = ConfigDef()
             .define(
@@ -78,6 +79,13 @@ class MongoSourceConfig(props: Map<String, String>) : AbstractConfig(config, pro
                 "",
                 Importance.LOW,
                 "Add filters when exporting data from mongodb"
+            )
+            .define(
+                USE_CHANGE_STREAMS,
+                Type.STRING,
+                "false",
+                Importance.LOW,
+                "Subscribe to change streams instead of oplog"
             )
     }
 }

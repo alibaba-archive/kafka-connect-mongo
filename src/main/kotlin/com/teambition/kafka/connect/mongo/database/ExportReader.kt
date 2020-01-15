@@ -70,14 +70,13 @@ class ExportReader(
         val opDoc = Document()
         opDoc["ts"] = BsonTimestamp((Date().time / 1000).toInt(), 0)
         opDoc["ns"] = db
-        opDoc["initialImport"] = true
         opDoc["op"] = "i"  // Treat as insertion
         opDoc["o"] = doc
         return opDoc
     }
 
     private fun convertToMessage(oplog: Document) = Message(
-        MongoSourceOffset(oplog),
+        getOffset(oplog),
         oplog
     )
 
@@ -94,4 +93,6 @@ class ExportReader(
                 )
             )
         )
+
+    private fun getOffset(oplog: Document) = MongoSourceOffset(oplog).also { it.finishedImport = false }
 }

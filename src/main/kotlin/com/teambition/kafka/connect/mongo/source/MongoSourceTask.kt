@@ -1,5 +1,6 @@
 package com.teambition.kafka.connect.mongo.source
 
+import com.teambition.kafka.connect.mongo.database.ChangeStreamsReader
 import com.teambition.kafka.connect.mongo.database.ExportReader
 import com.teambition.kafka.connect.mongo.database.OplogReader
 import com.teambition.kafka.connect.mongo.utils.TaskUtil
@@ -20,12 +21,16 @@ class MongoSourceTask : AbstractMongoSourceTask() {
                 val recordedOffset = context.offsetStorageReader().offset(partition)
                 val startOffset =
                     if (!(recordedOffset == null || recordedOffset.isEmpty())) recordedOffset[db] as String else null
-                val start = if (startOffset != null) MongoSourceOffset(startOffset) else MongoSourceOffset()
+                val start = if (startOffset != null) MongoSourceOffset(startOffset, db) else MongoSourceOffset()
                 thread {
                     if (!start.finishedImport && initialImport) {
                         ExportReader(uri, db, start, messages).run()
                     }
-                    OplogReader(uri, db, start, messages).run()
+                    if (useChangeStreams) {
+                        ChangeStreamsReader(uri, db, start, messages).run()
+                    } else {
+                        OplogReader(uri, db, start, messages).run()
+                    }
                 }.also {
                     it.uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e -> this.unrecoverable = e }
                 }
