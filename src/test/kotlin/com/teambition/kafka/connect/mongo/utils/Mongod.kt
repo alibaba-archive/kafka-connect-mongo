@@ -11,9 +11,7 @@ import de.flapdoodle.embed.mongo.config.Net
 import de.flapdoodle.embed.mongo.config.Storage
 import de.flapdoodle.embed.mongo.distribution.Version
 import de.flapdoodle.embed.process.runtime.Network
-import org.apache.commons.io.FileUtils
 import java.io.File
-import java.lang.Exception
 
 /**
  * @author Xu Jingxin
@@ -67,7 +65,7 @@ class Mongod {
         } catch (e: Exception) {
             // Ignore exception
         } finally {
-            FileUtils.deleteDirectory(File(tmpFile))
+            File(tmpFile).deleteRecursively()
         }
     }
 

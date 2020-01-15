@@ -199,10 +199,11 @@ class MongoSourceTaskTest {
         // Check for the received count
         val totalCount = max(Random().nextInt(200), 101)
         log.debug("Bulk insert count: {}", totalCount)
-        bulkInsert(totalCount)
         task!!.start(sourceProperties)
 
-        Thread.sleep(2000)
+        Thread.sleep(1000)  // Wait for task started
+        bulkInsert(totalCount)
+        Thread.sleep(1000)
         val records = ArrayList<SourceRecord>()
         var pollRecords: List<SourceRecord>
         do {

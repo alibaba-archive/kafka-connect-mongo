@@ -62,7 +62,7 @@ class MongoSourceOffset() {
     }
 
     var dbColl = ""
-    var ts = BsonTimestamp(0, 0)
+    var ts = BsonTimestamp((Date().time / 1000).toInt(), 0)
     var objectId = ObjectId("000000000000000000000000")
     var resumeToken: BsonDocument? = null
     var finishedImport = true
