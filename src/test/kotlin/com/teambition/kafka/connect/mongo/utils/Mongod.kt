@@ -61,9 +61,9 @@ class Mongod {
         try {
             client.close()
             process.stop()
-            executable.stop()
         } catch (e: Exception) {
             // Ignore exception
+            Thread.sleep(2000)
         } finally {
             File(tmpFile).deleteRecursively()
         }
