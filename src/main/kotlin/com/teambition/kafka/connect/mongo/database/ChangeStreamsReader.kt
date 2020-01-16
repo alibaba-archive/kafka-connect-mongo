@@ -82,7 +82,7 @@ class ChangeStreamsReader(
     }
 
     private fun getOffset(oplog: Document, resumeToken: BsonDocument) =
-        MongoSourceOffset(oplog).also {
+        MongoSourceOffset(oplog, true).also {
             it.resumeToken = resumeToken
         }
 }

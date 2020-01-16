@@ -144,7 +144,7 @@ class OplogReader(
         )
 
     private fun convertToMessage(oplog: Document) = Message(
-        MongoSourceOffset(oplog),
+        MongoSourceOffset(oplog, true),
         oplog
     )
 }

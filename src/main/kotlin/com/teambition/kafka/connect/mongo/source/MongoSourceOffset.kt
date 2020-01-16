@@ -45,6 +45,7 @@ class MongoSourceOffset() {
                     null
                 }
             }
+            finishedImport = true
         } else {
             // Initial import
             objectId = if (pieces.size > 2) ObjectId(pieces[2]) else objectId
@@ -56,16 +57,17 @@ class MongoSourceOffset() {
      * Must wait for finished initial import then read from oplog
      * @param oplog Document with the format of oplog
      */
-    constructor(oplog: Document) : this() {
+    constructor(oplog: Document, finishedImport: Boolean) : this() {
         ts = oplog["ts"] as BsonTimestamp
         dbColl = oplog["ns"] as String
+        this.finishedImport = finishedImport
     }
 
     var dbColl = ""
     var ts = BsonTimestamp((Date().time / 1000).toInt(), 0)
     var objectId = ObjectId("000000000000000000000000")
     var resumeToken: BsonDocument? = null
-    var finishedImport = true
+    var finishedImport = false
 
     /**
      * Start from current time will skip a lot of redundant scan on oplog

@@ -94,5 +94,5 @@ class ExportReader(
             )
         )
 
-    private fun getOffset(oplog: Document) = MongoSourceOffset(oplog).also { it.finishedImport = false }
+    private fun getOffset(oplog: Document) = MongoSourceOffset(oplog, false)
 }
