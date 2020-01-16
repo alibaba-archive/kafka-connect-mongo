@@ -71,11 +71,13 @@ class MongoSourceOffset() {
      * Start from current time will skip a lot of redundant scan on oplog
      * Format: LATEST_TIMESTAMP,INC,OBJECT_ID,FINISH_IMPORT
      */
-    override fun toString(): String {
-        if (resumeToken != null) return "${ts.time},${ts.inc},cs:${resumeToken!!.toJson()}"
-        val finishedFlag = if (finishedImport) 1 else 0
-        return "${ts.time},${ts.inc},$objectId,$finishedFlag"
-    }
+    override fun toString(): String =
+        resumeToken?.let {
+            "${ts.time},${ts.inc},cs:${it.toJson()}"
+        } ?: let {
+            val finishedFlag = if (finishedImport) 1 else 0
+            "${ts.time},${ts.inc},$objectId,$finishedFlag"
+        }
 
     // To real offset used in kafka
     fun toOffset(): Map<String, String> {
