@@ -35,15 +35,29 @@ class ChangeStreamsReader(
         if (resumeToken != null) {
             watch.resumeAfter(resumeToken)
         }
+        var count = 0
         for (doc in watch) {
             val oplog = formatAsOplog(doc)
             if (oplog != null) {
+                count += 1
                 messages.add(
                     Message(
                         getOffset(oplog, doc.resumeToken),
                         oplog
                     )
                 )
+                while (messages.size > 2000) {
+                    Thread.sleep(1000)
+                }
+                if (count % 1000 == 0) {
+                    log.info(
+                        "Read database {}, docs {}, messages {}, memory usage {}",
+                        db,
+                        count,
+                        messages.size,
+                        Runtime.getRuntime().totalMemory()
+                    )
+                }
             }
         }
     }
