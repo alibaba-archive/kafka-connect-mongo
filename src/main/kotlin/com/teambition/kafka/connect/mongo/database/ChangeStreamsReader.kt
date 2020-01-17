@@ -26,15 +26,12 @@ class ChangeStreamsReader(
     }
 
     fun run() {
-        val resumeToken = start.resumeToken
-        log.info("Start change streams reader for db: {}, start from: {}", db, resumeToken)
+        log.info("Start change streams reader for db: {}, start from: {}", db, start)
         val (db, coll) = db.split(".")
         val mongoDatabase = MongoClientLoader.getClient(uri).getDatabase(db)
         val collection = mongoDatabase.getCollection(coll)
         val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
-        if (resumeToken != null) {
-            watch.resumeAfter(resumeToken)
-        }
+        start.resumeToken?.let { watch.resumeAfter(it) }
         var count = 0
         for (doc in watch) {
             val oplog = formatAsOplog(doc)
