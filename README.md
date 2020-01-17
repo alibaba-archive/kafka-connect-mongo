@@ -44,6 +44,7 @@ batch.size=100
 schema.name=mongo_local_schema
 topic.prefix=mongo_local
 databases=test.users
+use.change.streams=false  # If your mongodb version is greater than 3.6, it is recommended to subscribe to change streams instead of oplog.
 # If this option is set to true, source connector will analyze the schema from real document type and mapping them to the top level schema types
 # WARNING: mongo connector interprets the schema from the structure of document, so it can not ensure the schema always stay consist. 
 # If you met an `Schema being registered is incompatible with an earlier schema` error given by schema registry, please set the `avro.compatibility.level` option of schema registry to `none` 
