@@ -60,7 +60,6 @@ dependencies {
         exclude module: 'kafka_2.11'
     }
     testCompile "org.apache.kafka:kafka_2.11:$kafka_version"
-    testCompile 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.2.0'
 }
 
 tasks.withType(Tar) {

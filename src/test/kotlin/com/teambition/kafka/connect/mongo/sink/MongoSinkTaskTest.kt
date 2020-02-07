@@ -1,6 +1,8 @@
 package com.teambition.kafka.connect.mongo.sink
 
 import com.google.common.truth.Truth.assertThat
+import com.mongodb.MongoClient
+import com.mongodb.MongoClientURI
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.utils.Mongod
 import org.apache.commons.lang.RandomStringUtils
@@ -33,6 +35,7 @@ class MongoSinkTaskTest {
         .field("op", Schema.OPTIONAL_STRING_SCHEMA)
         .field("object", Schema.OPTIONAL_STRING_SCHEMA).build()
     private var offset = 0L
+    private lateinit var client: MongoClient
 
     @Before
     fun setUp() {
@@ -40,14 +43,16 @@ class MongoSinkTaskTest {
         taskContext = PowerMock.createMock(SinkTaskContext::class.java)
         task!!.initialize(taskContext)
 
-        mongod.start()
+        mongod.initialize()
+        client = MongoClient(MongoClientURI(mongod.uri))
 
         MongoClientLoader.getClient("mongodb://localhost:12345", reconnect = true)
     }
 
     @After
     fun tearDown() {
-        mongod.stop()
+        client.dropDatabase("t")
+        client.close()
     }
 
     @Test
@@ -78,7 +83,7 @@ class MongoSinkTaskTest {
         }
 
         // Verify messages in mongodb
-        val documents = mongod.getDatabase("t").getCollection("a").find()
+        val documents = client.getDatabase("t").getCollection("a").find()
         documents.forEach {
             assertThat(it.keys).containsAllOf("_id", "state")
             assertThat(it["state"]).isInstanceOf(Int::class.javaObjectType)
@@ -107,7 +112,7 @@ class MongoSinkTaskTest {
 
         task!!.put(listOf(r1, r2, r3, r4))
 
-        val documents = mongod.getDatabase("t").getCollection("a").find()
+        val documents = client.getDatabase("t").getCollection("a").find()
         assertThat(documents.count()).isEqualTo(1)
         val doc1 = documents.first()!!
         assertThat(doc1["_id"].toString()).isEqualTo(r1.key())
@@ -117,7 +122,7 @@ class MongoSinkTaskTest {
     }
 
     private fun countAll(topics: List<String>): Int {
-        val db = mongod.getDatabase("t")
+        val db = client.getDatabase("t")
         return topics.sumBy {
             db.getCollection(it).countDocuments().toInt()
         }

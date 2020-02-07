@@ -1,0 +1,11 @@
+version: '2'
+services:
+  mongo_test:
+    image: mongo:4.0
+    command: mongod --replSet rs0 --port 12345
+    ports:
+      - 12345:12345
+  redis_test:
+    image: redis:alpine
+    ports:
+      - 12346:6379

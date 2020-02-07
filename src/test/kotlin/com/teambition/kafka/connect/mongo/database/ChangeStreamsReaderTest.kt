@@ -1,6 +1,8 @@
 package com.teambition.kafka.connect.mongo.database
 
 import com.google.common.truth.Truth.assertThat
+import com.mongodb.MongoClient
+import com.mongodb.MongoClientURI
 import com.mongodb.client.model.Filters
 import com.teambition.kafka.connect.mongo.source.Message
 import com.teambition.kafka.connect.mongo.source.MongoSourceOffset
@@ -20,16 +22,21 @@ import kotlin.concurrent.thread
 class ChangeStreamsReaderTest {
 
     private val mongod = Mongod()
+    private lateinit var client: MongoClient
+    private val mydb = "mydb"
 
     @Before
     fun setUp() {
-        val db = mongod.start().getDatabase("mydb")
+        mongod.initialize()
+        client = MongoClient(MongoClientURI(mongod.uri))
+        val db = client.getDatabase(mydb)
         db.createCollection("mycoll")
     }
 
     @After
     fun tearDown() {
-        mongod.stop()
+        client.dropDatabase(mydb)
+        client.close()
     }
 
     @Test
@@ -39,7 +46,7 @@ class ChangeStreamsReaderTest {
         val offset = MongoSourceOffset()
         thread { ChangeStreamsReader(mongod.uri, "mydb.mycoll", offset, m1).run() }
         Thread.sleep(1000)
-        val collection = mongod.getDatabase("mydb").getCollection("mycoll")
+        val collection = client.getDatabase(mydb).getCollection("mycoll")
         // Check insert and update
         collection.insertOne(Document("action", 1))
         collection.updateOne(

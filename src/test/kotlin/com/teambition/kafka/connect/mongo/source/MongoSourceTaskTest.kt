@@ -2,6 +2,8 @@ package com.teambition.kafka.connect.mongo.source
 
 import com.google.common.truth.Truth.assertThat
 import com.mongodb.BasicDBObject
+import com.mongodb.MongoClient
+import com.mongodb.MongoClientURI
 import com.mongodb.client.model.Filters
 import com.teambition.kafka.connect.mongo.database.MongoClientLoader
 import com.teambition.kafka.connect.mongo.utils.Mongod
@@ -33,7 +35,7 @@ class MongoSourceTaskTest {
 
     companion object {
         private val log = LoggerFactory.getLogger(MongoSourceTaskTest::class.java)
-        private val collections = Mongod.collections
+        private val collections = arrayOf("test1", "test2", "test3")
         private const val mydb = "mydb"
     }
 
@@ -42,10 +44,13 @@ class MongoSourceTaskTest {
     private var offsetStorageReader: OffsetStorageReader? = null
     private var sourceProperties = mutableMapOf<String, String>()
     private val mongod = Mongod()
+    private lateinit var client: MongoClient
 
     @Before
     fun setUp() {
-        val db = mongod.start().getDatabase(mydb)
+        mongod.initialize()
+        client = MongoClient(MongoClientURI(mongod.uri))
+        val db = client.getDatabase(mydb)
         collections.forEach { db.createCollection(it) }
 
         task = MongoSourceTask()
@@ -65,7 +70,8 @@ class MongoSourceTaskTest {
 
     @After
     fun tearDown() {
-        mongod.stop()
+        client.dropDatabase(mydb)
+        client.close()
     }
 
     @Test
@@ -142,7 +148,7 @@ class MongoSourceTaskTest {
      * Insert documents on random collections
      */
     private fun bulkInsert(totalNumber: Int) {
-        val db = mongod.getDatabase(mydb)
+        val db = client.getDatabase(mydb)
         for (i in 0 until totalNumber) {
             val newDocument =
                 Document().append(RandomStringUtils.random(Random().nextInt(100), true, false), Random().nextInt())
@@ -159,7 +165,7 @@ class MongoSourceTaskTest {
      * One delete
      */
     private fun subtleInsert() {
-        val db = mongod.getDatabase(mydb)
+        val db = client.getDatabase(mydb)
         val doc1 = Document().append("text", "doc1")
         val doc2 = Document().append("text", "doc2")
 

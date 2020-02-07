@@ -3,73 +3,43 @@ package com.teambition.kafka.connect.mongo.utils
 import com.mongodb.BasicDBObject
 import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
-import com.mongodb.client.MongoDatabase
-import de.flapdoodle.embed.mongo.MongodProcess
-import de.flapdoodle.embed.mongo.MongodStarter
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder
-import de.flapdoodle.embed.mongo.config.Net
-import de.flapdoodle.embed.mongo.config.Storage
-import de.flapdoodle.embed.mongo.distribution.Version
-import de.flapdoodle.embed.process.runtime.Network
-import java.io.File
+import com.mongodb.MongoCommandException
 
 /**
  * @author Xu Jingxin
  * Get client of embedded mongodb
  */
 class Mongod {
-    companion object {
-        val collections = arrayOf("test1", "test2", "test3")
-    }
-
     private val port = 12345
-    val uri = "mongodb://localhost:$port"
+    val uri = "mongodb://127.0.0.1:$port"
 
-    private val tmpFile = "tmp"
-    private val starter = MongodStarter.getDefaultInstance()
-    private val config = MongodConfigBuilder()
-        .version(Version.Main.V3_6)
-        .replication(Storage(tmpFile, "rs0", 1024))
-        .net(Net(port, Network.localhostIsIPv6()))
-        .build()
-    private val executable = starter.prepare(config)
-    private lateinit var process: MongodProcess
-    private lateinit var client: MongoClient
-
-    fun start(): Mongod {
-        process = executable.start()
-        client = MongoClient(MongoClientURI(uri))
+    fun initialize(): Mongod {
+        val client = MongoClient(MongoClientURI(uri))
         val admin = client.getDatabase("admin")
-        val config = mapOf<Any, Any>(
-            "replSetInitiate" to mapOf(
-                "_id" to "rs0",
-                "members" to listOf(
-                    mapOf(
-                        "_id" to 0,
-                        "host" to "127.0.0.1:$port"
+        try {
+            val statusCMD = mapOf<Any, Any>(
+                "replSetGetStatus" to 1,
+                "initialSync" to 1
+            )
+            admin.runCommand(BasicDBObject(statusCMD))
+        } catch (e: MongoCommandException) {
+            // Has not initalized
+            val config = mapOf<Any, Any>(
+                "replSetInitiate" to mapOf(
+                    "_id" to "rs0",
+                    "members" to listOf(
+                        mapOf(
+                            "_id" to 0,
+                            "host" to "127.0.0.1:$port"
+                        )
                     )
                 )
             )
-        )
-        admin.runCommand(BasicDBObject(config))
-        Thread.sleep(3000)  // Wait for master election
-
-        return this
-    }
-
-    fun stop() {
-        try {
-            client.close()
-            process.stop()
-        } catch (e: Exception) {
-            // Ignore exception
-            Thread.sleep(2000)
+            admin.runCommand(BasicDBObject(config))
+            Thread.sleep(1000)  // Wait for master election
         } finally {
-            File(tmpFile).deleteRecursively()
+            client.close()
+            return this
         }
-    }
-
-    fun getDatabase(db: String): MongoDatabase {
-        return client.getDatabase(db)
     }
 }
