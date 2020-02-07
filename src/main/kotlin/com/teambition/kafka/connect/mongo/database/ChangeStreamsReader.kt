@@ -38,14 +38,10 @@ class ChangeStreamsReader(
             watch.forEach(this::handleOps)
         } catch (e: MongoCommandException) {
             log.error(e.message)
-            if (e.errorCode == 260) {
-                log.warn("Resume from timestamp {}", start.ts)
-                val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
-                    .startAtOperationTime(start.ts)
-                watch.forEach(this::handleOps)
-            } else {
-                throw e
-            }
+            log.warn("Resume from timestamp {}", start.ts)
+            val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
+                .startAtOperationTime(start.ts)
+            watch.forEach(this::handleOps)
         }
     }
 
