@@ -1,5 +1,6 @@
 package com.teambition.kafka.connect.mongo.database
 
+import com.mongodb.MongoCommandException
 import com.mongodb.client.model.changestream.ChangeStreamDocument
 import com.mongodb.client.model.changestream.FullDocument
 import com.mongodb.client.model.changestream.OperationType
@@ -30,31 +31,41 @@ class ChangeStreamsReader(
         val (db, coll) = db.split(".")
         val mongoDatabase = MongoClientLoader.getClient(uri).getDatabase(db)
         val collection = mongoDatabase.getCollection(coll)
-        val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
-        start.resumeToken?.let { watch.resumeAfter(it) }
-        var count = 0
-        for (doc in watch) {
-            val oplog = formatAsOplog(doc)
-            if (oplog != null) {
-                count += 1
-                messages.add(
-                    Message(
-                        getOffset(oplog, doc.resumeToken),
-                        oplog
-                    )
+
+        try {
+            val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
+            start.resumeToken?.let { watch.resumeAfter(it) }
+            watch.forEach(this::handleOps)
+        } catch (e: MongoCommandException) {
+            log.error(e.message)
+            if (e.errorCode == 260) {
+                log.warn("Resume from timestamp {}", start.ts)
+                val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
+                    .startAtOperationTime(start.ts)
+                watch.forEach(this::handleOps)
+            } else {
+                throw e
+            }
+        }
+    }
+
+    private fun handleOps(doc: ChangeStreamDocument<Document>) {
+        val oplog = formatAsOplog(doc)
+        if (oplog != null) {
+            messages.add(
+                Message(
+                    getOffset(oplog, doc.resumeToken),
+                    oplog
                 )
-                while (messages.size > 2000) {
-                    Thread.sleep(1000)
-                }
-                if (count % 1000 == 0) {
-                    log.info(
-                        "Read database {}, docs {}, messages {}, memory usage {}",
-                        db,
-                        count,
-                        messages.size,
-                        Runtime.getRuntime().totalMemory()
-                    )
-                }
+            )
+            while (messages.size > 2000) {
+                log.info(
+                    "Read database {}, messages queue size {}, memory usage {}",
+                    db,
+                    messages.size,
+                    Runtime.getRuntime().totalMemory()
+                )
+                Thread.sleep(1000)
             }
         }
     }

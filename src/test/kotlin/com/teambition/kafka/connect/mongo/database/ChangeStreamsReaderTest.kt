@@ -7,6 +7,7 @@ import com.mongodb.client.model.Filters
 import com.teambition.kafka.connect.mongo.source.Message
 import com.teambition.kafka.connect.mongo.source.MongoSourceOffset
 import com.teambition.kafka.connect.mongo.utils.Mongod
+import org.bson.BsonString
 import org.bson.BsonTimestamp
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -84,6 +85,21 @@ class ChangeStreamsReaderTest {
         assertThat(delete.oplog["ns"]).isEqualTo("mydb.mycoll")
         assertThat(delete.oplog["op"]).isEqualTo("d")
         assertThat((delete.oplog["o"] as Document)["_id"]).isInstanceOf(ObjectId::class.java)
+
+        // Read with last timestamp
+        val m3 = ConcurrentLinkedQueue<Message>()
+        // Change to a non-exist resume token
+        delete.offset.resumeToken!!["_data"] =
+            BsonString("825E3CE25D000000012B022C0100296E5A100487FE456CA60A4DE8BE6B04D89910D45F46645F696400645E3CE25D026E0076836EC8610004")
+        val offset3 = MongoSourceOffset(delete.offset.toString(), delete.offset.dbColl)
+        thread { ChangeStreamsReader(mongod.uri, "mydb.mycoll", offset3, m3).run() }
+        Thread.sleep(1000)
+        collection.insertOne(Document("action", 2))
+        Thread.sleep(1000)
+        // Resume delete and insert action, changestreams started with timestamp will resume with ts: {$gte: Timestamp()}
+        assertThat(m3).hasSize(2)
+        val insert2 = m3.elementAt(1)
+        assertThat((insert2.oplog["o"] as Document)["action"]).isEqualTo(2)
     }
 }
 
