@@ -35,7 +35,7 @@ class ChangeStreamsReader(
         try {
             val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
             start.resumeToken?.let { watch.resumeAfter(it) }
-            watch.forEach(this::handleOps)
+            watch.forEach(this::handleRecord)
         } catch (e: MongoCommandException) {
             // Dead resume token
             log.error(e.message)
@@ -43,18 +43,18 @@ class ChangeStreamsReader(
             try {
                 val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
                     .startAtOperationTime(start.ts)
-                watch.forEach(this::handleOps)
+                watch.forEach(this::handleRecord)
             } catch (e: MongoCommandException) {
                 // Too early timestamp
                 log.error(e.message)
                 log.warn("Resume from current timestamp {}", Date().time)
                 val watch = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
-                watch.forEach(this::handleOps)
+                watch.forEach(this::handleRecord)
             }
         }
     }
 
-    private fun handleOps(doc: ChangeStreamDocument<Document>) {
+    private fun handleRecord(doc: ChangeStreamDocument<Document>) {
         val oplog = formatAsOplog(doc)
         if (oplog != null) {
             messages.add(
